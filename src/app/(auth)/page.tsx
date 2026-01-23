@@ -1,5 +1,5 @@
 'use client'
-import { LoginForm } from "@/components/login-form";
+import { LoginForm } from "@/components/auth/login-form";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { redirect } from "next/navigation";
