@@ -1,15 +1,15 @@
 'use client'
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase";
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { Input } from "./ui/input";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
     Field,
     FieldGroup,
     FieldLabel,
   } from "@/components/ui/field"
 import { useState } from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export function ResetPasswordForm({
