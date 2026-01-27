@@ -2,12 +2,12 @@ version: "3.9"
 
 services:
   web:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/login-whitelabel:${APP_VERSION}
     container_name: login-whitelabel
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     restart: unless-stopped

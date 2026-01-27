@@ -1,0 +1,46 @@
+name: Build & Deploy to Windows Server
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set app version from git tag
+        shell: powershell
+        run: |
+          echo "APP_VERSION=${{ github.ref_name }}" >> $env:GITHUB_ENV
+
+      - name: Login to Docker Hub
+        shell: powershell
+        run: |
+          docker login `
+            -u "${{ secrets.DOCKERHUB_USERNAME }}" `
+            -p "${{ secrets.DOCKERHUB_TOKEN }}"
+
+      - name: Build & push Docker image
+        shell: powershell
+        run: |
+          docker build `
+            -f docker/Dockerfile `
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/login-whitelabel:${{ env.APP_VERSION }} `
+            .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/login-whitelabel:${{ env.APP_VERSION }}
+
+      - name: Deploy container
+        shell: powershell
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          cd docker
+          docker compose pull
+          docker compose up -d
