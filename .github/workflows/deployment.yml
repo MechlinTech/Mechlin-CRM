@@ -2,8 +2,9 @@ name: Build & Deploy to Windows Server
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -13,10 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set app version from git tag
+      - name: Set image tag (short commit SHA)
         shell: powershell
         run: |
-          echo "APP_VERSION=${{ github.ref_name }}" >> $env:GITHUB_ENV
+          $sha = "${{ github.sha }}".Substring(0,7)
+          Add-Content $env:GITHUB_ENV "APP_VERSION=$sha"
 
       - name: Login to Docker Hub
         shell: powershell
