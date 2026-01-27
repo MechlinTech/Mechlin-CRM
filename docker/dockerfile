@@ -1,25 +1,35 @@
 # -------- Base image --------
-FROM node:20-alpine AS base
+FROM node:20-bullseye AS base
 WORKDIR /app
 
 # -------- Dependencies --------
 FROM base AS deps
+# Copy package files and install dependencies
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# -------- Build --------
+# -------- Build stage --------
 FROM base AS builder
+# Copy installed node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+# Copy the rest of the app
 COPY . .
+
+# Pass Supabase env variables at build time
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Build the Next.js app
 RUN npm run build
 
-# -------- Production runner --------
-FROM node:20-alpine AS runner
+# -------- Production stage --------
+FROM node:20-bullseye AS runner
 WORKDIR /app
-
 ENV NODE_ENV=production
 
-# Only copy what we need to run the app
+# Copy only the files needed to run the app
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
@@ -28,4 +38,5 @@ COPY --from=builder /app/next.config.* ./
 
 EXPOSE 3000
 
+# Start the Next.js app
 CMD ["npm", "run", "start"]
