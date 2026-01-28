@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { getAllOrganisations, createOrganisation, updateOrganisation, deleteOrganisation } from "@/data/organisations"
+import { getAllUsers, createUser, updateUser, deleteUser } from "@/data/users"
+
 
 // Organisation type - represents the full organisation record from the database
 export type Organisation = {
@@ -52,5 +54,64 @@ export async function deleteOrganisationAction(id: string) {
         return { success: false, error: error.message, code: error.code }
     }
     revalidatePath("/organisations")
+    return { success: true }
+}
+
+
+
+// User type - represents the full user record from the database
+export type User = {
+    id: string
+    organisation_id: string
+    name: string
+    email: string
+    status: "active" | "suspended"
+    created_at: string
+    updated_at: string
+    organisations?: {
+        name: string
+    }
+}
+
+// Input type for creating a new user (only manual fields)
+export type CreateUserInput = {
+    organisation_id: string
+    name: string
+    email: string
+    status: "active" | "suspended"
+}
+
+export async function getAllUsersAction() {
+    const { data, error } = await getAllUsers()
+    if (error) {
+        return { success: false, error: error.message, code: error.code }
+    }
+    return { success: true, users: data }
+}
+
+export async function createUserAction(userData: CreateUserInput) {
+    const { error } = await createUser(userData)
+    if (error) {
+        return { success: false, error: error.message, code: error.code }
+    }
+    revalidatePath("/users")
+    return { success: true }
+}
+
+export async function updateUserAction(id: string, userData: CreateUserInput) {
+    const { error } = await updateUser(id, userData)
+    if (error) {
+        return { success: false, error: error.message, code: error.code }
+    }
+    revalidatePath("/users")
+    return { success: true }
+}
+
+export async function deleteUserAction(id: string) {
+    const { error } = await deleteUser(id)
+    if (error) {
+        return { success: false, error: error.message, code: error.code }
+    }
+    revalidatePath("/users")
     return { success: true }
 }
