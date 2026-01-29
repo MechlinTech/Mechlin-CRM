@@ -68,12 +68,6 @@ function EscalationContactsField({ value, onChange, organisationId }: {
     }
   }
 
-  const updateContact = (index: number, field: keyof EscalationContact, fieldValue: string) => {
-    const updatedContacts = [...value]
-    updatedContacts[index] = { ...updatedContacts[index], [field]: fieldValue }
-    onChange(updatedContacts)
-  }
-
   const removeContact = (index: number) => {
     onChange(value.filter((_, i) => i !== index))
   }
@@ -115,42 +109,21 @@ function EscalationContactsField({ value, onChange, organisationId }: {
             Current Escalation Contacts
           </FormLabel>
           {value.map((contact, index) => (
-            <div key={index} className="grid grid-cols-4 gap-2">
-              <div className="col-span-1">
-                <Input
-                  placeholder="Name"
-                  value={contact.name}
-                  onChange={(e) => updateContact(index, 'name', e.target.value)}
-                  className="w-full"
-                />
+            <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+              <div className="flex-1">
+                <div className="text-sm font-medium">{contact.name}</div>
+                <div className="text-sm text-gray-600">{contact.email}</div>
+                {contact.phone && <div className="text-sm text-gray-600">{contact.phone}</div>}
               </div>
-              <div className="col-span-1">
-                <Input
-                  placeholder="Email"
-                  value={contact.email}
-                  onChange={(e) => updateContact(index, 'email', e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div className="col-span-1">
-                <Input
-                  placeholder="Phone (optional)"
-                  value={contact.phone || ""}
-                  onChange={(e) => updateContact(index, 'phone', e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div className="col-span-1">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => removeContact(index)}
-                  className="w-full"
-                >
-                  Remove
-                </Button>
-              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={() => removeContact(index)}
+                className="ml-4"
+              >
+                Remove
+              </Button>
             </div>
           ))}
         </div>
