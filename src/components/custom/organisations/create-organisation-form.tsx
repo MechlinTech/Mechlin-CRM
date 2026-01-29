@@ -57,10 +57,6 @@ function EscalationContactsField({ value, onChange, organisationId }: {
     fetchUsers()
   }, [organisationId])
 
-  const addContact = () => {
-    // Manual contact addition removed - only user selection allowed
-  }
-
   const addUserContact = (userId: string) => {
     const user = users.find(u => u.id === userId)
     if (user && !value.some(contact => contact.email === user.email)) {

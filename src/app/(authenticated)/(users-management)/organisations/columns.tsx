@@ -29,6 +29,52 @@ import { CreateOrganisationForm } from "@/components/custom/organisations/create
 import { useState } from "react"
 import { formatDate } from "@/lib/utils"
 
+// Component for actions cell to properly handle React hooks
+const ActionsCell = ({ organisation }: { organisation: Organisation }) => {
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem
+            onClick={() => setEditDialogOpen(true)}
+          >
+            Edit Organisation
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => deleteOrganisationAction(organisation.id)}
+          >
+            Delete Organisation
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Organisation</DialogTitle>
+            <DialogDescription>
+              Update the organisation details below.
+            </DialogDescription>
+          </DialogHeader>
+          <CreateOrganisationForm 
+            organisation={organisation}
+            onSuccess={() => setEditDialogOpen(false)} 
+          />
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
+
 // Helper function to get primary contact display
 const getPrimaryContact = (escalationContacts: EscalationContact[]) => {
   if (!escalationContacts || escalationContacts.length === 0) return "No contacts"
@@ -111,48 +157,7 @@ export const columns: ColumnDef<Organisation>[] = [
     id: "actions",
     cell: ({ row }) => {
       const organisation = row.original
-      const [editDialogOpen, setEditDialogOpen] = useState(false)
- 
-      return (
-        <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => setEditDialogOpen(true)}
-              >
-                Edit Organisation
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => deleteOrganisationAction(organisation.id)}
-              >
-                Delete Organisation
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Organisation</DialogTitle>
-                <DialogDescription>
-                  Update the organisation details below.
-                </DialogDescription>
-              </DialogHeader>
-              <CreateOrganisationForm 
-                organisation={organisation}
-                onSuccess={() => setEditDialogOpen(false)} 
-              />
-            </DialogContent>
-          </Dialog>
-        </>
-      )
+      return <ActionsCell organisation={organisation} />
     },
   },
 ]
