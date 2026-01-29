@@ -6,7 +6,10 @@ export async function getAllOrganisations() {
 }
 
 export async function createOrganisation(data: CreateOrganisationInput) {
-    return await supabase.from("organisations").insert(data).select().single()
+    return await supabase.from("organisations").insert({
+        ...data,
+        escalation_contacts: data.escalation_contacts || []
+    }).select().single()
 }
 
 export async function updateOrganisation(id: string, data: CreateOrganisationInput) {
