@@ -20,8 +20,18 @@ interface UsersTableProps {
 export function UsersTable({ users }: UsersTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [organisationFilter, setOrganisationFilter] = useState<string>("all")
 
-  // Filter users based on search query and status
+  // Get unique organizations for filter dropdown
+  const uniqueOrganisations = Array.from(
+    new Map(
+      users
+        .filter(user => user.organisations?.name)
+        .map(user => [user.organisation_id, user.organisations?.name])
+    )
+  ).map(([id, name]) => ({ id, name }))
+
+  // Filter users based on search query, status, and organization
   const filteredUsers = users.filter((user) => {
     // Search filter - matches name or email
     const matchesSearch =
@@ -32,7 +42,10 @@ export function UsersTable({ users }: UsersTableProps) {
     // Status filter
     const matchesStatus = statusFilter === "all" || user.status === statusFilter
 
-    return matchesSearch && matchesStatus
+    // Organization filter
+    const matchesOrganisation = organisationFilter === "all" || user.organisation_id === organisationFilter
+
+    return matchesSearch && matchesStatus && matchesOrganisation
   })
 
   return (
@@ -52,6 +65,19 @@ export function UsersTable({ users }: UsersTableProps) {
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="suspended">Suspended</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={organisationFilter} onValueChange={setOrganisationFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filter by organization" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Organisations</SelectItem>
+            {uniqueOrganisations.map((org) => (
+              <SelectItem key={org.id} value={org.id}>
+                {org.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
