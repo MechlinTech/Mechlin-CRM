@@ -101,7 +101,7 @@ export function WysiwygEditor({
         <div className="border-b bg-gray-50 p-3">
           <div className="h-6 bg-gray-200 rounded animate-pulse w-32"></div>
         </div>
-        <div className="min-h-[400px] bg-white p-4">
+        <div className="min-h-100 bg-white p-4">
           <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
           <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
         </div>
@@ -246,7 +246,7 @@ export function WysiwygEditor({
       )}
 
       {/* Editor Content */}
-      <div className="min-h-[400px] bg-white">
+      <div className="min-h-100 bg-white">
         <EditorContent editor={editor} />
       </div>
     </div>
