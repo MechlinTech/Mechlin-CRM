@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import Link from '@tiptap/extension-link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { 
@@ -38,13 +39,43 @@ export function WysiwygEditor({
   const [showUrlInput, setShowUrlInput] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+          HTMLAttributes: {
+            class: 'list-disc pl-5 mb-2'
+          }
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+          HTMLAttributes: {
+            class: 'list-decimal pl-5 mb-2'
+          }
+        },
+        listItem: {
+          HTMLAttributes: {
+            class: 'mb-1'
+          }
+        },
+        paragraph: {
+          HTMLAttributes: {
+            class: 'mb-2'
+          }
+        }
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 hover:text-blue-800 cursor-pointer',
+        },
+      }),
     ],
     content,
     editable,
@@ -54,11 +85,15 @@ export function WysiwygEditor({
     },
     editorProps: {
       attributes: {
-        class: `prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[200px] p-4 ${className}`,
+        class: `prose prose-sm sm:prose lg:prose-lg xl:prose-2xl max-w-none focus:outline-none min-h-[200px] p-4 ${className}`,
         placeholder: placeholder
       }
     }
   })
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   if (!editor || !isMounted) {
     return (
@@ -80,6 +115,12 @@ export function WysiwygEditor({
       setUrl('')
       setShowUrlInput(false)
     }
+  }
+
+  const unsetLink = () => {
+    editor.chain().focus().unsetLink().run()
+    setShowUrlInput(false)
+    setUrl('')
   }
 
   return (
@@ -145,7 +186,13 @@ export function WysiwygEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setShowUrlInput(!showUrlInput)}
+          onClick={() => {
+            if (editor.isActive('link')) {
+              unsetLink()
+            } else {
+              setShowUrlInput(!showUrlInput)
+            }
+          }}
           className={`p-2 ${editor.isActive('link') ? 'bg-gray-200' : ''}`}
         >
           <LinkIcon className="h-4 w-4" />
@@ -172,8 +219,8 @@ export function WysiwygEditor({
       {showUrlInput && (
         <div className="border-b bg-gray-50 p-3 flex gap-2">
           <Input
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            value={url || (editor.isActive('link') ? editor.getAttributes('link').href : '')}
+            onChange={(e: any) => setUrl(e.target.value)}
             placeholder="Enter URL..."
             className="flex-1"
             onKeyDown={(e: any) => {
@@ -187,7 +234,7 @@ export function WysiwygEditor({
             }}
           />
           <Button onClick={setLink} size="sm">
-            Add Link
+            {editor.isActive('link') ? 'Update Link' : 'Add Link'}
           </Button>
           <Button variant="outline" onClick={() => {
             setShowUrlInput(false)

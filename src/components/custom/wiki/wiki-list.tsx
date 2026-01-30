@@ -14,13 +14,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { WysiwygEditor } from '@/components/shared/wysiwyg-editor'
 import { 
   getAllWikiPagesAction, 
   createWikiPageAction,
   deleteWikiPageAction,
-  searchWikiPagesAction
 } from '@/actions/wiki'
-import { WysiwygEditor } from '@/components/shared/wysiwyg-editor'
 import type { WikiPage } from '@/data/wiki'
 import { 
   Plus, 
@@ -31,6 +30,13 @@ import {
   Eye,
   Calendar
 } from 'lucide-react'
+
+// Helper function to strip HTML tags
+const stripHtml = (html: string) => {
+  const tmp = document.createElement('div')
+  tmp.innerHTML = html
+  return tmp.textContent || tmp.innerText || ''
+}
 
 export function WikiList() {
   const router = useRouter()
@@ -299,7 +305,7 @@ export function WikiList() {
                   <div 
                     className="line-clamp-3"
                     dangerouslySetInnerHTML={{ 
-                      __html: page.content?.slice(0, 150) + '...' || 'No content' 
+                      __html: stripHtml(page.content || 'No content').slice(0, 150) + '...' 
                     }}
                   />
                 </div>
