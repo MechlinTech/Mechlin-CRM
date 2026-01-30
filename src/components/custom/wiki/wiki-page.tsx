@@ -76,14 +76,17 @@ export function WikiPageComponent({ pageId: propPageId }: WikiPageComponentProps
     }
   }
 
-  const loadVersions = async () => {
+  const handleViewVersions = async () => {
     try {
       const result = await getWikiPageVersionsAction(pageId)
-      if (result.success && result.versions) {
-        setVersions(result.versions)
+      if (result.success) {
+        setVersions(result.versions || [])
+        setShowVersions(true)
+      } else {
+        toast.error('Failed to load version history')
       }
     } catch (error) {
-      toast.error('Failed to load versions')
+      toast.error('Failed to load version history')
     }
   }
 
@@ -127,11 +130,6 @@ export function WikiPageComponent({ pageId: propPageId }: WikiPageComponentProps
     } catch (error) {
       toast.error('Error deleting page')
     }
-  }
-
-  const handleViewVersions = () => {
-    setShowVersions(true)
-    loadVersions()
   }
 
   if (isLoading) {
@@ -236,36 +234,43 @@ export function WikiPageComponent({ pageId: propPageId }: WikiPageComponentProps
                     History
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="w-[95vw] max-w-none max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Page History</DialogTitle>
+                    <DialogTitle>Last Version</DialogTitle>
                     <DialogDescription>
-                      View previous versions of this page
+                      Previous content before current edit
                     </DialogDescription>
                   </DialogHeader>
+                  
                   <div className="space-y-4">
-                    {versions.map((version, index) => (
-                      <Card key={version.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium">
-                                {version.changes_summary || 'No summary'}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {new Date(version.created_at).toLocaleString()}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                By: System
-                              </p>
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              Version {versions.length - index}
-                            </div>
+                    {versions.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8">No history available</p>
+                    ) : (
+                      <div className="border rounded-lg p-4 bg-gray-50">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">Previous Content</h3>
+                            <p className="text-sm text-gray-600">
+                              {new Date(versions[0].created_at).toLocaleString()}
+                            </p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                            Last Version
+                          </span>
+                        </div>
+                        {versions[0].changes_summary && (
+                          <div className="text-sm text-gray-700 mb-2">
+                            <strong>Changes:</strong> {versions[0].changes_summary}
+                          </div>
+                        )}
+                        <div className="border rounded p-4 bg-white">
+                          <div 
+                            className="prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: versions[0].content }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </DialogContent>
               </Dialog>

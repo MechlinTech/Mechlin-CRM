@@ -142,15 +142,23 @@ export async function deleteWikiPage(id: string) {
     return { error }
 }
 
-// Get page versions (history)
-export async function getWikiPageVersions(pageId: string) {
-    const { data, error } = await supabase
-        .from('wiki_versions')
-        .select('*')
-        .eq('page_id', pageId)
-        .order('created_at', { ascending: false })
-
-    return { data, error: null }
+// Get page versions (history) - only get the immediate previous version
+export async function getWikiPageVersions(pageId: string): Promise<WikiVersion[]> {
+    try {
+        const { data, error } = await supabase
+            .from('wiki_versions')
+            .select('*')
+            .eq('page_id', pageId)
+            .order('created_at', { ascending: false })
+            .limit(1) // Only get the most recent version (which is the previous content)
+        
+        if (error) throw error
+        
+        return data || []
+    } catch (error) {
+        console.error('Error fetching wiki page versions:', error)
+        throw error
+    }
 }
 
 // Create page version (for history tracking)
@@ -172,6 +180,35 @@ export async function createWikiVersion(versionData: {
         .single()
 
     return { data, error }
+}
+
+// Clean up old versions - keep only the last 1 (previous version)
+export async function cleanupOldVersions(pageId: string) {
+    try {
+        // Get all versions except the last 1
+        const { data: allVersions } = await supabase
+            .from('wiki_versions')
+            .select('id')
+            .eq('page_id', pageId)
+            .order('created_at', { ascending: false })
+        
+        if (allVersions && allVersions.length > 1) {
+            // Delete versions beyond the last 1
+            const versionsToDelete = allVersions.slice(1).map(v => v.id)
+            
+            const { error } = await supabase
+                .from('wiki_versions')
+                .delete()
+                .in('id', versionsToDelete)
+            
+            if (error) throw error
+        }
+        
+        return { success: true }
+    } catch (error) {
+        console.error('Error cleaning up old versions:', error)
+        return { success: false, error }
+    }
 }
 
 // Search wiki pages

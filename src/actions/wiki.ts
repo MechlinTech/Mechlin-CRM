@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache"
 import { 
     getAllWikiPages, 
     getWikiPageById, 
-    createWikiPage, 
-    updateWikiPage, 
+    createWikiPage,
+    updateWikiPage,
     deleteWikiPage,
     getWikiPageVersions,
     createWikiVersion,
+    cleanupOldVersions,
     searchWikiPages,
     generateSlug,
     type WikiPage,
@@ -93,14 +94,17 @@ export async function updateWikiPageAction(
         return { success: false, error: (error as any)?.message || 'Failed to update page', code: (error as any)?.code }
     }
 
-    // Create version if content changed (no user tracking)
-    if (data && currentPage && 
+    // Create version with OLD content before updating (no user tracking)
+    if (currentPage && 
         JSON.stringify(currentPage.content) !== JSON.stringify(pageData.content)) {
         await createWikiVersion({
             page_id: id,
-            content: pageData.content || currentPage.content,
+            content: currentPage.content, // Save the OLD content as history
             changes_summary: pageData.changes_summary || "Page updated"
         })
+
+        // Clean up old versions - keep only the last 1
+        await cleanupOldVersions(id)
     }
 
     revalidatePath("/wiki")
@@ -121,18 +125,22 @@ export async function deleteWikiPageAction(id: string) {
 
 // Get page versions
 export async function getWikiPageVersionsAction(pageId: string) {
-    const { data, error } = await getWikiPageVersions(pageId)
-    if (error) {
-        return { success: false, error: (error as any)?.message || 'Failed to fetch versions' }
+    try {
+        const data = await getWikiPageVersions(pageId)
+        return { success: true, versions: data }
+    } catch (error) {
+        console.error('Error fetching wiki page versions:', error)
+        return { success: false, error: (error as Error).message }
     }
-    return { success: true, versions: data }
 }
 
 // Search wiki pages
 export async function searchWikiPagesAction(searchTerm: string) {
-    const { data, error } = await searchWikiPages(searchTerm)
-    if (error) {
-        return { success: false, error: (error as any)?.message || 'Failed to search pages' }
+    try {
+        const data = await searchWikiPages(searchTerm)
+        return { success: true, pages: data }
+    } catch (error) {
+        console.error('Error searching wiki pages:', error)
+        return { success: false, error: (error as Error).message }
     }
-    return { success: true, pages: data }
 }
