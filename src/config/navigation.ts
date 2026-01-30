@@ -1,16 +1,15 @@
 export const SIDEBAR_NAVIGATION = [
-    {
-        title: "User Management",
-        url: "#",
-        items: [
-            {
-            title: "Organisations",
-            url: "/organisations",
-            },
-            {
-            title: "Users",
-            url: "/users",
-            },
-        ],
-    },
-]
+  {
+    title: "Project Management",
+    url: "/projects",
+    items: [], // Always include this to satisfy TypeScript
+  },
+  {
+    title: "User Management",
+    url: "", // Empty URL for collapsible groups
+    items: [
+      { title: "Organizations", url: "/organisations" },
+      { title: "Users", url: "/users" },
+    ],
+  },
+];
