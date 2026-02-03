@@ -84,7 +84,7 @@ CREATE TABLE sprints (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE activity_logs (
+CREATE TABLE status_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     target_id UUID NOT NULL, -- UUID of the specific project, milestone, or sprint being changed
     target_type TEXT CHECK (target_type IN ('project', 'milestone', 'sprint', 'document')), 
