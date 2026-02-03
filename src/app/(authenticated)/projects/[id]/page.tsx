@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProjectWiki } from "@/components/custom/wiki";
 
 export default async function ProjectOverview({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -56,7 +57,18 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
             </Link>
           ))}
         </div>
-      </section> section for CRUD info and status logic [cite: 59, 118]
+      </section>
+
+      {/* Project Wiki */}
+      <section className="space-y-4">
+        <div className="border rounded-lg p-4 bg-white shadow-sm">
+          <ProjectWiki 
+            projectId={id}
+            title="Project Documentation"
+            showHeader={true}
+          />
+        </div>
+      </section>
     </div>
   );
 }

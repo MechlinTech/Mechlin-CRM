@@ -4,6 +4,11 @@ export { ThreadView } from './ThreadView'
 export { MessageComposer } from './MessageComposer'
 export { MessageItem } from './MessageItem'
 
+// Context-specific wrapper components
+export { ProjectThreads } from './ProjectThreads'
+export { UserThreads } from './UserThreads'
+export { GeneralThreads } from './GeneralThreads'
+
 // Re-export types for convenience
 export type { 
     Thread, 
