@@ -76,6 +76,7 @@ CREATE TABLE sprints (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     milestone_id UUID REFERENCES milestones(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
+    description TEXT, -- Sprint description
     start_date DATE,
     end_date DATE,
     status TEXT,
