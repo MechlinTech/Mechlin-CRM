@@ -3,9 +3,9 @@ version: "3.9"
 services:
   web:
     image: ${DOCKERHUB_USERNAME}/login-whitelabel:${APP_VERSION}
-    container_name: login-whitelabel
+    container_name: ${CONTAINER_NAME}
     ports:
-      - "3000:3000"
+      - "${PORT}:3000"
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
