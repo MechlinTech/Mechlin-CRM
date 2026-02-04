@@ -49,5 +49,5 @@ jobs:
           CONTAINER_NAME: login-whitelabel-dev
         run: |
           cd docker
-          docker compose pull
-          docker compose up -d
+          docker compose -p dev pull
+          docker compose -p dev up -d
