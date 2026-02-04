@@ -2,14 +2,14 @@
 
 import * as React from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { WysiwygEditor } from "../../shared/wysiwyg-editor"
+import { WysiwygEditor } from "@/components/shared/wysiwyg-editorPM"
 import { Button } from "@/components/ui/button"
 import { createPMUpdateAction, updatePMUpdateAction } from "@/actions/pm-updates"
 import { toast } from "sonner"
 
 export function PMUpdateDialog({ projectId, log, children }: any) {
   const [open, setOpen] = React.useState(false)
-  const [content, setContent] = React.useState(log?.new_data?.content || "")
+  const [content, setContent] = React.useState(log?.new_data?.content || log?.content || "")
   const isEdit = !!log
 
   async function handleSave() {
@@ -19,7 +19,7 @@ export function PMUpdateDialog({ projectId, log, children }: any) {
 
     if (res.success) {
       toast.success(isEdit ? "Notice Updated" : "Notice Posted");
-      setOpen(false);
+      setOpen(false); // FIXED: Auto-closes the dialog
     } else {
       toast.error(res.error);
     }
@@ -28,19 +28,19 @@ export function PMUpdateDialog({ projectId, log, children }: any) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl bg-white text-black">
+      <DialogContent className="max-w-2xl bg-white text-black border-none shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="font-bold">{isEdit ? 'Edit PM Notice' : 'Post '}</DialogTitle>
+          <DialogTitle className="font-black text-xl">{isEdit ? 'Edit PM Notice' : 'Post New PM Notice'}</DialogTitle>
         </DialogHeader>
         <div className="py-4">
           <WysiwygEditor 
             content={content} 
             onChange={setContent} 
-            placeholder="e.g. Phase 1 must be completed in 2 days..." 
+            placeholder="Write your project notice here..." 
           />
         </div>
-        <Button onClick={handleSave} className="w-full bg-black text-white font-bold">
-          {isEdit ? 'Update Notice' : 'Post '}
+        <Button onClick={handleSave} className="w-full bg-black text-white font-black h-12">
+          {isEdit ? 'Update Notice' : 'Post to Notice Board'}
         </Button>
       </DialogContent>
     </Dialog>

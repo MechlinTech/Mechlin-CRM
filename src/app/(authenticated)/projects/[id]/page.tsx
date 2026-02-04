@@ -1,34 +1,34 @@
 import { supabase } from "@/lib/supabase";
-import Link from "next/link";
-import { ChevronRight, Plus, Pencil, Settings2, Trash2 } from "lucide-react";
+import { ChevronRight, Plus, Pencil, Settings2, Trash2, ReceiptText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { notFound } from "next/navigation";
 import { PhaseForm } from "@/components/custom/projects/phase-form";
 import { MilestoneForm } from "@/components/custom/projects/milestone-form";
 import { CreateProjectForm } from "@/components/custom/projects/create-project-form";
+import { InvoiceForm } from "@/components/custom/projects/invoice-form";
+import { InvoiceList } from "@/components/custom/projects/invoice-list";
 import { deletePhaseAction } from "@/actions/hierarchy";
+import { ActionButton } from "@/components/shared/action-button";
+import Link from "next/link";
+import React from "react";
 
 export default async function ProjectOverview({ params }: { params: Promise<{ id: string }> }) {
-  // FIX: Properly await the params object
   const { id } = await params;
   
   const { data: project, error } = await supabase
     .from("projects")
-    .select("*, organisations(*), phases(*, milestones(*))")
+    .select("*, organisations(*), phases(*, milestones(*)), invoices(*)")
     .eq("id", id)
     .single();
 
   const { data: organisations } = await supabase.from("organisations").select("*");
 
-  if (!project || error) {
-    notFound();
-  }
+  if (!project || error) notFound();
 
   return (
-    <div className="max-w-5xl space-y-12 pb-20 text-black">
+    <div className="max-w-5xl space-y-12 pb-20 text-black font-sans">
       {/* 1. PROJECT DETAILS SECTION */}
       <section className="p-10 border border-zinc-200 rounded-[32px] bg-zinc-50/30 shadow-sm">
         <div className="flex justify-between items-start mb-10">
@@ -36,77 +36,65 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
             <h1 className="text-5xl font-black tracking-tighter mb-2">{project.name}</h1>
             <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">{project.organisations?.name}</p>
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
+          <ActionButton 
+            title="Edit Project Profile"
+            trigger={
               <Button variant="outline" size="sm" className="rounded-full gap-2 border-zinc-300 font-black uppercase text-[9px] h-9 px-5">
                 <Settings2 className="h-3.5 w-3.5" /> Project Settings
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white text-black border-none shadow-2xl">
-              <DialogHeader><DialogTitle className="font-bold">Edit Project Profile</DialogTitle></DialogHeader>
-              <CreateProjectForm project={project} organisations={organisations} />
-            </DialogContent>
-          </Dialog>
+            }
+            content={<CreateProjectForm project={project} organisations={organisations} />}
+          />
         </div>
         <div className="grid grid-cols-4 gap-12 border-t border-zinc-100 pt-8">
           <div><p className="text-[9px] font-bold uppercase text-zinc-400 mb-2">Total Budget</p><p className="font-black text-xl">{project.currency} {project.budget?.toLocaleString()}</p></div>
           <div><p className="text-[9px] font-bold uppercase text-zinc-400 mb-2">Project Period</p><p className="font-black text-xl">{project.start_date} — {project.expected_end_date || 'TBD'}</p></div>
           <div className="col-span-2"><p className="text-[9px] font-bold uppercase text-zinc-400 mb-2">Source Code</p>
-          <a href={project.repo_link} target="_blank" className="text-blue-600 font-bold truncate block hover:underline text-sm">{project.repo_link || 'Link Repository'}</a></div>
+          <a href={project.repo_link} target="_blank" className="text-blue-600 font-bold truncate block hover:underline text-sm">{project.repo_link || 'No Repo Linked'}</a></div>
         </div>
       </section>
 
-      {/* 2. COLLAPSIBLE ROADMAP */}
+      {/* 2. ROADMAP SECTION */}
       <section className="space-y-8">
         <div className="flex justify-between items-center px-4">
           <h2 className="text-3xl font-black tracking-tighter">Project Roadmap</h2>
-          <Dialog>
-            <DialogTrigger asChild>
+          <ActionButton 
+            title="Add New Phase"
+            trigger={
               <Button className="h-10 px-8 bg-black text-white rounded-full text-xs font-black gap-2 hover:bg-zinc-800 shadow-lg transition-all">
                 <Plus className="h-4 w-4" /> Add Phase
               </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-white text-black border-none shadow-2xl">
-              <DialogHeader><DialogTitle className="font-bold">Initialize New Phase</DialogTitle></DialogHeader>
-              <PhaseForm projectId={id} />
-            </DialogContent>
-          </Dialog>
+            }
+            content={<PhaseForm projectId={id} onSuccess={() => {}} />}
+          />
         </div>
         
         <div className="space-y-6">
           {project.phases?.map((phase: any) => (
             <Collapsible key={phase.id} className="group border border-zinc-200 rounded-[24px] bg-white shadow-sm overflow-hidden transition-all hover:border-zinc-400">
               <div className="flex items-center justify-between p-3">
-                <CollapsibleTrigger className="flex items-center gap-5 flex-1 p-5 hover:bg-zinc-50 transition-colors rounded-xl">
+                <CollapsibleTrigger className="flex items-center gap-5 flex-1 p-5 hover:bg-zinc-50 transition-colors rounded-xl text-black text-left">
                   <div className="h-10 w-10 bg-zinc-100 rounded-full flex items-center justify-center transition-transform group-data-[state=open]:rotate-90">
                     <ChevronRight className="h-5 w-5 text-zinc-500" />
                   </div>
                   <span className="font-black text-2xl tracking-tighter">{phase.name}</span>
                 </CollapsibleTrigger>
                 <div className="flex gap-2 pr-6 items-center">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                       <button className="p-3 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-black transition-colors"><Pencil className="h-4 w-4" /></button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-white text-black border-none"><DialogHeader><DialogTitle className="font-bold">Modify Phase</DialogTitle></DialogHeader><PhaseForm projectId={id} phase={phase} /></DialogContent>
-                  </Dialog>
-                  
+                  <ActionButton 
+                    title="Edit Phase"
+                    trigger={<div className="p-3 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-black transition-colors cursor-pointer"><Pencil className="h-4 w-4" /></div>}
+                    content={<PhaseForm projectId={id} phase={phase} onSuccess={() => {}} />}
+                  />
                   <form action={async () => { "use server"; await deletePhaseAction(phase.id, id); }}>
                     <button type="submit" className="p-3 hover:bg-red-50 rounded-full text-zinc-400 hover:text-red-600 transition-colors"><Trash2 className="h-4 w-4" /></button>
                   </form>
-
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase text-zinc-500 hover:text-black hover:bg-zinc-50 h-9 px-4">+ Milestone</Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-xl bg-white text-black border-none">
-                      <DialogHeader><DialogTitle className="font-bold">Configure Milestone</DialogTitle></DialogHeader>
-                      <MilestoneForm projectId={id} phaseId={phase.id} />
-                    </DialogContent>
-                  </Dialog>
+                  <ActionButton 
+                    title="Configure Milestone"
+                    trigger={<Button variant="ghost" size="sm" className="text-[10px] font-black uppercase text-zinc-500 hover:text-black hover:bg-zinc-50 h-9 px-4">+ Milestone</Button>}
+                    content={<MilestoneForm projectId={id} phaseId={phase.id} onSuccess={() => {}} />}
+                  />
                 </div>
               </div>
-              
               <CollapsibleContent className="border-t border-zinc-100 bg-zinc-50/30">
                 <div className="p-6 pl-16 space-y-3">
                   {phase.milestones?.length > 0 ? phase.milestones.map((m: any) => (
@@ -127,6 +115,32 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
             </Collapsible>
           ))}
         </div>
+      </section>
+
+      {/* 3. INVOICES SECTION */}
+      <section className="space-y-8 pt-8 border-t border-zinc-100">
+        <div className="flex justify-between items-center px-4">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 bg-black rounded-full flex items-center justify-center shadow-lg">
+                <ReceiptText className="h-5 w-5 text-white" />
+            </div>
+            <h2 className="text-3xl font-black tracking-tighter text-zinc-900">Billing & Invoices</h2>
+          </div>
+          <ActionButton 
+            title="Upload Project Invoice"
+            trigger={
+              <Button variant="outline" className="rounded-full h-10 px-8 font-black uppercase text-[10px] gap-2 border-zinc-300 hover:bg-black hover:text-white transition-all shadow-sm">
+                <Plus className="h-4 w-4" /> New Invoice
+              </Button>
+            }
+            content={<InvoiceForm projectId={id} onSuccess={() => {}} />}
+          />
+        </div>
+        <InvoiceList 
+          invoices={project.invoices || []} 
+          projectId={id} 
+          organisationName={project.organisations?.name} 
+        />
       </section>
     </div>
   );

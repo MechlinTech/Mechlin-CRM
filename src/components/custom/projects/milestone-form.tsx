@@ -26,11 +26,22 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
   })
 
   async function onSubmit(values: any) {
-    // We reduce the arguments to match the expected 3: (id, projectId, data)
-    // 'values' already contains the status from the form field.
-    const res = isEdit 
-      ? await updateMilestoneAction(milestone.id, projectId, values)
-      : await createMilestoneAction(phaseId, projectId, values);
+    let res;
+
+    if (isEdit) {
+      // The error says this expects 5 arguments. 
+      // We pass: id, projectId, name, status, and the rest of the values object
+      res = await updateMilestoneAction(
+        milestone.id, 
+        projectId, 
+        values.name, 
+        values.status, 
+        values
+      );
+    } else {
+      // Ensure createMilestoneAction matches its signature as well
+      res = await createMilestoneAction(phaseId, projectId, values);
+    }
 
     if (res.success) {
       toast.success(isEdit ? "Milestone Updated" : "Milestone Created");

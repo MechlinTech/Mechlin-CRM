@@ -89,8 +89,8 @@ CREATE TABLE status_logs (
     target_id UUID NOT NULL, -- UUID of the specific project, milestone, or sprint being changed
     target_type TEXT CHECK (target_type IN ('project', 'milestone', 'sprint', 'document')), 
     action_type TEXT NOT NULL, -- e.g., 'CREATE', 'UPDATE', 'DELETE'
-    old_data JSONB, -- Snapshot of data before change
-    new_data JSONB, -- Snapshot of data after change
+    old_value JSONB, -- Snapshot of data before change
+    new_value JSONB, -- Snapshot of data after change
     changed_by UUID REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -116,6 +116,7 @@ CREATE TABLE invoices (
     amount NUMERIC NOT NULL,
     status TEXT CHECK (status IN ('Sent', 'Paid', 'Overdue')) DEFAULT 'Sent',
     file_url TEXT,
+    storage_path TEXT;
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

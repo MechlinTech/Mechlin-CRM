@@ -10,7 +10,7 @@ import { SprintForm } from "@/components/custom/projects/sprint-form";
 import { MilestoneForm } from "@/components/custom/projects/milestone-form";
 import { deleteMilestoneAction, deleteSprintAction } from "@/actions/hierarchy";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";  
 
 export default function MilestonePage({ params }: { params: any }) {
   const router = useRouter();
@@ -18,6 +18,7 @@ export default function MilestonePage({ params }: { params: any }) {
   const [m, setMilestone] = React.useState<any>(null);
   const [isSprintOpen, setIsSprintOpen] = React.useState(false);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
+  const [editingSprint, setEditingSprint] = React.useState<any>(null);
 
   const fetchData = React.useCallback(async () => {
     const { data } = await supabase.from("milestones").select("*, sprints(*)").eq("id", milestoneId).single();
@@ -29,15 +30,22 @@ export default function MilestonePage({ params }: { params: any }) {
   if (!m) return null;
 
   return (
-    <div className="max-w-5xl space-y-10 text-black">
+    <div className="max-w-5xl space-y-10 text-black font-sans">
       <section className="space-y-8 p-10 bg-white border border-zinc-200 rounded-3xl shadow-sm">
         <div className="flex justify-between items-start border-b border-zinc-100 pb-8">
-          <div><h1 className="text-4xl font-black tracking-tighter mb-2">{m.name}</h1><p className="text-[10px] font-bold uppercase px-3 py-1 bg-zinc-900 text-white inline-block rounded-md">{m.status}</p></div>
+          <div>
+            <h1 className="text-4xl font-black tracking-tighter mb-2">{m.name}</h1>
+            <p className="text-[10px] font-bold uppercase px-3 py-1 bg-zinc-900 text-white inline-block rounded-md">{m.status}</p>
+          </div>
           <div className="flex gap-2">
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-              <DialogTrigger asChild><Button variant="outline" size="sm" className="rounded-full gap-2 border-zinc-300 uppercase text-[9px] font-bold"><Pencil className="h-3 w-3" /> Edit</Button></DialogTrigger>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="rounded-full gap-2 border-zinc-300 uppercase text-[9px] font-bold">
+                  <Pencil className="h-3 w-3" /> Edit Milestone
+                </Button>
+              </DialogTrigger>
               <DialogContent className="bg-white text-black border-zinc-200 shadow-2xl">
-                <DialogHeader><DialogTitle>Edit Milestone</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Edit Milestone Details</DialogTitle></DialogHeader>
                 <MilestoneForm projectId={id} phaseId={phaseId} milestone={m} onSuccess={() => { setIsEditOpen(false); fetchData(); }} />
               </DialogContent>
             </Dialog>
@@ -58,11 +66,20 @@ export default function MilestonePage({ params }: { params: any }) {
       <section className="space-y-6">
         <div className="flex justify-between items-center px-2">
           <h2 className="text-xl font-black tracking-tight">Milestone Sprints</h2>
-          <Dialog open={isSprintOpen} onOpenChange={setIsSprintOpen}>
-            <DialogTrigger asChild><Button className="h-8 px-5 bg-black text-white rounded-full text-[10px] font-bold uppercase gap-2"><Plus className="h-3 w-3" /> Add Sprint</Button></DialogTrigger>
+          <Dialog open={isSprintOpen} onOpenChange={(val) => { if(!val) setEditingSprint(null); setIsSprintOpen(val); }}>
+            <DialogTrigger asChild>
+              <Button className="h-8 px-5 bg-black text-white rounded-full text-[10px] font-bold uppercase gap-2">
+                <Plus className="h-3 w-3" /> Add Sprint
+              </Button>
+            </DialogTrigger>
             <DialogContent className="bg-white text-black border-zinc-200 shadow-2xl">
-                <DialogHeader><DialogTitle>Add Sprint</DialogTitle></DialogHeader>
-                <SprintForm milestoneId={milestoneId} projectId={id} onSuccess={() => { setIsSprintOpen(false); fetchData(); }} />
+                <DialogHeader><DialogTitle>{editingSprint ? "Edit Sprint" : "Add New Sprint"}</DialogTitle></DialogHeader>
+                <SprintForm 
+                  milestoneId={milestoneId} 
+                  projectId={id} 
+                  sprint={editingSprint}
+                  onSuccess={() => { setIsSprintOpen(false); setEditingSprint(null); fetchData(); }} 
+                />
             </DialogContent>
           </Dialog>
         </div>
@@ -76,6 +93,9 @@ export default function MilestonePage({ params }: { params: any }) {
                 </Link>
                 <div className="flex items-center gap-4">
                     <Badge variant="outline" className="text-[10px] uppercase">{sprint.status || 'Active'}</Badge>
+                    <button onClick={() => { setEditingSprint(sprint); setIsSprintOpen(true); }} className="text-zinc-300 hover:text-black transition-colors">
+                        <Pencil className="h-4 w-4" />
+                    </button>
                     <button onClick={async () => { await deleteSprintAction(sprint.id, id); fetchData(); }} className="text-zinc-300 hover:text-red-600 transition-colors">
                         <Trash2 className="h-4 w-4" />
                     </button>
