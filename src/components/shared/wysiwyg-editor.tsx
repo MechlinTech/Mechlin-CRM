@@ -26,6 +26,8 @@ interface WysiwygEditorProps {
   placeholder?: string
   editable?: boolean
   className?: string
+  autoFocus?: boolean
+  onKeyDown?: (event: KeyboardEvent) => void
 }
 
 export function WysiwygEditor({
@@ -33,7 +35,9 @@ export function WysiwygEditor({
   onChange,
   placeholder = 'Start writing...',
   editable = true,
-  className = ''
+  className = '',
+  autoFocus = false,
+  onKeyDown
 }: WysiwygEditorProps) {
   const [url, setUrl] = useState('')
   const [showUrlInput, setShowUrlInput] = useState(false)
@@ -87,6 +91,12 @@ export function WysiwygEditor({
       attributes: {
         class: `prose prose-sm sm:prose lg:prose-lg xl:prose-2xl max-w-none focus:outline-none min-h-[200px] p-4 ${className}`,
         placeholder: placeholder
+      },
+      handleDOMEvents: {
+        keydown: (_view, event) => {
+          onKeyDown?.(event)
+          return false
+        }
       }
     }
   })
@@ -94,6 +104,17 @@ export function WysiwygEditor({
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (!autoFocus) return
+    if (!editor) return
+
+    const t = setTimeout(() => {
+      editor.commands.focus('end')
+    }, 0)
+
+    return () => clearTimeout(t)
+  }, [autoFocus, editor])
 
   if (!editor || !isMounted) {
     return (
