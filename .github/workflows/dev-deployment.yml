@@ -1,0 +1,53 @@
+name: Dev Deployment (Main)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set image tag from commit SHA
+        shell: powershell
+        run: |
+          $sha = "${{ github.sha }}".Substring(0,7)
+          Add-Content $env:GITHUB_ENV "APP_VERSION=$sha"
+
+      - name: Login to Docker Hub
+        shell: powershell
+        run: |
+          docker login `
+            -u "${{ secrets.DOCKERHUB_USERNAME }}" `
+            -p "${{ secrets.DOCKERHUB_TOKEN }}"
+
+      - name: Build & push Docker image
+        shell: powershell
+        run: |
+          docker build `
+            --build-arg NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" `
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" `
+            -f docker/Dockerfile `
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/login-whitelabel:${{ env.APP_VERSION }} `
+            .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/login-whitelabel:${{ env.APP_VERSION }}
+
+      - name: Deploy container
+        shell: powershell
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          APP_VERSION: ${{ env.APP_VERSION }}
+          PORT: 3000
+          CONTAINER_NAME: login-whitelabel-dev
+        run: |
+          cd docker
+          docker compose pull
+          docker compose up -d
