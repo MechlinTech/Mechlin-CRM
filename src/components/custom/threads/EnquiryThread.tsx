@@ -70,12 +70,18 @@ export function EnquiryThread({
     const handleCreateThread = async () => {
         if (!newThreadTitle.trim()) return
 
+        // Validate context requirements
+        if (contextType !== 'general' && !contextId) {
+            console.error(`Context ID is required for ${contextType} threads`)
+            return
+        }
+
         setLoading(true)
         try {
             const result = await createThreadAction({
                 title: newThreadTitle.trim(),
                 context_type: contextType,
-                context_id: contextId || null,
+                context_id: contextId || undefined, // Pass undefined instead of null for optional field
                 status: newThreadStatus,
                 priority: newThreadPriority,
                 created_by: currentUserId,

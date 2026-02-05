@@ -76,6 +76,7 @@ CREATE TABLE sprints (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     milestone_id UUID REFERENCES milestones(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
+    description TEXT, -- Sprint description
     start_date DATE,
     end_date DATE,
     status TEXT,
@@ -83,13 +84,13 @@ CREATE TABLE sprints (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE activity_logs (
+CREATE TABLE status_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     target_id UUID NOT NULL, -- UUID of the specific project, milestone, or sprint being changed
     target_type TEXT CHECK (target_type IN ('project', 'milestone', 'sprint', 'document')), 
     action_type TEXT NOT NULL, -- e.g., 'CREATE', 'UPDATE', 'DELETE'
-    old_data JSONB, -- Snapshot of data before change
-    new_data JSONB, -- Snapshot of data after change
+    old_value JSONB, -- Snapshot of data before change
+    new_value JSONB, -- Snapshot of data after change
     changed_by UUID REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -115,6 +116,7 @@ CREATE TABLE invoices (
     amount NUMERIC NOT NULL,
     status TEXT CHECK (status IN ('Sent', 'Paid', 'Overdue')) DEFAULT 'Sent',
     file_url TEXT,
+    storage_path TEXT;
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -136,10 +138,11 @@ CREATE TABLE wiki_pages (
     content JSONB NOT NULL DEFAULT '{"type":"doc","content":[{"type":"paragraph"}]}',
     slug VARCHAR(255) UNIQUE NOT NULL,
     parent_id UUID REFERENCES wiki_pages(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     order_index INTEGER DEFAULT 0,
     status VARCHAR(20) DEFAULT 'published' CHECK (status IN ('draft', 'published', 'archived')),
-    created_by UUID REFERENCES users(id),
-    updated_by UUID REFERENCES users(id),
+    created_by UUID REFERENCES auth.users(id),
+    updated_by UUID REFERENCES auth.users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -150,7 +153,7 @@ CREATE TABLE wiki_versions (
     page_id UUID REFERENCES wiki_pages(id) ON DELETE CASCADE,
     content JSONB NOT NULL,
     changes_summary TEXT,
-    created_by UUID REFERENCES users(id),
+    created_by UUID REFERENCES auth.users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -158,6 +161,8 @@ CREATE TABLE wiki_versions (
 CREATE INDEX idx_wiki_pages_parent_id ON wiki_pages(parent_id);
 CREATE INDEX idx_wiki_pages_slug ON wiki_pages(slug);
 CREATE INDEX idx_wiki_pages_status ON wiki_pages(status);
+CREATE INDEX idx_wiki_pages_project_id ON wiki_pages(project_id);
+CREATE INDEX idx_wiki_pages_project_status ON wiki_pages(project_id, status);
 CREATE INDEX idx_wiki_versions_page_id ON wiki_versions(page_id);
 
 
@@ -167,6 +172,9 @@ CREATE TABLE enquiry_threads (
     title TEXT NOT NULL,
     context_type TEXT NOT NULL CHECK (context_type IN ('project', 'support', 'user', 'general')),
     context_id UUID,
+    phase_id UUID REFERENCES phases(id) ON DELETE SET NULL,
+    milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
+    sprint_id UUID REFERENCES sprints(id) ON DELETE SET NULL,
     status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'closed')),
     priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
     created_by UUID NOT NULL REFERENCES auth.users(id),
@@ -175,7 +183,6 @@ CREATE TABLE enquiry_threads (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
- 
 
 -- ENQUIRY MESSAGES TABLE - Messages in threads
 CREATE TABLE enquiry_messages (
@@ -212,13 +219,16 @@ CREATE TABLE thread_attachments (
     CONSTRAINT attachments_file_size_positive CHECK (file_size > 0)
 );
  
-
 -- PERFORMANCE INDEXES
 CREATE INDEX idx_threads_status ON enquiry_threads(status);
 CREATE INDEX idx_threads_context ON enquiry_threads(context_type, context_id);
 CREATE INDEX idx_threads_created_at ON enquiry_threads(created_at DESC);
 CREATE INDEX idx_threads_last_message ON enquiry_threads(last_message_at DESC);
 CREATE INDEX idx_threads_created_by ON enquiry_threads(created_by);
+CREATE INDEX idx_enquiry_threads_phase_id ON enquiry_threads(phase_id);
+CREATE INDEX idx_enquiry_threads_milestone_id ON enquiry_threads(milestone_id);
+CREATE INDEX idx_enquiry_threads_sprint_id ON enquiry_threads(sprint_id);
+CREATE INDEX idx_enquiry_threads_hierarchy ON enquiry_threads(context_id, phase_id, milestone_id, sprint_id);
  
 CREATE INDEX idx_messages_thread_id ON enquiry_messages(thread_id, created_at);
 CREATE INDEX idx_messages_created_by ON enquiry_messages(created_by);
