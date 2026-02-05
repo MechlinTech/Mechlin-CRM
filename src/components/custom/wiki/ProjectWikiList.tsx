@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardAction } from '@/components/ui/card'
 import { 
   Dialog,
   DialogContent,
@@ -308,12 +308,12 @@ export function ProjectWikiList({
               onClick={() => router.push(`/projects/${projectId}/wiki?id=${page.id}`)}
             >
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-base font-semibold flex items-center gap-2 truncate">
-                    <FileText className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                    <span className="truncate">{page.title}</span>
-                  </CardTitle>
-                  <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                  <span className="text-base font-semibold truncate" title={page.title}>{page.title}</span>
+                </div>
+                <CardAction onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -335,7 +335,7 @@ export function ProjectWikiList({
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </div>
-                </div>
+                </CardAction>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-sm text-gray-600 space-y-2">

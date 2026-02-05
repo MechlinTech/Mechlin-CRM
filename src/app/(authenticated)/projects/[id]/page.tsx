@@ -14,20 +14,21 @@ import { ActionButton } from "@/components/shared/action-button";
 import Link from "next/link";
 import React from "react";
 import { ProjectWiki } from "@/components/custom/wiki";
-
+import { ProjectThreads } from "@/components/custom/threads";
+ 
 export default async function ProjectOverview({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  
+ 
   const { data: project, error } = await supabase
     .from("projects")
     .select("*, organisations(*), phases(*, milestones(*)), invoices(*)")
     .eq("id", id)
     .single();
-
+ 
   const { data: organisations } = await supabase.from("organisations").select("*");
-
+ 
   if (!project || error) notFound();
-
+ 
   return (
     <div className="max-w-5xl space-y-12 pb-20 text-black font-sans">
       {/* 1. PROJECT DETAILS SECTION */}
@@ -37,15 +38,16 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
             <h1 className="text-5xl font-black tracking-tighter mb-2">{project.name}</h1>
             <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">{project.organisations?.name}</p>
           </div>
-          <ActionButton 
+          <ActionButton
             title="Edit Project Profile"
             trigger={
               <Button variant="outline" size="sm" className="rounded-full gap-2 border-zinc-300 font-black uppercase text-[9px] h-9 px-5">
                 <Settings2 className="h-3.5 w-3.5" /> Project Settings
               </Button>
             }
-            content={<CreateProjectForm project={project} organisations={organisations} />}
-          />
+          >
+            <CreateProjectForm project={project} organisations={organisations} />
+          </ActionButton>
         </div>
         <div className="grid grid-cols-4 gap-12 border-t border-zinc-100 pt-8">
           <div><p className="text-[9px] font-bold uppercase text-zinc-400 mb-2">Total Budget</p><p className="font-black text-xl">{project.currency} {project.budget?.toLocaleString()}</p></div>
@@ -54,22 +56,23 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
           <a href={project.repo_link} target="_blank" className="text-blue-600 font-bold truncate block hover:underline text-sm">{project.repo_link || 'No Repo Linked'}</a></div>
         </div>
       </section>
-
+ 
       {/* 2. ROADMAP SECTION */}
       <section className="space-y-8">
         <div className="flex justify-between items-center px-4">
           <h2 className="text-3xl font-black tracking-tighter">Project Roadmap</h2>
-          <ActionButton 
+          <ActionButton
             title="Add New Phase"
             trigger={
               <Button className="h-10 px-8 bg-black text-white rounded-full text-xs font-black gap-2 hover:bg-zinc-800 shadow-lg transition-all">
                 <Plus className="h-4 w-4" /> Add Phase
               </Button>
             }
-            content={<PhaseForm projectId={id} onSuccess={() => {}} />}
-          />
+          >
+            <PhaseForm projectId={id} />
+          </ActionButton>
         </div>
-        
+       
         <div className="space-y-6">
           {project.phases?.map((phase: any) => (
             <Collapsible key={phase.id} className="group border border-zinc-200 rounded-[24px] bg-white shadow-sm overflow-hidden transition-all hover:border-zinc-400">
@@ -81,21 +84,31 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                   <span className="font-black text-2xl tracking-tighter">{phase.name}</span>
                 </CollapsibleTrigger>
                 <div className="flex gap-2 pr-6 items-center">
-                  <ActionButton 
+                  <ActionButton
                     title="Edit Phase"
                     trigger={<div className="p-3 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-black transition-colors cursor-pointer"><Pencil className="h-4 w-4" /></div>}
-                    content={<PhaseForm projectId={id} phase={phase} onSuccess={() => {}} />}
-                  />
+                  >
+                    <PhaseForm projectId={id} phase={phase} />
+                  </ActionButton>
+                 
                   <form action={async () => { "use server"; await deletePhaseAction(phase.id, id); }}>
                     <button type="submit" className="p-3 hover:bg-red-50 rounded-full text-zinc-400 hover:text-red-600 transition-colors"><Trash2 className="h-4 w-4" /></button>
                   </form>
-                  <ActionButton 
+ 
+                  {/* HIGHLIGHTED + MILESTONE BUTTON */}
+                  <ActionButton
                     title="Configure Milestone"
-                    trigger={<Button variant="ghost" size="sm" className="text-[10px] font-black uppercase text-zinc-500 hover:text-black hover:bg-zinc-50 h-9 px-4">+ Milestone</Button>}
-                    content={<MilestoneForm projectId={id} phaseId={phase.id} onSuccess={() => {}} />}
-                  />
+                    trigger={
+                      <Button size="sm" className="bg-zinc-900 text-white hover:bg-black rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-wider shadow-sm transition-all">
+                        <Plus className="h-3 w-3 mr-1" /> Milestone
+                      </Button>
+                    }
+                  >
+                    <MilestoneForm projectId={id} phaseId={phase.id} />
+                  </ActionButton>
                 </div>
               </div>
+             
               <CollapsibleContent className="border-t border-zinc-100 bg-zinc-50/30">
                 <div className="p-6 pl-16 space-y-3">
                   {phase.milestones?.length > 0 ? phase.milestones.map((m: any) => (
@@ -117,7 +130,7 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
           ))}
         </div>
       </section>
-
+ 
       {/* 3. INVOICES SECTION */}
       <section className="space-y-8 pt-8 border-t border-zinc-100">
         <div className="flex justify-between items-center px-4">
@@ -127,31 +140,35 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
             </div>
             <h2 className="text-3xl font-black tracking-tighter text-zinc-900">Billing & Invoices</h2>
           </div>
-          <ActionButton 
+          <ActionButton
             title="Upload Project Invoice"
             trigger={
               <Button variant="outline" className="rounded-full h-10 px-8 font-black uppercase text-[10px] gap-2 border-zinc-300 hover:bg-black hover:text-white transition-all shadow-sm">
                 <Plus className="h-4 w-4" /> New Invoice
               </Button>
             }
-            content={<InvoiceForm projectId={id} onSuccess={() => {}} />}
-          />
+          >
+            <InvoiceForm projectId={id} />
+          </ActionButton>
         </div>
-        <InvoiceList 
-          invoices={project.invoices || []} 
-          projectId={id} 
-          organisationName={project.organisations?.name} 
+        <InvoiceList invoices={project.invoices || []} projectId={id} organisationName={project.organisations?.name} />
+      </section>
+
+      {/* 4. PROJECT WIKI SECTION (CLEANED UP) */}
+      <section className="space-y-4 pt-8 border-t border-zinc-100">
+        <ProjectWiki
+          projectId={id}
+          title="Project Documentation"
+          showHeader={true}
         />
-        {/* Project Wiki */}
-        <section className="space-y-4">
-          <div className="border rounded-lg p-4 bg-white shadow-sm">
-            <ProjectWiki 
-              projectId={id}
-              title="Project Documentation"
-              showHeader={true}
-            />
-          </div>
-        </section>
+      </section>
+
+      {/* 5. PROJECT DISCUSSIONS SECTION */}
+      <section className="mt-8">
+        <ProjectThreads 
+          projectId={id}
+          title="Project Discussions"
+        />
       </section>
     </div>
   );

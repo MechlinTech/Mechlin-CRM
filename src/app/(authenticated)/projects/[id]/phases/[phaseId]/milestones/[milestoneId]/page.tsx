@@ -10,7 +10,8 @@ import { SprintForm } from "@/components/custom/projects/sprint-form";
 import { MilestoneForm } from "@/components/custom/projects/milestone-form";
 import { deleteMilestoneAction, deleteSprintAction } from "@/actions/hierarchy";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";  
+import { useRouter } from "next/navigation";
+import { MilestoneThreads } from "@/components/custom/threads";
 
 export default function MilestonePage({ params }: { params: any }) {
   const router = useRouter();
@@ -31,6 +32,14 @@ export default function MilestonePage({ params }: { params: any }) {
 
   return (
     <div className="max-w-5xl space-y-10 text-black font-sans">
+      <nav className="flex text-[10px] text-zinc-400 gap-2 mb-4 uppercase font-bold tracking-widest">
+        <Link href={`/projects/${id}`} className="hover:text-black">Project</Link>
+        <span>/</span>
+        <Link href={`/projects/${id}/phases/${phaseId}`} className="hover:text-black">Phase</Link>
+        <span>/</span>
+        <span className="text-zinc-800">Milestone View</span>
+      </nav>
+
       <section className="space-y-8 p-10 bg-white border border-zinc-200 rounded-3xl shadow-sm">
         <div className="flex justify-between items-start border-b border-zinc-100 pb-8">
           <div>
@@ -51,7 +60,7 @@ export default function MilestonePage({ params }: { params: any }) {
             </Dialog>
 
             <Button variant="outline" size="sm" onClick={async () => { await deleteMilestoneAction(milestoneId, id); router.push(`/projects/${id}`); }} className="rounded-full border-red-200 text-red-600 hover:bg-red-50 uppercase text-[9px] font-bold gap-2">
-                <Trash2 className="h-3 w-3" /> Delete
+              <Trash2 className="h-3 w-3" /> Delete
             </Button>
           </div>
         </div>
@@ -73,13 +82,13 @@ export default function MilestonePage({ params }: { params: any }) {
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-white text-black border-zinc-200 shadow-2xl">
-                <DialogHeader><DialogTitle>{editingSprint ? "Edit Sprint" : "Add New Sprint"}</DialogTitle></DialogHeader>
-                <SprintForm 
-                  milestoneId={milestoneId} 
-                  projectId={id} 
-                  sprint={editingSprint}
-                  onSuccess={() => { setIsSprintOpen(false); setEditingSprint(null); fetchData(); }} 
-                />
+              <DialogHeader><DialogTitle>{editingSprint ? "Edit Sprint" : "Add New Sprint"}</DialogTitle></DialogHeader>
+              <SprintForm 
+                milestoneId={milestoneId} 
+                projectId={id} 
+                sprint={editingSprint}
+                onSuccess={() => { setIsSprintOpen(false); setEditingSprint(null); fetchData(); }} 
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -87,23 +96,30 @@ export default function MilestonePage({ params }: { params: any }) {
         <div className="grid gap-3">
           {m.sprints?.map((sprint: any) => (
             <div key={sprint.id} className="p-5 bg-zinc-50/50 border border-zinc-200 rounded-2xl flex items-center justify-between hover:border-black transition-all group">
-                <Link href={`/projects/${id}/phases/${phaseId}/milestones/${milestoneId}/sprints/${sprint.id}`} className="flex-1">
-                    <p className="font-bold text-sm mb-1">{sprint.name}</p>
-                    <p className="text-[10px] text-zinc-400 truncate max-w-md">{sprint.description || "No description provided"}</p>
-                </Link>
-                <div className="flex items-center gap-4">
-                    <Badge variant="outline" className="text-[10px] uppercase">{sprint.status || 'Active'}</Badge>
-                    <button onClick={() => { setEditingSprint(sprint); setIsSprintOpen(true); }} className="text-zinc-300 hover:text-black transition-colors">
-                        <Pencil className="h-4 w-4" />
-                    </button>
-                    <button onClick={async () => { await deleteSprintAction(sprint.id, id); fetchData(); }} className="text-zinc-300 hover:text-red-600 transition-colors">
-                        <Trash2 className="h-4 w-4" />
-                    </button>
-                    <ChevronRight className="h-4 w-4 text-zinc-300 group-hover:text-black" />
-                </div>
+              <Link href={`/projects/${id}/phases/${phaseId}/milestones/${milestoneId}/sprints/${sprint.id}`} className="flex-1">
+                <p className="font-bold text-sm mb-1">{sprint.name}</p>
+                <p className="text-[10px] text-zinc-400 truncate max-w-md">{sprint.description || "No description provided"}</p>
+              </Link>
+              <div className="flex items-center gap-4">
+                <Badge variant="outline" className="text-[10px] uppercase">{sprint.status || 'Active'}</Badge>
+                <button onClick={() => { setEditingSprint(sprint); setIsSprintOpen(true); }} className="text-zinc-300 hover:text-black transition-colors">
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button onClick={async () => { await deleteSprintAction(sprint.id, id); fetchData(); }} className="text-zinc-300 hover:text-red-600 transition-colors">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+                <ChevronRight className="h-4 w-4 text-zinc-300 group-hover:text-black" />
+              </div>
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="mt-8">
+        <MilestoneThreads 
+          milestoneId={milestoneId}
+          title="Milestone Discussions"
+        />
       </section>
     </div>
   );

@@ -1,8 +1,11 @@
 "use client"
 import * as React from "react"
-import { ChevronRight, LayoutGrid } from "lucide-react"
+import { ChevronRight, LayoutGrid, LogOut } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { supabase } from "@/lib/supabase"
 import {
   Sidebar,
   SidebarContent,
@@ -20,16 +23,29 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { Button } from "@/components/ui/button"
 import { SIDEBAR_NAVIGATION } from "@/config/navigation"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const router = useRouter()
   const [mounted, setMounted] = React.useState(false)
 
   // FIX: Prevents hydration mismatch by waiting for client-side mount
   React.useEffect(() => {
     setMounted(true)
   }, [])
+
+  async function handleSignOut() {
+    const { error } = await supabase.auth.signOut({ scope: 'local' })
+    if (error) {
+      console.log("Error signing out:", error)
+      toast.error(`Error signing out: ${error.message}`)
+    } else {
+      toast.success("Successfully signed out")
+      router.push('/')
+    }
+  }
 
   if (!mounted) {
     return (
@@ -93,6 +109,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           );
         })}
       </SidebarContent>
+      {/* Logout Section */}
+      <SidebarGroup className="mt-auto">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Button 
+              onClick={handleSignOut}
+              variant="ghost"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroup>
       <SidebarRail />
     </Sidebar>
   )
