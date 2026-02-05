@@ -8,6 +8,7 @@ import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SprintForm } from "@/components/custom/projects/sprint-form";
+import { SprintThreads } from "@/components/custom/threads";
 
 export default function SprintPage({ params }: { params: any }) {
   const { id, phaseId, milestoneId, sprintId } = React.use(params) as any;
@@ -69,6 +70,13 @@ export default function SprintPage({ params }: { params: any }) {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="mt-8">
+        <SprintThreads 
+          sprintId={sprintId}
+          title="Sprint Discussions"
+        />
       </section>
     </div>
   );
