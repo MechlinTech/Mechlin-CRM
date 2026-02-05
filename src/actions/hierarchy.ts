@@ -10,7 +10,7 @@ async function logAuditEvent(targetId: string, type: string, action: string, dat
         target_type: type,
         action_type: action,
         new_value: data,
-        // changed_by: userId // Add this once you implement auth
+        // changed_by: userId // Add this once i  implement auth
     }]);
 }
 
@@ -20,7 +20,7 @@ export async function createPhaseAction(projectId: string, name: string) {
     if (error) return { success: false, error: error.message };
     
     await logAuditEvent(projectId, 'project', 'PHASE_CREATED', { details: `Phase "${name}" was created.` });
-    
+
     revalidatePath(`/projects/${projectId}`);
     return { success: true };
 }
@@ -28,7 +28,7 @@ export async function createPhaseAction(projectId: string, name: string) {
 export async function updatePhaseAction(phaseId: string, projectId: string, name: string) {
     const { error } = await supabase.from("phases").update({ name }).eq("id", phaseId);
     if (error) return { success: false, error: error.message };
-    
+
     await logAuditEvent(projectId, 'project', 'PHASE_UPDATED', { details: `Phase updated to "${name}"` });
     
     revalidatePath(`/projects/${projectId}`);

@@ -9,9 +9,12 @@ import { createInvoiceAction } from "@/actions/invoices"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { UploadCloud, FileCheck } from "lucide-react"
+import { ActionModalContext } from "@/components/shared/action-button"
 
-export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuccess: () => void }) {
+export function InvoiceForm({ projectId }: { projectId: string }) {
+  const { close } = React.useContext(ActionModalContext);
   const [uploading, setUploading] = React.useState(false)
+  
   const form = useForm({
     defaultValues: {
       invoice_number: `INV-${Date.now().toString().slice(-6)}`,
@@ -27,12 +30,10 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
     if (!file) return;
 
     setUploading(true);
-    // Create a unique path: project_id/timestamp_filename
     const fileExt = file.name.split('.').pop();
     const filePath = `${projectId}/${Date.now()}.${fileExt}`;
 
-    // UPLOAD TO 'invoices' BUCKET
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('invoices')
       .upload(filePath, file);
 
@@ -45,7 +46,7 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
       
       form.setValue("file_url", publicUrl);
       form.setValue("storage_path", filePath);
-      toast.success("Invoice PDF uploaded to storage");
+      toast.success("Invoice PDF uploaded");
     }
     setUploading(false);
   }
@@ -53,8 +54,8 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
   async function onSubmit(values: any) {
     const res = await createInvoiceAction(projectId, values);
     if (res.success) {
-      toast.success("Invoice record saved to database");
-      onSuccess();
+      toast.success("Invoice record saved");
+      close(); // This closes the dialog automatically
     } else {
       toast.error(res.error);
     }
@@ -80,7 +81,7 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
              {form.watch("file_url") ? (
                  <>
                     <FileCheck className="h-10 w-10 text-green-500 mb-2" />
-                    <p className="text-xs font-bold text-green-600 uppercase">File ready for submission</p>
+                    <p className="text-xs font-bold text-green-600 uppercase">File uploaded successfully</p>
                  </>
              ) : (
                  <>

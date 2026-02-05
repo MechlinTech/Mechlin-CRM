@@ -43,8 +43,9 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                 <Settings2 className="h-3.5 w-3.5" /> Project Settings
               </Button>
             }
-            content={<CreateProjectForm project={project} organisations={organisations} />}
-          />
+          >
+            <CreateProjectForm project={project} organisations={organisations} />
+          </ActionButton>
         </div>
         <div className="grid grid-cols-4 gap-12 border-t border-zinc-100 pt-8">
           <div><p className="text-[9px] font-bold uppercase text-zinc-400 mb-2">Total Budget</p><p className="font-black text-xl">{project.currency} {project.budget?.toLocaleString()}</p></div>
@@ -65,15 +66,16 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                 <Plus className="h-4 w-4" /> Add Phase
               </Button>
             }
-            content={<PhaseForm projectId={id} onSuccess={() => {}} />}
-          />
+          >
+            <PhaseForm projectId={id} />
+          </ActionButton>
         </div>
         
         <div className="space-y-6">
           {project.phases?.map((phase: any) => (
             <Collapsible key={phase.id} className="group border border-zinc-200 rounded-[24px] bg-white shadow-sm overflow-hidden transition-all hover:border-zinc-400">
               <div className="flex items-center justify-between p-3">
-                <CollapsibleTrigger className="flex items-center gap-5 flex-1 p-5 hover:bg-zinc-50 transition-colors rounded-xl text-black text-left">
+                <CollapsibleTrigger className="flex items-center gap-5 flex-1 p-5 hover:bg-zinc-50 transition-colors rounded-xl text-black">
                   <div className="h-10 w-10 bg-zinc-100 rounded-full flex items-center justify-center transition-transform group-data-[state=open]:rotate-90">
                     <ChevronRight className="h-5 w-5 text-zinc-500" />
                   </div>
@@ -83,18 +85,23 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                   <ActionButton 
                     title="Edit Phase"
                     trigger={<div className="p-3 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-black transition-colors cursor-pointer"><Pencil className="h-4 w-4" /></div>}
-                    content={<PhaseForm projectId={id} phase={phase} onSuccess={() => {}} />}
-                  />
+                  >
+                    <PhaseForm projectId={id} phase={phase} />
+                  </ActionButton>
+                  
                   <form action={async () => { "use server"; await deletePhaseAction(phase.id, id); }}>
                     <button type="submit" className="p-3 hover:bg-red-50 rounded-full text-zinc-400 hover:text-red-600 transition-colors"><Trash2 className="h-4 w-4" /></button>
                   </form>
+
                   <ActionButton 
                     title="Configure Milestone"
                     trigger={<Button variant="ghost" size="sm" className="text-[10px] font-black uppercase text-zinc-500 hover:text-black hover:bg-zinc-50 h-9 px-4">+ Milestone</Button>}
-                    content={<MilestoneForm projectId={id} phaseId={phase.id} onSuccess={() => {}} />}
-                  />
+                  >
+                    <MilestoneForm projectId={id} phaseId={phase.id} />
+                  </ActionButton>
                 </div>
               </div>
+              
               <CollapsibleContent className="border-t border-zinc-100 bg-zinc-50/30">
                 <div className="p-6 pl-16 space-y-3">
                   {phase.milestones?.length > 0 ? phase.milestones.map((m: any) => (
@@ -133,14 +140,11 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                 <Plus className="h-4 w-4" /> New Invoice
               </Button>
             }
-            content={<InvoiceForm projectId={id} onSuccess={() => {}} />}
-          />
+          >
+            <InvoiceForm projectId={id} />
+          </ActionButton>
         </div>
-        <InvoiceList 
-          invoices={project.invoices || []} 
-          projectId={id} 
-          organisationName={project.organisations?.name} 
-        />
+        <InvoiceList invoices={project.invoices || []} projectId={id} organisationName={project.organisations?.name} />
       </section>
     </div>
   );
