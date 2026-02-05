@@ -11,8 +11,16 @@ export type Organisation = {
     name: string
     slug: string
     status: "active" | "suspended" | "trial"
+    escalation_contacts: EscalationContact[]
     created_at: string
     updated_at: string
+}
+
+// Escalation Contact type
+export type EscalationContact = {
+    name: string
+    email: string
+    phone?: string
 }
 
 // Input type for creating a new organisation (only manual fields)
@@ -20,6 +28,7 @@ export type CreateOrganisationInput = {
     name: string
     slug: string
     status: "active" | "suspended" | "trial"
+    escalation_contacts?: EscalationContact[]
 }
 
 export async function getAllOrganisationsAction() {
