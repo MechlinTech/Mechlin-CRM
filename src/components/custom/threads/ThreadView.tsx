@@ -187,7 +187,7 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
             <div className="flex-1 flex overflow-hidden">
                 {/* Messages Section - Takes 2/3 space */}
                 <div className="flex-1 bg-white overflow-hidden flex flex-col border border-gray-200 rounded-lg">
-                    <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
+                    <div className="shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
                         <h3 className="text-sm font-medium text-gray-700">Messages</h3>
                     </div>
                     <div className="flex-1 overflow-y-auto p-6">
@@ -224,7 +224,7 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
 
                 {/* Input Section - Takes 1/3 space */}
                 <div className="w-1/3 bg-gray-50 border-l border-gray-200 flex flex-col sticky top-0 self-start h-full">
-                    <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
+                    <div className="shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
                         <h3 className="text-sm font-medium text-gray-700">Reply to Thread</h3>
                     </div>
                     <div className="flex-1 overflow-hidden p-4">

@@ -13,6 +13,7 @@ import { deletePhaseAction } from "@/actions/hierarchy";
 import { ActionButton } from "@/components/shared/action-button";
 import Link from "next/link";
 import React from "react";
+import { ProjectWiki } from "@/components/custom/wiki";
 
 export default async function ProjectOverview({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -141,6 +142,15 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
           projectId={id} 
           organisationName={project.organisations?.name} 
         />
+      {/* Project Wiki */}
+      <section className="space-y-4">
+        <div className="border rounded-lg p-4 bg-white shadow-sm">
+          <ProjectWiki 
+            projectId={id}
+            title="Project Documentation"
+            showHeader={true}
+          />
+        </div>
       </section>
     </div>
   );

@@ -29,9 +29,9 @@ async function getWikiPageBySlug(slug: string) {
     return { data, error }
 }
 
-// Get all wiki pages
-export async function getAllWikiPagesAction(includeHierarchy = false) {
-    const { data, error } = await getAllWikiPages(includeHierarchy)
+// Get all wiki pages (with optional project filtering)
+export async function getAllWikiPagesAction(includeHierarchy = false, projectId?: string) {
+    const { data, error } = await getAllWikiPages(includeHierarchy, projectId)
     if (error) {
         return { success: false, error: (error as any)?.message || 'Failed to fetch pages' }
     }
@@ -77,7 +77,7 @@ export async function createWikiPageAction(pageData: CreateWikiPageInput & { cre
         })
     }
 
-    revalidatePath("/wiki")
+    // No revalidatePath needed since wiki is only in projects
     return { success: true, page: data }
 }
 
@@ -103,12 +103,11 @@ export async function updateWikiPageAction(
             changes_summary: pageData.changes_summary || "Page updated"
         })
 
-        // Clean up old versions - keep only the last 1
+        // Keep only the last 1 version (previous version)
         await cleanupOldVersions(id)
     }
 
-    revalidatePath("/wiki")
-    revalidatePath(`/wiki/${id}`)
+    // No revalidatePath needed since wiki is only in projects
     return { success: true, page: data }
 }
 
@@ -119,7 +118,7 @@ export async function deleteWikiPageAction(id: string) {
         return { success: false, error: (error as any)?.message || 'Failed to delete page' }
     }
 
-    revalidatePath("/wiki")
+    // No revalidatePath needed since wiki is only in projects
     return { success: true }
 }
 

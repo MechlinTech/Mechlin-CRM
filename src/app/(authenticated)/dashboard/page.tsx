@@ -1,7 +1,25 @@
+// app/dashboard/page.tsx
+import { GeneralThreads } from '@/components/custom/threads'
+
 export default function DashboardPage() {
   return (
-    <div className="flex items-center justify-center h-full">
-      {/* Intentionally left blank as per project requirement [cite: 22] */}
-    </div>
+    <div >
+
+        <h1>Dashboard</h1>
+      
+      
+        
+        <div className="lg:col-span-1">
+          <GeneralThreads 
+            title="Latest Discussions"
+            showThreadList={true}
+            defaultView="list"
+          />
+        </div>
+      </div>
+    
+
+
+    
   );
 }
