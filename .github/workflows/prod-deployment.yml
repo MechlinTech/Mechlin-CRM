@@ -38,16 +38,14 @@ jobs:
             .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/login-whitelabel:${{ env.APP_VERSION }}
 
-      - name: Deploy container
+      - name: Deploy PROD container
         shell: powershell
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           APP_VERSION: ${{ env.APP_VERSION }}
-          PORT: 3001
-          CONTAINER_NAME: login-whitelabel-prod
         run: |
-          cd docker
-          docker compose -p prod pull
-          docker compose -p prod up -d
+          docker compose -f docker/docker-compose.prod.yml -p prod down
+          docker compose -f docker/docker-compose.prod.yml -p prod pull
+          docker compose -f docker/docker-compose.prod.yml -p prod up -d --force-recreate

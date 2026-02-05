@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  web:
+    image: ${DOCKERHUB_USERNAME}/login-whitelabel:${APP_VERSION}
+    container_name: login-whitelabel-dev
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    restart: unless-stopped
