@@ -142,15 +142,16 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
           projectId={id} 
           organisationName={project.organisations?.name} 
         />
-      {/* Project Wiki */}
-      <section className="space-y-4">
-        <div className="border rounded-lg p-4 bg-white shadow-sm">
-          <ProjectWiki 
-            projectId={id}
-            title="Project Documentation"
-            showHeader={true}
-          />
-        </div>
+        {/* Project Wiki */}
+        <section className="space-y-4">
+          <div className="border rounded-lg p-4 bg-white shadow-sm">
+            <ProjectWiki 
+              projectId={id}
+              title="Project Documentation"
+              showHeader={true}
+            />
+          </div>
+        </section>
       </section>
     </div>
   );
