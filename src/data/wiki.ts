@@ -6,6 +6,7 @@ export type WikiPage = {
     content: any // JSON content from Tiptap
     slug: string
     parent_id?: string | null
+    project_id?: string | null // New field for project-specific wikis
     order_index: number
     status: 'draft' | 'published' | 'archived'
     created_by?: string | null
@@ -29,6 +30,7 @@ export type CreateWikiPageInput = {
     content: any
     slug: string
     parent_id?: string | null
+    project_id?: string | null // New field for project-specific wikis
     order_index?: number
     status?: 'draft' | 'published' | 'archived'
     created_by?: string | null
@@ -39,18 +41,30 @@ export type UpdateWikiPageInput = {
     content?: any
     slug?: string
     parent_id?: string | null
+    project_id?: string | null // New field for project-specific wikis
     order_index?: number
     status?: 'draft' | 'published' | 'archived'
     updated_by?: string | null
 }
 
-// Get all wiki pages (with optional hierarchy)
-export async function getAllWikiPages(includeHierarchy = false) {
+// Get all wiki pages (with optional hierarchy and project filtering)
+export async function getAllWikiPages(includeHierarchy = false, projectId?: string) {
     let query = supabase
         .from('wiki_pages')
         .select('*')
         .order('order_index', { ascending: true })
         .order('created_at', { ascending: true })
+
+    // Filter by project if specified
+    if (projectId !== undefined) {
+        if (projectId === null) {
+            // Get general wiki pages (no project)
+            query = query.is('project_id', null)
+        } else {
+            // Get project-specific wiki pages
+            query = query.eq('project_id', projectId)
+        }
+    }
 
     const { data, error } = await query
 
@@ -98,6 +112,7 @@ export async function createWikiPage(pageData: CreateWikiPageInput) {
             content: pageData.content,
             slug: pageData.slug,
             parent_id: pageData.parent_id || null,
+            project_id: pageData.project_id || null,
             order_index: pageData.order_index || 0,
             status: pageData.status || 'published',
             created_by: pageData.created_by || null
@@ -142,7 +157,7 @@ export async function deleteWikiPage(id: string) {
     return { error }
 }
 
-// Get page versions (history) - only get the immediate previous version
+// Get page versions (history) - get all versions
 export async function getWikiPageVersions(pageId: string): Promise<WikiVersion[]> {
     try {
         const { data, error } = await supabase
@@ -150,7 +165,6 @@ export async function getWikiPageVersions(pageId: string): Promise<WikiVersion[]
             .select('*')
             .eq('page_id', pageId)
             .order('created_at', { ascending: false })
-            .limit(1) // Only get the most recent version (which is the previous content)
         
         if (error) throw error
         
@@ -182,43 +196,40 @@ export async function createWikiVersion(versionData: {
     return { data, error }
 }
 
-// Clean up old versions - keep only the last 1 (previous version)
+// Clean up old versions - keep all versions (disabled for full history)
 export async function cleanupOldVersions(pageId: string) {
     try {
-        // Get all versions except the last 1
-        const { data: allVersions } = await supabase
-            .from('wiki_versions')
-            .select('id')
-            .eq('page_id', pageId)
-            .order('created_at', { ascending: false })
-        
-        if (allVersions && allVersions.length > 1) {
-            // Delete versions beyond the last 1
-            const versionsToDelete = allVersions.slice(1).map(v => v.id)
-            
-            const { error } = await supabase
-                .from('wiki_versions')
-                .delete()
-                .in('id', versionsToDelete)
-            
-            if (error) throw error
-        }
-        
+        // Function disabled to keep all version history
+        // If you need to limit versions in the future, you can implement logic here
+        console.log('Version cleanup disabled - keeping all history for page:', pageId)
         return { success: true }
     } catch (error) {
-        console.error('Error cleaning up old versions:', error)
+        console.error('Error in cleanupOldVersions:', error)
         return { success: false, error }
     }
 }
 
-// Search wiki pages
-export async function searchWikiPages(searchTerm: string) {
-    const { data, error } = await supabase
+// Search wiki pages (with optional project filtering)
+export async function searchWikiPages(searchTerm: string, projectId?: string) {
+    let query = supabase
         .from('wiki_pages')
         .select('*')
         .or(`title.ilike.%${searchTerm}%,content::text.ilike.%${searchTerm}%`)
         .eq('status', 'published')
         .order('updated_at', { ascending: false })
+
+    // Filter by project if specified
+    if (projectId !== undefined) {
+        if (projectId === null) {
+            // Search general wiki pages (no project)
+            query = query.is('project_id', null)
+        } else {
+            // Search project-specific wiki pages
+            query = query.eq('project_id', projectId)
+        }
+    }
+
+    const { data, error } = await query
 
     return { data, error: null }
 }
