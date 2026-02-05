@@ -1,35 +1,25 @@
-name: CI / CD Pipeline
+name: Dev Deployment (Main)
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch: # Optional manual trigger
+  workflow_dispatch:
 
 jobs:
-
   deploy:
     runs-on: self-hosted
 
     steps:
-      # ---------------------------
-      # Checkout code
-      # ---------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ---------------------------
-      # Set image tag from commit SHA
-      # ---------------------------
       - name: Set image tag from commit SHA
         shell: powershell
         run: |
           $sha = "${{ github.sha }}".Substring(0,7)
           Add-Content $env:GITHUB_ENV "APP_VERSION=$sha"
 
-      # ---------------------------
-      # Login to Docker Hub
-      # ---------------------------
       - name: Login to Docker Hub
         shell: powershell
         run: |
@@ -37,9 +27,6 @@ jobs:
             -u "${{ secrets.DOCKERHUB_USERNAME }}" `
             -p "${{ secrets.DOCKERHUB_TOKEN }}"
 
-      # ---------------------------
-      # Build & push Docker image
-      # ---------------------------
       - name: Build & push Docker image
         shell: powershell
         run: |
@@ -51,9 +38,6 @@ jobs:
             .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/login-whitelabel:${{ env.APP_VERSION }}
 
-      # ---------------------------
-      # Deploy container
-      # ---------------------------
       - name: Deploy container
         shell: powershell
         env:
@@ -61,7 +45,9 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           APP_VERSION: ${{ env.APP_VERSION }}
+          PORT: 3000
+          CONTAINER_NAME: login-whitelabel-dev
         run: |
           cd docker
-          docker compose pull
-          docker compose up -d
+          docker compose -p dev pull
+          docker compose -p dev up -d
