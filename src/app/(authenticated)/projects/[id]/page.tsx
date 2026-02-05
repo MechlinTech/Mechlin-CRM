@@ -45,9 +45,8 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                 <Settings2 className="h-3.5 w-3.5" /> Project Settings
               </Button>
             }
-          >
-            <CreateProjectForm project={project} organisations={organisations} />
-          </ActionButton>
+            content={<CreateProjectForm project={project} organisations={organisations} />}
+          />
         </div>
         <div className="grid grid-cols-4 gap-12 border-t border-zinc-100 pt-8">
           <div><p className="text-[9px] font-bold uppercase text-zinc-400 mb-2">Total Budget</p><p className="font-black text-xl">{project.currency} {project.budget?.toLocaleString()}</p></div>
@@ -56,7 +55,7 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
           <a href={project.repo_link} target="_blank" className="text-blue-600 font-bold truncate block hover:underline text-sm">{project.repo_link || 'No Repo Linked'}</a></div>
         </div>
       </section>
- 
+
       {/* 2. ROADMAP SECTION */}
       <section className="space-y-8">
         <div className="flex justify-between items-center px-4">
@@ -68,11 +67,10 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                 <Plus className="h-4 w-4" /> Add Phase
               </Button>
             }
-          >
-            <PhaseForm projectId={id} />
-          </ActionButton>
+            content={<PhaseForm projectId={id} />}
+          />
         </div>
-       
+
         <div className="space-y-6">
           {project.phases?.map((phase: any) => (
             <Collapsible key={phase.id} className="group border border-zinc-200 rounded-[24px] bg-white shadow-sm overflow-hidden transition-all hover:border-zinc-400">
@@ -87,14 +85,13 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                   <ActionButton
                     title="Edit Phase"
                     trigger={<div className="p-3 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-black transition-colors cursor-pointer"><Pencil className="h-4 w-4" /></div>}
-                  >
-                    <PhaseForm projectId={id} phase={phase} />
-                  </ActionButton>
-                 
+                    content={<PhaseForm projectId={id} phase={phase} />}
+                  />
+
                   <form action={async () => { "use server"; await deletePhaseAction(phase.id, id); }}>
                     <button type="submit" className="p-3 hover:bg-red-50 rounded-full text-zinc-400 hover:text-red-600 transition-colors"><Trash2 className="h-4 w-4" /></button>
                   </form>
- 
+
                   {/* HIGHLIGHTED + MILESTONE BUTTON */}
                   <ActionButton
                     title="Configure Milestone"
@@ -103,12 +100,11 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                         <Plus className="h-3 w-3 mr-1" /> Milestone
                       </Button>
                     }
-                  >
-                    <MilestoneForm projectId={id} phaseId={phase.id} />
-                  </ActionButton>
+                    content={<MilestoneForm projectId={id} phaseId={phase.id} />}
+                  />
                 </div>
               </div>
-             
+
               <CollapsibleContent className="border-t border-zinc-100 bg-zinc-50/30">
                 <div className="p-6 pl-16 space-y-3">
                   {phase.milestones?.length > 0 ? phase.milestones.map((m: any) => (
@@ -130,13 +126,13 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
           ))}
         </div>
       </section>
- 
+
       {/* 3. INVOICES SECTION */}
       <section className="space-y-8 pt-8 border-t border-zinc-100">
         <div className="flex justify-between items-center px-4">
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 bg-black rounded-full flex items-center justify-center shadow-lg">
-                <ReceiptText className="h-5 w-5 text-white" />
+              <ReceiptText className="h-5 w-5 text-white" />
             </div>
             <h2 className="text-3xl font-black tracking-tighter text-zinc-900">Billing & Invoices</h2>
           </div>
@@ -147,9 +143,8 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
                 <Plus className="h-4 w-4" /> New Invoice
               </Button>
             }
-          >
-            <InvoiceForm projectId={id} />
-          </ActionButton>
+            content={<InvoiceForm projectId={id} />}
+          />
         </div>
         <InvoiceList invoices={project.invoices || []} projectId={id} organisationName={project.organisations?.name} />
       </section>

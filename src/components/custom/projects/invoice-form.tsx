@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { UploadCloud, FileCheck } from "lucide-react"
 
-export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuccess: () => void }) {
+export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuccess?: () => void }) {
   const [uploading, setUploading] = React.useState(false)
   const form = useForm({
     defaultValues: {
@@ -54,7 +54,7 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
     const res = await createInvoiceAction(projectId, values);
     if (res.success) {
       toast.success("Invoice record saved to database");
-      onSuccess();
+      onSuccess?.();
     } else {
       toast.error(res.error);
     }
