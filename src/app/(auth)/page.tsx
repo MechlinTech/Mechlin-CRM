@@ -32,7 +32,7 @@ export default function Login() {
           toast.success(`Successfully signed in with ${providerName}`);
           previousProviderRef.current = provider;
         }
-        redirect('/success')
+        redirect('/organisations')
       } else if (event === 'SIGNED_OUT' || !session) {
         // User signed out, ensure we're on login page
         previousProviderRef.current = null;
