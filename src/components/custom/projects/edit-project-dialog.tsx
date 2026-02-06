@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { CreateProjectForm } from "./create-project-form"
 
-// FIX: Added 'users' to the type definition and the component arguments
 export function EditProjectDialog({ project, organisations, users }: { project: any, organisations: any[], users: any[] }) {
   const [open, setOpen] = useState(false)
   
@@ -15,7 +14,8 @@ export function EditProjectDialog({ project, organisations, users }: { project: 
           <Pencil className="mr-2 h-4 w-4" /> Edit Project
         </div>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl bg-white text-black border-none shadow-2xl">
+      {/* Added max-h and scrolling to content */}
+      <DialogContent className="max-w-2xl bg-white text-black border-none shadow-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Edit Project: {project.name}</DialogTitle>
         </DialogHeader>
@@ -23,7 +23,6 @@ export function EditProjectDialog({ project, organisations, users }: { project: 
           project={project} 
           onSuccess={() => setOpen(false)} 
           organisations={organisations} 
-          // FIX: Pass users down to the form so they show up in the edit state
           users={users} 
         />
       </DialogContent>

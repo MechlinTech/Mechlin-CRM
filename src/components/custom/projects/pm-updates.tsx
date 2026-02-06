@@ -9,17 +9,28 @@ import { toast } from "sonner"
 
 export function PMUpdateDialog({ projectId, log, children }: any) {
   const [open, setOpen] = React.useState(false)
-  const [content, setContent] = React.useState(log?.new_data?.content || log?.content || "")
+  const [content, setContent] = React.useState(log?.new_value?.content || log?.content || "")
   const isEdit = !!log
 
+  React.useEffect(() => {
+    if (!open && !isEdit) {
+      setContent("");
+    }
+  }, [open, isEdit]);
+
   async function handleSave() {
+    if (!content || content === "<p></p>") {
+        return toast.error("Notice content cannot be empty");
+    }
+
     const res = isEdit 
       ? await updatePMUpdateAction(log.id, projectId, content)
       : await createPMUpdateAction(projectId, content);
 
     if (res.success) {
       toast.success(isEdit ? "Notice Updated" : "Notice Posted");
-      setOpen(false); // FIXED: Auto-closes the dialog
+      setContent("");
+      setOpen(false); 
     } else {
       toast.error(res.error);
     }
@@ -28,20 +39,30 @@ export function PMUpdateDialog({ projectId, log, children }: any) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl bg-white text-black border-none shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="font-black text-xl">{isEdit ? 'Edit PM Notice' : 'Post New PM Notice'}</DialogTitle>
+      {/* max-w-4xl + w-full + overflow-hidden prevents the sssssss scaling */}
+      <DialogContent className="max-w-4xl w-full bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle className="font-black text-2xl tracking-tighter uppercase">
+            {isEdit ? 'Modify Project Notice' : 'Broadcast New Notice'}
+          </DialogTitle>
         </DialogHeader>
-        <div className="py-4">
+        
+        <div className="p-6 w-full max-w-full overflow-hidden">
           <WysiwygEditor 
             content={content} 
             onChange={setContent} 
-            placeholder="Write your project notice here..." 
           />
         </div>
-        <Button onClick={handleSave} className="w-full bg-black text-white font-black h-12">
-          {isEdit ? 'Update Notice' : 'Post to Notice Board'}
-        </Button>
+
+        {/* Footer with forced layout */}
+        <div className="flex items-center gap-3 p-6 pt-0 w-full mt-auto">
+            <Button variant="outline" onClick={() => setOpen(false)} className="w-[120px] h-12 rounded-xl font-bold uppercase text-xs">
+                Cancel
+            </Button>
+            <Button onClick={handleSave} className="flex-1 bg-black text-white font-black h-12 rounded-xl uppercase text-xs hover:bg-zinc-800 transition-colors">
+              {isEdit ? 'Update Broadcast' : 'Post to Notice Board'}
+            </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )
