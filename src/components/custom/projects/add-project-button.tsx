@@ -27,7 +27,8 @@ export function AddProjectButton({ organisations, users }: { organisations: any[
             <DialogTrigger asChild>
                 <Button variant="default">Add Project</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white text-black">
+            {/* Added max-h and scrolling to content */}
+            <DialogContent className="max-w-2xl bg-white text-black max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Add New Project</DialogTitle>
                     <DialogDescription>

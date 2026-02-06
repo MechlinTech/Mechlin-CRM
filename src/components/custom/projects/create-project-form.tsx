@@ -32,7 +32,6 @@ export function CreateProjectForm({ onSuccess, project, organisations }: any) {
   const router = useRouter()
   const isEditMode = !!project
 
-  // FIX: Added '?? []' to handle cases where organisations is undefined during build/prerender
   const clientOrgs = React.useMemo(() => 
     (organisations ?? []).filter((org: any) => 
       org.is_internal !== true && 
@@ -67,7 +66,6 @@ export function CreateProjectForm({ onSuccess, project, organisations }: any) {
     loadData();
   }, []);
 
-  // Use optional chaining (?.) here as well for safety
   const mechlinTeam = allUsers.filter(u => 
     u.organisations?.is_internal === true || 
     u.organisations?.name?.trim().toLowerCase() === "mechlin"
@@ -100,10 +98,11 @@ export function CreateProjectForm({ onSuccess, project, organisations }: any) {
   const renderSelectionBox = (users: any[], label: string) => (
     <div className="flex flex-col gap-2">
       <FormLabel className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider">{label}</FormLabel>
-      <div className="border border-zinc-200 rounded-md p-3 h-32 overflow-y-auto bg-white shadow-inner">
+      {/* Scrollable container with fixed height */}
+      <div className="border border-zinc-200 rounded-md p-3 h-[180px] overflow-y-auto bg-white shadow-inner scrollbar-thin">
         {users.length > 0 ? users.map((u) => (
           <FormField key={u.id} control={form.control} name="members" render={({ field }) => (
-            <FormItem className="flex flex-row items-center space-x-2 py-1">
+            <FormItem className="flex flex-row items-center space-x-2 py-1 space-y-0">
               <FormControl>
                 <Checkbox 
                   className="h-4 w-4 border-zinc-300 data-[state=checked]:bg-black" 

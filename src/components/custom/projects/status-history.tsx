@@ -26,19 +26,18 @@ export function StatusHistory({ logs }: { logs: any[] }) {
           <History className="h-3 w-3" /> Status History
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px] bg-white text-black overflow-y-auto">
+      <SheetContent className="w-[400px] sm:w-[540px] bg-white text-black overflow-y-auto border-l-0 shadow-2xl">
         <SheetHeader className="border-b pb-6">
-          <SheetTitle className="text-2xl font-black tracking-tighter">Audit Trail</SheetTitle>
-          <p className="text-xs text-zinc-400 font-medium">History of all project transitions.</p>
+          <SheetTitle className="text-2xl font-black tracking-tighter uppercase">Audit Trail</SheetTitle>
+          <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">History of all project transitions.</p>
         </SheetHeader>
         
         <div className="py-8 px-4 space-y-8">
           {logs && logs.length > 0 ? logs.map((log: any) => (
             <div key={log.id} className="relative pl-8 border-l-2 border-zinc-100 last:border-0 pb-6">
-              {/* FIXED BULLET POINT CSS */}
               <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-black border-4 border-white shadow-md z-10" />
               
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-black uppercase tracking-widest text-zinc-900">
                     {log.action_type?.replace(/_/g, ' ') || 'ACTION'}
@@ -48,18 +47,21 @@ export function StatusHistory({ logs }: { logs: any[] }) {
                   </p>
                 </div>
                 
-                <p className="text-xs text-zinc-600 font-medium leading-relaxed">
-                    {log.new_value?.details || "No further details recorded."}
+                <p className="text-xs text-zinc-600 font-medium leading-relaxed italic border-l-2 border-zinc-100 pl-3">
+                    {log.new_value?.details || "Action recorded by system."}
                 </p>
 
-                <div className="flex items-center gap-1.5 mt-2">
-                    <User className="h-3 w-3 text-zinc-300" />
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">System Administrator</span>
+                <div className="flex items-center gap-1.5 mt-2 bg-zinc-50 w-fit px-2 py-1 rounded-md">
+                    <User className="h-3 w-3 text-zinc-400" />
+                    {/* Displays actual username from joined table */}
+                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-tighter">
+                        By: {log.users?.name || 'Administrator'}
+                    </span>
                 </div>
 
                 {log.old_value?.status && (
-                  <div className="flex items-center gap-3 py-1 mt-2 bg-zinc-50 rounded-lg p-2 w-fit border border-zinc-100">
-                    <span className="text-[9px] font-black px-2 py-0.5 bg-zinc-200 text-zinc-600 rounded uppercase">
+                  <div className="flex items-center gap-3 py-1 mt-2">
+                    <span className="text-[9px] font-black px-2 py-0.5 bg-zinc-100 text-zinc-500 rounded uppercase">
                       {log.old_value.status}
                     </span>
                     <ArrowRight className="h-3 w-3 text-zinc-300" />
@@ -71,9 +73,9 @@ export function StatusHistory({ logs }: { logs: any[] }) {
               </div>
             </div>
           )) : (
-            <div className="text-center py-20">
-              <History className="h-12 w-12 text-zinc-100 mx-auto mb-4" />
-              <p className="text-zinc-400 text-sm font-medium uppercase tracking-widest">No activity recorded yet</p>
+            <div className="text-center py-20 bg-zinc-50 rounded-3xl">
+              <History className="h-12 w-12 text-zinc-200 mx-auto mb-4" />
+              <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">No activity recorded yet</p>
             </div>
           )}
         </div>

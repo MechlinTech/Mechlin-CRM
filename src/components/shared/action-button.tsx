@@ -12,19 +12,15 @@ import {
 interface ActionButtonProps {
   title: string
   trigger: React.ReactNode
-  content: React.ReactElement
+  children: React.ReactNode // Switch back to children for standard React nesting
 }
 
-export function ActionButton({ title, trigger, content }: ActionButtonProps) {
+// Create a Context to allow deep children to close the dialog
+export const ActionModalContext = React.createContext<{ close: () => void }>({ close: () => {} });
+
+export function ActionButton({ title, trigger, children }: ActionButtonProps) {
   const [open, setOpen] = React.useState(false)
-
-  // Defensive check: ensure content exists before cloning
-  if (!content) return null;
-
-  // Inject onSuccess logic into the child form on the client side
-  const formWithProps = React.cloneElement(content as React.ReactElement<any>, {
-    onSuccess: () => setOpen(false)
-  })
+  const close = () => setOpen(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -35,7 +31,9 @@ export function ActionButton({ title, trigger, content }: ActionButtonProps) {
         <DialogHeader>
           <DialogTitle className="font-black text-xl tracking-tighter uppercase">{title}</DialogTitle>
         </DialogHeader>
-        {formWithProps}
+        <ActionModalContext.Provider value={{ close }}>
+          {children}
+        </ActionModalContext.Provider>
       </DialogContent>
     </Dialog>
   )

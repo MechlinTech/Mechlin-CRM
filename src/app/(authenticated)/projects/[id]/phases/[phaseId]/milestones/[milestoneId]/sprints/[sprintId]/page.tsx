@@ -4,11 +4,16 @@ import * as React from "react";
 import { supabase } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus, Trash2, CheckCircle2, FileUp, FolderOpen, AlignLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SprintForm } from "@/components/custom/projects/sprint-form";
-import { SprintThreads } from "@/components/custom/threads";
+import { ActionButton } from "@/components/shared/action-button";
+import { TaskForm } from "@/components/custom/projects/task-form";
+import { DocumentForm } from "@/components/custom/projects/document-form";
+import { deleteTaskAction } from "@/actions/hierarchy";
+import { toast } from "sonner";
+import { SprintThreads } from "@/components/custom/threads/SprintThreads";
 
 export default function SprintPage({ params }: { params: any }) {
   const { id, phaseId, milestoneId, sprintId } = React.use(params) as any;
@@ -16,7 +21,10 @@ export default function SprintPage({ params }: { params: any }) {
   const [isEditOpen, setIsEditOpen] = React.useState(false);
 
   const fetchData = React.useCallback(async () => {
-    const { data } = await supabase.from("sprints").select("*").eq("id", sprintId).single();
+    const { data } = await supabase.from("sprints").select("*, tasks(*)").eq("id", sprintId).single();
+    if (data?.tasks) {
+        data.tasks.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
     setSprint(data);
   }, [sprintId]);
 
@@ -25,50 +33,80 @@ export default function SprintPage({ params }: { params: any }) {
   if (!sprint) return null;
 
   return (
-    <div className="max-w-4xl space-y-10 text-black">
-      <nav className="flex text-[10px] text-zinc-400 gap-2 mb-4 uppercase font-bold tracking-widest">
-          <Link href={`/projects/${id}`} className="hover:text-black">Project</Link>
-          <span>/</span>
-          <Link href={`/projects/${id}/phases/${phaseId}/milestones/${milestoneId}`} className="hover:text-black">Milestone</Link>
-          <span>/</span>
-          <span className="text-zinc-800">Sprint View</span>
-      </nav>
+    <div className="max-w-4xl space-y-10 text-black font-sans relative">
+      {/* FLOATING ACTION BUTTONS */}
+      <div className="absolute -right-4 top-0 translate-x-full space-y-3 hidden xl:block">
+          <ActionButton title="Upload Sprint Deliverable" trigger={
+              <button className="flex flex-col items-center justify-center h-20 w-20 bg-zinc-900 text-white rounded-3xl shadow-2xl hover:scale-105 transition-all">
+                  <FileUp className="h-6 w-6 mb-1" />
+                  <span className="text-[8px] font-black uppercase tracking-tighter">Upload</span>
+              </button>
+          }>
+              <DocumentForm projectId={id} ids={{ phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} />
+          </ActionButton>
+          <Link href={`/projects/${id}/documents?sprintId=${sprintId}`} className="flex flex-col items-center justify-center h-20 w-20 bg-white border border-zinc-200 text-black rounded-3xl shadow-xl hover:scale-105 transition-all">
+              <FolderOpen className="h-6 w-6 mb-1" />
+              <span className="text-[8px] font-black uppercase tracking-tighter">Vault</span>
+          </Link>
+      </div>
 
-      <section>
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter mb-2">{sprint.name}</h1>
-            <Badge className="bg-blue-50 text-blue-700 border-blue-100 px-4 py-1 uppercase text-[10px] font-bold">
-              {sprint.status || 'Active'}
-            </Badge>
-          </div>
-          <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="rounded-full gap-2 border-zinc-300 uppercase text-[9px] font-bold h-9 px-5">
-                <Pencil className="h-3 w-3" /> Edit Sprint
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-white text-black border-zinc-200 shadow-2xl">
-              <DialogHeader><DialogTitle>Edit Sprint Details</DialogTitle></DialogHeader>
-              <SprintForm projectId={id} milestoneId={milestoneId} sprint={sprint} onSuccess={() => { setIsEditOpen(false); fetchData(); }} />
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 p-8 border border-zinc-200 rounded-3xl bg-white shadow-sm">
-          <div>
-            <p className="text-[10px] font-bold uppercase text-zinc-400 mb-2 tracking-widest">Description</p>
-            <p className="text-zinc-700 leading-relaxed font-medium">
-              {sprint.description || "No specific details provided for this sprint cycle."}
+      <section className="flex justify-between items-end border-b border-zinc-100 pb-10">
+        <div className="space-y-4 max-w-xl">
+          <h1 className="text-5xl font-black tracking-tighter">{sprint.name}</h1>
+          
+          <div className="flex gap-2 items-start text-zinc-500">
+            <AlignLeft className="h-4 w-4 mt-1 shrink-0" />
+            <p className="text-sm leading-relaxed">
+                {sprint.description || "No description provided for this sprint."}
             </p>
           </div>
-          
-          <div className="grid grid-cols-2 gap-8 pt-6 border-t border-zinc-50">
-            <div>
-              <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest">Sprint Duration</p>
-              <p className="text-sm font-bold mt-1 text-zinc-900">{sprint.start_date} — {sprint.end_date}</p>
-            </div>
+
+          <div className="flex gap-4 items-center">
+            <Badge className="bg-zinc-900 text-white px-6 py-1.5 uppercase text-[10px] font-black tracking-widest rounded-full shadow-md">{sprint.status || 'Active'}</Badge>
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+              <DialogTrigger asChild><button className="p-2 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-black transition-colors"><Pencil className="h-4 w-4" /></button></DialogTrigger>
+              <DialogContent className="bg-white text-black border-zinc-200 shadow-2xl"><DialogHeader><DialogTitle className="font-black uppercase text-xl">Modify Sprint</DialogTitle></DialogHeader>
+                <SprintForm projectId={id} milestoneId={milestoneId} sprint={sprint} onSuccess={() => { setIsEditOpen(false); fetchData(); }} />
+              </DialogContent>
+            </Dialog>
           </div>
+        </div>
+        <ActionButton title="Create Sprint Task" trigger={<Button className="rounded-full bg-black text-white h-12 px-10 font-black uppercase text-[10px] gap-2 shadow-xl hover:bg-zinc-800 transition-all tracking-widest"><Plus className="h-4 w-4" /> New Task</Button>}>
+          <TaskForm ids={{ project_id: id, phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} onSuccess={fetchData} />
+        </ActionButton>
+      </section>
+
+      <section className="space-y-6">
+        <h2 className="text-sm font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2 px-2"><CheckCircle2 className="h-4 w-4" /> Task Backlog</h2>
+        <div className="grid gap-4">
+          {sprint.tasks?.map((task: any) => (
+            <div key={task.id} className="p-8 bg-white border border-zinc-100 rounded-[32px] flex items-center justify-between hover:border-black transition-all shadow-sm">
+                <div className="space-y-2">
+                    <p className="font-black text-xl tracking-tight text-zinc-900 uppercase">{task.title}</p>
+                    <p className="text-xs text-zinc-500 font-medium leading-relaxed max-w-lg">
+                        {task.description || "No task details provided."}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    {/* TASK EDIT BUTTON */}
+                    <ActionButton title="Edit Task" trigger={
+                        <button className="h-12 w-12 flex items-center justify-center rounded-2xl border border-zinc-100 text-zinc-300 hover:text-black transition-all shadow-sm">
+                            <Pencil className="h-5 w-5" />
+                        </button>
+                    }>
+                        <TaskForm 
+                            task={task} 
+                            ids={{ project_id: id, phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} 
+                            onSuccess={fetchData} 
+                        />
+                    </ActionButton>
+
+                    <button onClick={async () => { await deleteTaskAction(task.id, id); fetchData(); toast.success("Task deleted"); }} className="h-12 w-12 flex items-center justify-center rounded-2xl border border-zinc-100 text-zinc-300 hover:text-red-600 transition-all shadow-sm">
+                        <Trash2 className="h-5 w-5" />
+                    </button>
+                </div>
+            </div>
+          ))}
         </div>
       </section>
 
