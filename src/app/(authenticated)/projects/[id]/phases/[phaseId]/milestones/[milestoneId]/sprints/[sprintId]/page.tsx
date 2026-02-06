@@ -21,6 +21,9 @@ export default function SprintPage({ params }: { params: any }) {
 
   const fetchData = React.useCallback(async () => {
     const { data } = await supabase.from("sprints").select("*, tasks(*)").eq("id", sprintId).single();
+    if (data?.tasks) {
+        data.tasks.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
     setSprint(data);
   }, [sprintId]);
 
@@ -50,7 +53,6 @@ export default function SprintPage({ params }: { params: any }) {
         <div className="space-y-4 max-w-xl">
           <h1 className="text-5xl font-black tracking-tighter">{sprint.name}</h1>
           
-          {/* SPRINT DESCRIPTION */}
           <div className="flex gap-2 items-start text-zinc-500">
             <AlignLeft className="h-4 w-4 mt-1 shrink-0" />
             <p className="text-sm leading-relaxed">
@@ -80,13 +82,28 @@ export default function SprintPage({ params }: { params: any }) {
             <div key={task.id} className="p-8 bg-white border border-zinc-100 rounded-[32px] flex items-center justify-between hover:border-black transition-all shadow-sm">
                 <div className="space-y-2">
                     <p className="font-black text-xl tracking-tight text-zinc-900 uppercase">{task.title}</p>
-                    
-                    {/* TASK DESCRIPTION */}
                     <p className="text-xs text-zinc-500 font-medium leading-relaxed max-w-lg">
                         {task.description || "No task details provided."}
                     </p>
                 </div>
-                <button onClick={async () => { await deleteTaskAction(task.id, id); fetchData(); toast.success("Task deleted"); }} className="h-12 w-12 flex items-center justify-center rounded-2xl border border-zinc-100 text-zinc-300 hover:text-red-600 transition-all shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                <div className="flex items-center gap-2">
+                    {/* TASK EDIT BUTTON */}
+                    <ActionButton title="Edit Task" trigger={
+                        <button className="h-12 w-12 flex items-center justify-center rounded-2xl border border-zinc-100 text-zinc-300 hover:text-black transition-all shadow-sm">
+                            <Pencil className="h-5 w-5" />
+                        </button>
+                    }>
+                        <TaskForm 
+                            task={task} 
+                            ids={{ project_id: id, phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} 
+                            onSuccess={fetchData} 
+                        />
+                    </ActionButton>
+
+                    <button onClick={async () => { await deleteTaskAction(task.id, id); fetchData(); toast.success("Task deleted"); }} className="h-12 w-12 flex items-center justify-center rounded-2xl border border-zinc-100 text-zinc-300 hover:text-red-600 transition-all shadow-sm">
+                        <Trash2 className="h-5 w-5" />
+                    </button>
+                </div>
             </div>
           ))}
         </div>
