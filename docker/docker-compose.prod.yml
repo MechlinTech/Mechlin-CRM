@@ -5,7 +5,7 @@ services:
     image: ${DOCKERHUB_USERNAME}/login-whitelabel:${APP_VERSION}
     container_name: login-whitelabel-prod
     ports:
-      - "5555:3000"
+      - "6666:3000"
     environment:
       NODE_ENV: production
       PORT: 3000
