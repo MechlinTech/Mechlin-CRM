@@ -108,6 +108,13 @@ export default function SprintPage({ params }: { params: any }) {
           ))}
         </div>
       </section>
+
+      <section className="mt-8">
+        <SprintThreads 
+          sprintId={sprintId}
+          title="Sprint Discussions"
+        />
+      </section>
     </div>
   );
 }

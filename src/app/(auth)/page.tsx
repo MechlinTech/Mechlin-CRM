@@ -13,7 +13,7 @@ export default function Login() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        redirect('/success')
+        redirect('/dashboard')
       }
     })
 
@@ -32,7 +32,7 @@ export default function Login() {
           toast.success(`Successfully signed in with ${providerName}`);
           previousProviderRef.current = provider;
         }
-        redirect('/success')
+        redirect('/dashboard')
       } else if (event === 'SIGNED_OUT' || !session) {
         // User signed out, ensure we're on login page
         previousProviderRef.current = null;

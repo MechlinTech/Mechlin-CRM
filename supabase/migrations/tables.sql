@@ -172,6 +172,9 @@ CREATE TABLE enquiry_threads (
     title TEXT NOT NULL,
     context_type TEXT NOT NULL CHECK (context_type IN ('project', 'support', 'user', 'general')),
     context_id UUID,
+    phase_id UUID REFERENCES phases(id) ON DELETE SET NULL,
+    milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
+    sprint_id UUID REFERENCES sprints(id) ON DELETE SET NULL,
     status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'closed')),
     priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
     created_by UUID NOT NULL REFERENCES auth.users(id),
@@ -180,7 +183,6 @@ CREATE TABLE enquiry_threads (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
- 
 
 -- ENQUIRY MESSAGES TABLE - Messages in threads
 CREATE TABLE enquiry_messages (
@@ -217,13 +219,16 @@ CREATE TABLE thread_attachments (
     CONSTRAINT attachments_file_size_positive CHECK (file_size > 0)
 );
  
-
 -- PERFORMANCE INDEXES
 CREATE INDEX idx_threads_status ON enquiry_threads(status);
 CREATE INDEX idx_threads_context ON enquiry_threads(context_type, context_id);
 CREATE INDEX idx_threads_created_at ON enquiry_threads(created_at DESC);
 CREATE INDEX idx_threads_last_message ON enquiry_threads(last_message_at DESC);
 CREATE INDEX idx_threads_created_by ON enquiry_threads(created_by);
+CREATE INDEX idx_enquiry_threads_phase_id ON enquiry_threads(phase_id);
+CREATE INDEX idx_enquiry_threads_milestone_id ON enquiry_threads(milestone_id);
+CREATE INDEX idx_enquiry_threads_sprint_id ON enquiry_threads(sprint_id);
+CREATE INDEX idx_enquiry_threads_hierarchy ON enquiry_threads(context_id, phase_id, milestone_id, sprint_id);
  
 CREATE INDEX idx_messages_thread_id ON enquiry_messages(thread_id, created_at);
 CREATE INDEX idx_messages_created_by ON enquiry_messages(created_by);

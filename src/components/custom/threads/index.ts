@@ -6,6 +6,8 @@ export { MessageItem } from './MessageItem'
 
 // Context-specific wrapper components
 export { ProjectThreads } from './ProjectThreads'
+export { SprintThreads } from './SprintThreads'
+export { MilestoneThreads } from './MilestoneThreads'
 export { UserThreads } from './UserThreads'
 export { GeneralThreads } from './GeneralThreads'
 
