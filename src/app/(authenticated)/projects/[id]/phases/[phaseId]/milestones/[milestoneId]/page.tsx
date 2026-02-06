@@ -89,6 +89,13 @@ export default function MilestonePage({ params }: { params: any }) {
           ))}
         </div>
       </section>
+
+      <section className="mt-8">
+        <MilestoneThreads 
+          milestoneId={milestoneId}
+          title="Milestone Discussions"
+        />
+      </section>
     </div>
   );
 }

@@ -38,16 +38,14 @@ jobs:
             .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/login-whitelabel:${{ env.APP_VERSION }}
 
-      - name: Deploy container
+      - name: Deploy DEV container
         shell: powershell
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           APP_VERSION: ${{ env.APP_VERSION }}
-          PORT: 3000
-          CONTAINER_NAME: login-whitelabel-dev
         run: |
-          cd docker
-          docker compose -p dev pull
-          docker compose -p dev up -d
+          docker compose -f docker/docker-compose.dev.yml -p dev down
+          docker compose -f docker/docker-compose.dev.yml -p dev pull
+          docker compose -f docker/docker-compose.dev.yml -p dev up -d --force-recreate

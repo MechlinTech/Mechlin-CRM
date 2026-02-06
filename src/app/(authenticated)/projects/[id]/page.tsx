@@ -15,20 +15,21 @@ import { DocumentForm } from "@/components/custom/projects/document-form";
 import Link from "next/link";
 import React from "react";
 import { ProjectWiki } from "@/components/custom/wiki";
-
+import { ProjectThreads } from "@/components/custom/threads";
+ 
 export default async function ProjectOverview({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  
+ 
   const { data: project, error } = await supabase
     .from("projects")
     .select("*, organisations(*), phases(*, milestones(*)), invoices(*)")
     .eq("id", id)
     .single();
-
+ 
   const { data: organisations } = await supabase.from("organisations").select("*");
-
+ 
   if (!project || error) notFound();
-
+ 
   return (
     <div className="max-w-5xl space-y-12 pb-20 text-black font-sans relative">
       
@@ -74,7 +75,7 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
             <PhaseForm projectId={id} />
           </ActionButton>
         </div>
-        
+
         <div className="space-y-6">
           {project.phases?.map((phase: any) => (
             <Collapsible key={phase.id} className="group border border-zinc-200 rounded-[24px] bg-white shadow-sm overflow-hidden transition-all hover:border-black">
