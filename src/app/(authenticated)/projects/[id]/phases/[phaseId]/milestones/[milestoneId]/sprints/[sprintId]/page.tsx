@@ -13,6 +13,7 @@ import { TaskForm } from "@/components/custom/projects/task-form";
 import { DocumentForm } from "@/components/custom/projects/document-form";
 import { deleteTaskAction } from "@/actions/hierarchy";
 import { toast } from "sonner";
+import { SprintThreads } from "@/components/custom/threads/SprintThreads";
 
 export default function SprintPage({ params }: { params: any }) {
   const { id, phaseId, milestoneId, sprintId } = React.use(params) as any;

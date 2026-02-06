@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/shared/action-button";
 import { DocumentForm } from "@/components/custom/projects/document-form";
+import { MilestoneThreads } from "@/components/custom/threads/MilestoneThreads";
 
 export default function MilestonePage({ params }: { params: any }) {
   const router = useRouter();
