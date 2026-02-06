@@ -62,6 +62,11 @@ export default function DashboardPage() {
     }
   }
 
+  // Function to refresh users after creating a new one
+  const handleUserCreated = () => {
+    fetchUsers()
+  }
+
   const tabs = [
     { id: 'projects' as const, label: 'Projects', icon: Building, count: projects.length },
     { id: 'users' as const, label: 'Users', icon: Users, count: users.length },
@@ -102,12 +107,7 @@ export default function DashboardPage() {
 
         {/* Action Buttons */}
         <div className="mb-4 flex gap-2">
-          {activeTab === 'projects' && (
-            <AddProjectButton organisations={[]} users={[]} />
-          )}
-          {activeTab === 'users' && (
-            <AddUserButton />
-          )}
+          
           {activeTab === 'etc' && (
             <Button variant="default">New Item</Button>
           )}
@@ -117,10 +117,13 @@ export default function DashboardPage() {
           {/* Projects Tab */}
           {activeTab === 'projects' && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Building className="h-5 w-5 text-zinc-600" />
-                <h2 className="text-lg font-bold">All Projects</h2>
-                <Badge variant="outline" className="text-xs">{projects.length}</Badge>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building className="h-5 w-5 text-zinc-600" />
+                  <h2 className="text-lg font-bold">All Projects</h2>
+                  <Badge variant="outline" className="text-xs">{projects.length}</Badge>
+                </div>
+                <AddProjectButton organisations={[]} users={[]} />
               </div>
               
               {projects.length > 0 ? (
@@ -195,10 +198,13 @@ export default function DashboardPage() {
           {/* Users Tab */}
           {activeTab === 'users' && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-zinc-600" />
-                <h2 className="text-lg font-bold">All Users</h2>
-                <Badge variant="outline" className="text-xs">{users.length}</Badge>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-zinc-600" />
+                  <h2 className="text-lg font-bold">All Users</h2>
+                  <Badge variant="outline" className="text-xs">{users.length}</Badge>
+                </div>
+                <AddUserButton onSuccess={handleUserCreated} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
