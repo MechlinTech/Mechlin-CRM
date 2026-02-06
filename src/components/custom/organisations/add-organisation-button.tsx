@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,8 +13,29 @@ import {
   } from "@/components/ui/dialog"
 import { CreateOrganisationForm } from "./create-organisation-form"
 
-export function AddOrganisationButton() {
+interface AddOrganisationButtonProps {
+    onSuccess?: () => void
+}
+
+export function AddOrganisationButton({ onSuccess }: AddOrganisationButtonProps) {
     const [open, setOpen] = useState(false)
+    const [mounted, setMounted] = useState(false)
+    
+    const handleSuccess = () => {
+        setOpen(false)
+        if (onSuccess) {
+            onSuccess()
+        }
+    }
+
+    // Prevent hydration mismatch by waiting for client-side mount
+    React.useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) {
+        return <Button variant="default">Add Organisation</Button>
+    }
     
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -27,7 +49,7 @@ export function AddOrganisationButton() {
                     This action will create a new organisation.
                 </DialogDescription>
                 </DialogHeader>
-                <CreateOrganisationForm onSuccess={() => setOpen(false)} />
+                <CreateOrganisationForm onSuccess={handleSuccess} />
             </DialogContent>
         </Dialog>
     )
