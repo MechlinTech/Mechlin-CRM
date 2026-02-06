@@ -1,5 +1,9 @@
 export const SIDEBAR_NAVIGATION = [
   {
+    title: "Dashboard",
+    url: "/dashboard",
+  },
+  {
     title: "Project Management",
     url: "/projects",
     items: [], // Always include this to satisfy TypeScript
