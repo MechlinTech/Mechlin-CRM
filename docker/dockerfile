@@ -37,7 +37,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.* ./
 
-EXPOSE 3001
+EXPOSE 3000
 
 # Start the Next.js app
 CMD ["npm", "run", "start"]
