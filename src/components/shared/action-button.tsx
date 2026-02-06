@@ -20,7 +20,17 @@ export const ActionModalContext = React.createContext<{ close: () => void }>({ c
 
 export function ActionButton({ title, trigger, children }: ActionButtonProps) {
   const [open, setOpen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
   const close = () => setOpen(false);
+
+  // Prevent hydration mismatch by waiting for client-side mount
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <>{trigger}</>
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

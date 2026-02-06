@@ -70,7 +70,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarGroup key={item.title}>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === item.url} className="font-medium py-6">
+                    <SidebarMenuButton asChild isActive={pathname === item.url} className="font-medium py-3">
                       <Link href={item.url}>
                         <LayoutGrid className="mr-2 h-4 w-4" />
                         <span>{item.title}</span>
