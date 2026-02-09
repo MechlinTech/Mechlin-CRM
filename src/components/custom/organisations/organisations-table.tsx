@@ -36,16 +36,18 @@ export function OrganisationsTable({ organisations }: OrganisationsTableProps) {
   })
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Input
-          placeholder="Search by name or slug..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-sm"
-        />
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-md p-4 shadow-sm">
+        <div className="flex-1 w-full sm:w-auto">
+          <Input
+            placeholder="Search by name or slug..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm border-gray-200/50 focus:border-emerald-300 focus:ring-emerald-500/20"
+          />
+        </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px] border-gray-200/50 focus:border-emerald-300 focus:ring-emerald-500/20 rounded-md">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -56,7 +58,9 @@ export function OrganisationsTable({ organisations }: OrganisationsTableProps) {
           </SelectContent>
         </Select>
       </div>
-      <DataTable columns={columns} data={filteredOrganisations} />
+      <div className="bg-white rounded-md border border-gray-200/50 shadow-sm overflow-hidden">
+        <DataTable columns={columns} data={filteredOrganisations} />
+      </div>
     </div>
   )
 }
