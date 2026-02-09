@@ -115,7 +115,7 @@ export function MessageComposer({
                             variant="ghost"
                             size="sm"
                             disabled={isUploading || isSubmitting}
-                            className="text-gray-500 hover:text-[#4F46E5] hover:bg-gray-100"
+                            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
                         >
                             <Paperclip className="h-4 w-4" />
                         </Button>
@@ -127,7 +127,7 @@ export function MessageComposer({
                     onClick={handleSubmit}
                     disabled={!content.trim() || isSubmitting || isUploading}
                     size="sm"
-                    className="flex-shrink-0 bg-[#0F172A] hover:bg-[#000000] text-white px-4"
+                    className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4"
                 >
                     <Send className="h-4 w-4 mr-2" />
                     {isSubmitting ? 'Sending...' : 'Send'}

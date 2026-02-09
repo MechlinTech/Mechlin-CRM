@@ -180,7 +180,7 @@ export function EnquiryThread({
                     {showThreadList && (
                         <button
                             onClick={() => setView('list')}
-                            className="flex items-center gap-2 text-xs text-gray-600 hover:text-[#4F46E5] transition-colors"
+                            className="flex items-center gap-2 text-xs text-gray-600 hover:text-blue-600 transition-colors"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -201,7 +201,7 @@ export function EnquiryThread({
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={() => setView('list')}
-                        className="text-[#4F46E5] hover:text-[#4F46E5]"
+                        className="text-blue-600 hover:text-blue-800"
                     >
                         ← Back to Threads
                     </button>
@@ -319,10 +319,7 @@ export function EnquiryThread({
                     <MessageSquare className="mr-2 h-5 w-5" />
                     {title}
                 </h2>
-                <Button 
-                    onClick={() => setView('create')}
-                    className="bg-[#0F172A] hover:bg-[#000000] text-white"
-                >
+                <Button onClick={() => setView('create')}>
                     <Plus className="mr-2 h-4 w-4" />
                     New Thread
                 </Button>
@@ -392,7 +389,7 @@ export function EnquiryThread({
                                         e.stopPropagation()
                                         handleDeleteThread(thread.id)
                                     }}
-                                    className="text-red-600 hover:text-[#4F46E5] hover:bg-red-50"
+                                    className="text-red-600 hover:text-red-800 hover:bg-red-50"
                                 >
                                     <Trash className="h-4 w-4" />
                                 </Button>
