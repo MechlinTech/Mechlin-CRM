@@ -39,22 +39,27 @@ export function PMUpdateDialog({ projectId, log, children }: any) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      {/* max-w-4xl + w-full + overflow-hidden prevents the sssssss scaling */}
-      <DialogContent className="max-w-4xl w-full bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col">
-        <DialogHeader className="p-6 pb-0">
+      {/* INCREASED WIDTH: max-w-6xl (approx 2/3 of screen)
+          INCREASED HEIGHT: h-[90vh]
+          DECREASED PADDING: p-0 on content, p-4 on header
+      */}
+      <DialogContent className="max-w-[90vw] sm:max-w-[50vw] w-full min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col">
+ 
+        <DialogHeader className="p-4 pb-2">
           <DialogTitle className="font-black text-2xl tracking-tighter uppercase">
             {isEdit ? 'Modify Project Notice' : 'Broadcast New Notice'}
           </DialogTitle>
         </DialogHeader>
         
-        <div className="p-6 w-full max-w-full overflow-hidden">
+        {/* Decreased internal padding to show maximum content */}
+        <div className="flex-1 p-2 w-full overflow-hidden">
           <WysiwygEditor 
             content={content} 
             onChange={setContent} 
+            className="h-full min-h-[550px]" 
           />
         </div>
 
-        {/* Footer with forced layout */}
         <div className="flex items-center gap-3 p-6 pt-0 w-full mt-auto">
             <Button variant="outline" onClick={() => setOpen(false)} className="w-[120px] h-12 rounded-xl font-bold uppercase text-xs">
                 Cancel

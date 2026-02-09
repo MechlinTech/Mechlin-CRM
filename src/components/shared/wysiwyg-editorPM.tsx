@@ -32,9 +32,8 @@ export function WysiwygEditor({
     },
     editorProps: {
       attributes: {
-        // BREAK-ALL + BREAK-WORDS prevents horizontal scaling
-        // W-FULL ensures it doesn't exceed the parent
-        class: `prose prose-sm max-w-full focus:outline-none min-h-[300px] max-h-[450px] overflow-y-auto overflow-x-hidden p-4 break-all break-words whitespace-pre-wrap w-full ${className}`,
+        // FIXED: Using flex-1 and max-h-full to ensure it fills the large dialog container
+        class: `prose prose-sm max-w-full focus:outline-none flex-1 min-h-[350px] max-h-full overflow-y-auto p-6 break-words whitespace-pre-wrap w-full ${className}`,
       },
     }
   })
@@ -49,10 +48,10 @@ export function WysiwygEditor({
     }
   }, [content, editor]);
 
-  if (!isMounted || !editor) return <div className="h-[300px] bg-zinc-50 animate-pulse rounded-lg" />;
+  if (!isMounted || !editor) return <div className="h-[400px] bg-zinc-50 animate-pulse rounded-2xl" />;
 
   return (
-    <div className="border border-zinc-200 rounded-xl overflow-hidden w-full bg-white shadow-sm flex flex-col max-w-full">
+    <div className="border border-zinc-200 rounded-2xl overflow-hidden w-full h-full bg-white shadow-sm flex flex-col max-w-full">
       <div className="border-b bg-zinc-50/50 p-2 flex flex-wrap gap-0.5 sticky top-0 z-10">
         <Button variant="ghost" size="sm" type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'bg-zinc-200' : ''}><Bold className="h-4 w-4" /></Button>
         <Button variant="ghost" size="sm" type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'bg-zinc-200' : ''}><Italic className="h-4 w-4" /></Button>
@@ -62,8 +61,8 @@ export function WysiwygEditor({
         <Button variant="ghost" size="sm" type="button" onClick={() => editor.chain().focus().redo().run()}><Redo className="h-4 w-4" /></Button>
       </div>
 
-      <div className="flex-1 overflow-hidden bg-white max-w-full">
-        <EditorContent editor={editor} className="max-w-full" />
+      <div className="flex-1 overflow-y-auto bg-white max-w-full h-full">
+        <EditorContent editor={editor} className="max-w-full h-full" />
       </div>
     </div>
   )
