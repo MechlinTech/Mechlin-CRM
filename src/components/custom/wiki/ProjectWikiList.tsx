@@ -203,8 +203,8 @@ export function ProjectWikiList({
       {showHeader && (
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{title}</h2>
-            <p className="text-gray-600">Project documentation and knowledge base</p>
+            <h2 className="text-xl font-bold text-[#0F172A] mb-2">{title}</h2>
+            <p className="text-[#0F172A]/60">Project documentation and knowledge base</p>
           </div>
           
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -223,7 +223,7 @@ export function ProjectWikiList({
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Page Title</label>
+                  <label className="text-sm font-medium text-[#0F172A]">Page Title</label>
                   <Input
                     value={newPageTitle}
                     onChange={(e) => setNewPageTitle(e.target.value)}
@@ -233,7 +233,7 @@ export function ProjectWikiList({
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Content</label>
+                  <label className="text-sm font-medium text-[#0F172A]">Content</label>
                   <div className="mt-1">
                     <WysiwygEditor
                       content={newPageContent}
@@ -281,22 +281,16 @@ export function ProjectWikiList({
       {filteredPages.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <FileText className="h-12 w-12 mx-auto text-[#0F172A]/40 mb-4" />
+            <h3 className="text-lg font-medium text-[#0F172A] mb-2">
               {searchTerm ? 'No pages found' : 'No wiki pages yet for this project'}
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-[#0F172A]/60 mb-4">
               {searchTerm 
                 ? 'Try adjusting your search terms' 
                 : 'Create your first project wiki page to get started'
               }
             </p>
-            {!searchTerm && (
-              <Button onClick={() => setShowCreateDialog(true)} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create First Page
-              </Button>
-            )}
           </CardContent>
         </Card>
       ) : (
@@ -309,7 +303,7 @@ export function ProjectWikiList({
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2 min-w-0">
-                  <FileText className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                  <FileText className="h-4 w-4 text-[#4F46E5] flex-shrink-0" />
                   <span className="text-base font-semibold truncate" title={page.title}>{page.title}</span>
                 </div>
                 <CardAction onClick={(e: React.MouseEvent) => e.stopPropagation()}>
@@ -346,7 +340,7 @@ export function ProjectWikiList({
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       page.status === 'published' 
-                        ? 'bg-green-100 text-green-800' 
+                        ? 'bg-[#0F172A]/10 text-[#0F172A]' 
                         : 'bg-gray-100 text-gray-800'
                     }`}>
                       {page.status}

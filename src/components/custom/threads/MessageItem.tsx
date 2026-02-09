@@ -45,7 +45,7 @@ export function MessageItem({ message, isOwnMessage = false }: MessageItemProps)
                         </span>
                     </div>
 
-                    <div className="mt-1 text-sm text-gray-900 leading-relaxed">
+                    <div className="mt-1 text-xs text-gray-900 leading-relaxed">
                         <div dangerouslySetInnerHTML={{ __html: message.content }} />
                     </div>
                 </div>

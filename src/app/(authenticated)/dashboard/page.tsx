@@ -109,297 +109,367 @@ export default function DashboardPage() {
     { id: 'etc' as const, label: 'More', icon: Settings, count: null }
   ]
 
-  return (
-    <div className="px-4">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-      </div>
-      <div className="custom-container">
-        {/* Tab Navigation */}
-        <div className="flex justify-end mb-6">
-          <div className="grid grid-cols-2 gap-1 p-1 bg-zinc-100 rounded-lg sm:flex sm:items-center">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md font-medium text-sm transition-all sm:px-4 sm:justify-start ${
-                    activeTab === tab.id
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-zinc-600 hover:text-black hover:bg-zinc-200'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 flex-shrink-0" />
-                  <span>{tab.label}</span>
-                  {tab.count !== null && (
-                    <Badge variant="outline" className="text-xs ml-1">
-                      {tab.count}
-                    </Badge>
-                  )}
-                </button>
-              )
-            })}
+  return (   <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-zinc-50">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="custom-container">
+          {/* Tab Navigation */}
+          <div className="flex justify-end mb-6 sm:mb-8">
+            <div className="grid grid-cols-2 sm:flex items-center p-1 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-md shadow-sm sm:items-center">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`group relative flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg font-medium text-xs transition-all duration-200 sm:justify-start ${
+                      activeTab === tab.id
+                        ? 'bg-gradient-to-br from-gray-800 to-gray-900 text-white shadow-lg shadow-gray-900/25 scale-[1.02]'
+                        : 'text-gray-600 hover:text-[#4F46E5] hover:bg-gray-100/50'
+                    }`}
+                  >
+                    <Icon className={`h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200 ${activeTab === tab.id ? 'text-white' : 'text-[#0F172A] group-hover:text-[#4F46E5]'}`} />
+                    <span className="font-medium text-xs">{tab.label}</span>
+                    {tab.count !== null && (
+                      <Badge variant={activeTab === tab.id ? "secondary" : "outline"} className={`text-xs font-semibold ${activeTab === tab.id ? 'bg-white/20 text-white border-white/30' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                        {tab.count}
+                      </Badge>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        </div>
+ 
 
-        <div className="w-full">
-          {/* Projects Tab */}
-          {activeTab === 'projects' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building className="h-5 w-5 text-zinc-600" />
-                  <h2 className="text-lg font-bold">All Projects</h2>
-                  <Badge variant="outline" className="text-xs">{projects.length}</Badge>
-                </div>
-              </div>
-              
-              {projects.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {projects.map((project) => (
-                    <Link 
-                      key={project.id} 
-                      href={`/projects/${project.id}`}
-                      className="group block p-4 bg-white border border-zinc-200 rounded-xl hover:border-black hover:shadow-lg transition-all"
-                    >
-                      <div className="space-y-3">
-                        {/* Project Header */}
-                        <div className="flex justify-between items-start">
-                          <h3 className="text-sm font-bold tracking-tight group-hover:text-blue-600 transition-colors line-clamp-2">
-                            {project.name}
-                          </h3>
-                          <Badge 
-                            variant="outline" 
-                            className={`text-[10px] font-bold ${
-                              project.status === 'Active' 
-                                ? 'border-green-200 text-green-700 bg-green-50' 
-                                : project.status === 'Pending'
-                                ? 'border-yellow-200 text-yellow-700 bg-yellow-50'
-                                : 'border-zinc-200 text-zinc-700 bg-zinc-50'
-                            }`}
-                          >
-                            {project.status}
-                          </Badge>
-                        </div>
-
-                        {/* Project Details */}
-                        <div className="space-y-2 text-xs">
-                          <div className="flex items-center gap-1">
-                            <Building className="h-3 w-3 text-zinc-400" />
-                            <span className="text-zinc-600 font-medium truncate">
-                              {project.organisations?.name || 'No Organization'}
-                            </span>
-                          </div>
-                          
-                          {project.budget && (
-                            <div className="text-zinc-600">
-                              <span className="font-bold">{project.currency || '$'}{project.budget.toLocaleString()}</span>
-                            </div>
-                          )}
-
-                          {project.start_date && (
-                            <div className="text-zinc-600">
-                              <span className="text-xs uppercase tracking-wider">Start:</span> {project.start_date}
-                            </div>
-                          )}
-
-                          {project.expected_end_date && (
-                            <div className="text-zinc-600">
-                              <span className="text-xs uppercase tracking-wider">End:</span> {project.expected_end_date}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Building className="h-12 w-12 text-zinc-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold tracking-tight mb-2">No Projects Yet</h3>
-                  <p className="text-zinc-500">Create your first project to get started</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Users Tab */}
-          {activeTab === 'users' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-zinc-600" />
-                  <h2 className="text-lg font-bold">All Users</h2>
-                  <Badge variant="outline" className="text-xs">{users.length}</Badge>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Mechlin Users */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <User className="h-4 w-4 text-blue-600" />
-                    <h3 className="font-bold text-blue-600">Mechlin Team</h3>
-                    <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 text-blue-700">{mechlinUsers.length}</Badge>
-                  </div>
-                  <div className="space-y-2">
-                    {mechlinUsers.length > 0 ? (
-                      mechlinUsers.map((user) => (
-                        <div key={user.id} className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
-                          <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                            {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">{user.name}</p>
-                            <p className="text-xs text-zinc-600">{user.email}</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-zinc-500 text-sm">
-                        No Mechlin team members
-                      </div>
-                    )}
+          <div className="w-full">
+            {/* Projects Tab */}
+            {activeTab === 'projects' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#0F172A] rounded shadow-lg">
+                      <Building className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-[#0F172A]">All Projects</h2>
+                      <p className="text-sm text-[#0F172A]/60">Manage your active projects</p>
+                    </div>
+                    <Badge variant="outline" className="bg-[#0F172A]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold">{projects.length}</Badge>
                   </div>
                 </div>
 
-                {/* Other Users */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <User className="h-4 w-4 text-zinc-600" />
-                    <h3 className="font-bold">Other Users</h3>
-                    <Badge variant="outline" className="text-xs">{otherUsers.length}</Badge>
-                  </div>
-                  <div className="space-y-2">
-                    {otherUsers.length > 0 ? (
-                      otherUsers.map((user) => (
-                        <div key={user.id} className="p-3 bg-white border border-zinc-200 rounded-lg flex items-center gap-3">
-                          <div className="h-8 w-8 bg-zinc-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                            {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">{user.name}</p>
-                            <p className="text-xs text-zinc-600">{user.email}</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-zinc-500 text-sm">
-                        No other users
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Organisations Tab */}
-          {activeTab === 'organisations' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-zinc-600" />
-                  <h2 className="text-lg font-bold">All Organisations</h2>
-                  <Badge variant="outline" className="text-xs">{organisations.length}</Badge>
-                </div>
-              </div>
-              {organisations.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {organisations.map((org) => (
-                    <Link 
-                      key={org.id} 
-                      href={`/organisations/${org.id}`}
-                      className="group block p-5 bg-white border border-zinc-200 rounded-xl hover:border-zinc-300 hover:shadow-lg transition-all duration-200"
-                    >
-                      <div className="space-y-2">
-                        {/* Organization Header */}
-                        <div className="flex items-center gap-2">
-                          <div className="h-10 w-10 bg-gradient-to-br from-zinc-600 to-zinc-700 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
-                            {org.name?.charAt(0)?.toUpperCase() || 'O'}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-base font-semibold tracking-tight group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
-                              {org.name}
+                {projects.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {projects.map((project) => (
+                      <Link 
+                        key={project.id} 
+                        href={`/projects/${project.id}`}
+                        className="group block p-6 bg-white/80 backdrop-blur-sm rounded-md border border-[#0F172A]/10 hover:border-[#4F46E5] transition-all duration-300"
+                      >
+                        <div className="space-y-4">
+                          {/* Project Header */}
+                          <div className="flex justify-between items-start">
+                            <h3 className="text-lg font-semibold tracking-tight text-[#0F172A] group-hover:text-[#4F46E5] ">
+                              {project.name}
                             </h3>
-                            <div className="flex justify-start mt-1">
-                              <Badge 
-                                variant="outline" 
-                                className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
-                                  org.status === 'active' 
-                                    ? 'border-green-200 text-green-700 bg-green-50 hover:bg-green-100' 
-                                    : org.status === 'suspended'
-                                    ? 'border-red-200 text-red-700 bg-red-50 hover:bg-red-100'
-                                    : org.status === 'trial'
-                                    ? 'border-yellow-200 text-yellow-700 bg-yellow-50 hover:bg-yellow-100'
-                                    : 'border-zinc-200 text-zinc-700 bg-zinc-50 hover:bg-zinc-100'
-                                } transition-colors`}
-                              >
-                                {org.status ? org.status.charAt(0).toUpperCase() + org.status.slice(1) : 'Unknown'}
-                              </Badge>
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs font-semibold px-2 py-1 rounded-md ${
+                                project.status === 'Active' 
+                                  ? 'border-[#0F172A]/20 text-[#0F172A] bg-[#0F172A]/10' 
+                                  : project.status === 'Pending'
+                                  ? 'border-[#0F172A]/20 text-[#0F172A] bg-[#0F172A]/10'
+                                  : 'border-[#0F172A]/20 text-[#0F172A] bg-[#0F172A]/10'
+                              }`}
+                            >
+                              {project.status}
+                            </Badge>
+                          </div>
+
+                          {/* Project Details */}
+                          <div className="space-y-3 text-xs">
+                            <div className="flex items-center gap-2 text-gray-600">
+                              <Building className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium truncate">
+                                {project.organisations?.name || 'No Organization'}
+                              </span>
                             </div>
+                            
+                            {project.budget && (
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                                  <span className="text-white text-xs font-bold">$</span>
+                                </div>
+                                <p className="text-sm text-gray-900">{project.currency || '$'}{project.budget.toLocaleString()}</p>
+                              </div>
+                            )}
+
+                            {project.start_date && (
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                                  <span className="text-white text-xs font-bold">▶</span>
+                                </div>
+                                <span className="text-sm uppercase tracking-wider">Start: {project.start_date}</span>
+                              </div>
+                            )}
+
+                            {project.expected_end_date && (
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center">
+                                  <span className="text-white text-xs font-bold">◉</span>
+                                </div>
+                                <span className="text-sm uppercase tracking-wider">End: {project.expected_end_date}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
-
-                        {/* Organization Details */}
-                        <div className="space-y-2 text-sm border-t border-zinc-100 pt-2">
-                          {org.slug && (
-                            <div className="flex items-center gap-2 text-zinc-600">
-                              <span className="text-zinc-400">🔗</span>
-                              <span className="font-medium truncate">{org.slug}</span>
-                            </div>
-                          )}
-                          
-                          {org.user_count !== undefined && (
-                            <div className="flex items-center gap-2 text-zinc-600">
-                              <span className="text-zinc-400">👥</span>
-                              <span className="font-medium">{org.user_count} {org.user_count === 1 ? 'User' : 'Users'}</span>
-                            </div>
-                          )}
-                          
-                          {org.status && (
-                            <div className="flex items-center gap-2 text-zinc-600">
-                              <span className="text-zinc-400">📊</span>
-                              <span className="font-medium capitalize">{org.status}</span>
-                            </div>
-                          )}
-
-                          {org.is_internal !== undefined && (
-                            <div className="flex items-center gap-2 text-zinc-600">
-                              <span className="text-zinc-400">🏢</span>
-                              <span className="font-medium">{org.is_internal ? 'Internal' : 'External'}</span>
-                            </div>
-                          )}
-
-                          {org.created_at && (
-                            <div className="text-zinc-500 text-xs pt-2 border-t border-zinc-50">
-                              <span className="uppercase tracking-wide font-medium">Created {new Date(org.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Building2 className="h-12 w-12 text-zinc-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold tracking-tight mb-2">No Organisations Yet</h3>
-                  <p className="text-zinc-500">Create your first organisation to get started</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ETC Tab */}
-          {activeTab === 'etc' && (
-            <div className="space-y-6">
-              <div>
-                <h2>Analytics and Graphs</h2>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20">
+                    <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center shadow-lg mb-6">
+                      <Building className="h-10 w-10 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold tracking-tight mb-3 text-gray-900">No Projects Yet</h3>
+                    <p className="text-xs text-gray-600 max-w-md mx-auto">Create your first project to start collaborating with your team and tracking progress</p>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Users Tab */}
+            {activeTab === 'users' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#0F172A] rounded shadow-lg">
+                      <Users className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-[#0F172A]">All Users</h2>
+                      <p className="text-sm text-[#0F172A]/60">Team members and collaborators</p>
+                    </div>
+                    <Badge variant="outline" className="bg-[#0F172A]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold">{users.length}</Badge>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Mechlin Users */}
+                  <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                      
+                      <div>
+                        <h3 className="font-semibold text-[#0F172A] text-lg">Mechlin Team</h3>
+                        <p className="text-sm text-[#0F172A]/60">Internal team members</p>
+                      </div>
+                      <Badge variant="outline" className="bg-[#0F172A]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold ml-auto">{mechlinUsers.length}</Badge>
+                    </div>
+                    <div className="space-y-3">
+                      {mechlinUsers.length > 0 ? (
+                        mechlinUsers.map((user) => (
+                          <div key={user.id} className="p-4 bg-[#0F172A]/5 border border-[#0F172A]/20 rounded-xl flex items-center gap-4 transition-all duration-300">
+                            <div className="h-10 w-10 bg-[#0F172A] rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                              {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-xs text-gray-900">{user.name}</p>
+                              <p className="text-xs text-gray-600">{user.email}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-12 text-gray-500">
+                          <User className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                          <p className="font-medium text-sm">No Mechlin team members</p>
+                          <p className="text-xs">Internal team will appear here</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Other Users */}
+                  <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                      
+                      <div>
+                        <h3 className="font-semibold text-gray-700 text-lg">Other Users</h3>
+                        <p className="text-sm text-gray-500">Client Collaborators</p>
+                      </div>
+                      <Badge variant="outline" className="bg-[#0F172A]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold ml-auto">{otherUsers.length}</Badge>
+                    </div>
+                    <div className="space-y-3">
+                      {otherUsers.length > 0 ? (
+                        otherUsers.map((user) => (
+                          <div key={user.id} className="p-4 bg-[#0F172A]/5 border border-[#0F172A]/20 rounded-xl flex items-center gap-4 transition-all duration-300">
+                            <div className="h-10 w-10 bg-[#4F46E5] rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                              {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-xs text-gray-900">{user.name}</p>
+                              <p className="text-xs text-gray-600">{user.email}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-12 text-gray-500">
+                          <User className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                          <p className="font-medium text-sm">No other users</p>
+                          <p className="text-xs">External collaborators will appear here</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Organisations Tab */}
+            {activeTab === 'organisations' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#0F172A] rounded shadow-lg">
+                      <Building2 className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-[#0F172A]">All Organisations</h2>
+                      <p className="text-sm text-[#0F172A]/60">Manage your organization portfolio</p>
+                    </div>
+                    <Badge variant="outline" className="bg-[#0F172A]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold">{organisations.length}</Badge>
+                  </div>
+                </div>
+                {organisations.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {organisations.map((org) => (
+                      <Link 
+                        key={org.id} 
+                        href={`/organisations/${org.id}`}
+                        className="group block p-6 bg-white/80 backdrop-blur-sm rounded-md border border-[#0F172A]/10 hover:border-[#4F46E5] transition-all duration-300"
+                      >
+                        <div className="space-y-4">
+                          {/* Organization Header */}
+                          <div className="flex items-start gap-4">
+                            <div className="h-12 w-12 bg-[#272e3f] rounded flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all duration-300">
+                              {org.name?.charAt(0)?.toUpperCase() || 'O'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="cursor-pointer text-lg font-semibold tracking-tight text-gray-900 hover:text-[#4F46E5] transition-colors line-clamp-2 leading-tight">
+                                {org.name}
+                              </span>
+                              <div className="flex items-center gap-1 mt-1">
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs font-semibold px-2 rounded-md border-2 ${
+                                    org.status === 'active' 
+                                      ? 'border-[#0F172A]/20 text-[#0F172A] bg-[#0F172A]/10' 
+                                      : org.status === 'suspended'
+                                      ? 'border-red-200 text-red-700 bg-red-50'
+                                      : org.status === 'trial'
+                                      ? 'border-yellow-200 text-yellow-700 bg-yellow-50'
+                                      : 'border-gray-200 text-gray-700 bg-gray-50'
+                                  }`}
+                                >
+                                  {org.status ? org.status.charAt(0).toUpperCase() + org.status.slice(1) : 'Unknown'}
+                                </Badge>
+                                {org.user_count !== undefined && (
+                                  <div className="flex items-center gap-1 text-xs text-gray-600">
+                                    <Users className="h-3 w-3" />
+                                    <span className="font-medium text-xs">{org.user_count}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Organization Details */}
+                          <div className="space-y-3 text-xs border-t border-gray-100 pt-4">
+                            {org.slug && (
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                                  <span className="text-white text-xs font-bold">@</span>
+                                </div>
+                                <span className="text-sm font-medium">{org.slug}</span>
+                              </div>
+                            )}
+                            
+                            {org.is_internal !== undefined && (
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <div className={`h-4 w-4 rounded-full flex items-center justify-center ${
+                                  org.is_internal 
+                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
+                                    : 'bg-gradient-to-r from-gray-500 to-zinc-500'
+                                }`}>
+                                  <span className="text-white text-xs font-bold">
+                                    {org.is_internal ? '🏢' : '🌐'}
+                                  </span>
+                                </div>
+                                <span className="text-xs font-medium">
+                                  {org.is_internal ? 'Internal Organization' : 'External Organization'}
+                                </span>
+                              </div>
+                            )}
+
+                            {org.created_at && (
+                              <div className="flex items-center gap-2 text-gray-500">
+                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                                  <span className="text-white text-xs font-bold">📅</span>
+                                </div>
+                                <span className="text-sm uppercase tracking-wider">Created {new Date(org.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20">
+                    <div className="mx-auto w-20 h-20 bg-[#0F172A] rounded-md flex items-center justify-center shadow-lg mb-6">
+                      <Building2 className="h-10 w-10 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold tracking-tight mb-3 text-gray-900">No Organizations Yet</h3>
+                    <p className="text-xs text-gray-600 max-w-md mx-auto">Create your first organization to start managing projects and teams efficiently</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* More Tab */}
+            {activeTab === 'etc' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-br from-gray-500 to-gray-600 rounded-md shadow-lg">
+                      <Settings className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900">More Features</h2>
+                      <p className="text-sm text-gray-500">Additional tools and settings</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="p-6 bg-white rounded-md border border-gray-200/50 text-center hover:shadow-lg transition-shadow">
+                    <BarChart3 className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+                    <h4 className="font-bold mb-2 text-lg text-gray-900">Analytics</h4>
+                    <p className="text-sm text-gray-600">View detailed analytics and reports</p>
+                  </div>
+                  <div className="p-6 bg-white rounded-md border border-gray-200/50 text-center hover:shadow-lg transition-shadow">
+                    <Settings className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                    <h4 className="font-bold mb-2 text-lg text-gray-900">Settings</h4>
+                    <p className="text-sm text-gray-600">Configure system settings and preferences</p>
+                  </div>
+                  <div className="p-6 bg-white rounded-md border border-gray-200/50 text-center hover:shadow-lg transition-shadow">
+                    <Users className="h-12 w-12 text-purple-500 mx-auto mb-4" />
+                    <h4 className="font-bold mb-2 text-lg text-gray-900">Teams</h4>
+                    <p className="text-sm text-gray-600">Manage teams and permissions</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

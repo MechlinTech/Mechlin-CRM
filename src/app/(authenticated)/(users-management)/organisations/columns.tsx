@@ -91,9 +91,9 @@ const EscalationContactsTooltip = ({ contacts }: { contacts: EscalationContact[]
     <div className="space-y-2">
       {contacts.map((contact, index) => (
         <div key={index} className="border-b pb-2 last:border-b-0">
-          <p className="font-medium">{contact.name}</p>
-          <p className="text-sm text-gray-600">{contact.email}</p>
-          {contact.phone && <p className="text-sm text-gray-600">{contact.phone}</p>}
+          <p className="font-medium text-xs">{contact.name}</p>
+          <p className="text-xs text-gray-600">{contact.email}</p>
+          {contact.phone && <p className="text-xs text-gray-600">{contact.phone}</p>}
         </div>
       ))}
     </div>
@@ -113,6 +113,22 @@ export const columns: ColumnDef<Organisation>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    cell: ({ row }) => {
+      const organisation = row.original
+      return (
+        <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border-2 ${
+          organisation.status === 'active' 
+            ? 'border-emerald-200 text-emerald-700 bg-emerald-50' 
+            : organisation.status === 'suspended'
+            ? 'border-red-200 text-red-700 bg-red-50'
+            : organisation.status === 'trial'
+            ? 'border-yellow-200 text-yellow-700 bg-yellow-50'
+            : 'border-gray-200 text-gray-700 bg-gray-50'
+        }`}>
+          {organisation.status ? organisation.status.charAt(0).toUpperCase() + organisation.status.slice(1) : 'Unknown'}
+        </div>
+      )
+    },
   },
   {
     id: "escalation_contacts",
@@ -125,11 +141,11 @@ export const columns: ColumnDef<Organisation>[] = [
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="cursor-pointer">
+              <span className="cursor-pointer text-xs font-medium text-gray-900 hover:text-[#4F46E5] transition-colors">
                 {primaryContact}
               </span>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent className="bg-white border border-gray-200/50 shadow-lg rounded-xl p-3">
               <EscalationContactsTooltip contacts={organisation.escalation_contacts} />
             </TooltipContent>
           </Tooltip>
@@ -142,7 +158,7 @@ export const columns: ColumnDef<Organisation>[] = [
     header: "Created At",
     cell: ({ row }) => {
       const organisation = row.original
-      return <span>{formatDate(organisation.created_at)}</span>
+      return <span className="text-xs text-gray-600">{formatDate(organisation.created_at)}</span>
     },
   },
   {
@@ -150,7 +166,7 @@ export const columns: ColumnDef<Organisation>[] = [
     header: "Updated At",
     cell: ({ row }) => {
       const organisation = row.original
-      return <span>{formatDate(organisation.updated_at)}</span>
+      return <span className="text-xs text-gray-600">{formatDate(organisation.updated_at)}</span>
     },
   },
   {
@@ -159,5 +175,6 @@ export const columns: ColumnDef<Organisation>[] = [
       const organisation = row.original
       return <ActionsCell organisation={organisation} />
     },
+    header: "",
   },
 ]
