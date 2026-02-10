@@ -133,7 +133,7 @@ export function CreateProjectForm({ onSuccess, project, organisations }: any) {
             <FormItem><FormLabel>Organization</FormLabel>
               <Select onValueChange={field.onChange} value={field.value ?? ""}>
                 <SelectTrigger className="bg-white border-zinc-200"><SelectValue placeholder="Select Client" /></SelectTrigger>
-                <SelectContent className="bg-white">
+                <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
                   {clientOrgs.map((org: any) => (
                     <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                   ))}
