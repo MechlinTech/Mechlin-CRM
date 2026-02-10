@@ -63,12 +63,21 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
           />
         </div>
 
-        <div className="flex items-center gap-3 p-6 shrink-0 border-t border-slate-50 bg-white">
-            <Button variant="outline" onClick={() => setOpen(false)} className="w-[120px] h-12 rounded-xl font-bold uppercase text-[10px]">
+      <div className="flex items-center justify-center gap-3 p-6 shrink-0 border-t border-slate-50 bg-white">
+            <Button 
+              variant="outline" 
+              onClick={() => setOpen(false)} 
+              className="w-[180px] h-12 rounded-xl font-bold uppercase text-[10px]"
+            >
                 Cancel
             </Button>
-            {/* UPDATED: Added disabled state while loading */}
-            <Button disabled={loading} onClick={handleSave} className="flex-1 bg-black text-white font-black h-12 rounded-xl uppercase text-[10px] hover:bg-zinc-800 transition-colors">
+            
+            {/* UPDATED: Removed flex-1 and set width to match Cancel button */}
+            <Button 
+              disabled={loading} 
+              onClick={handleSave} 
+              className="w-[180px] h-12 bg-black text-white font-black rounded-xl uppercase text-[10px] hover:bg-zinc-800 transition-colors"
+            >
               {loading ? 'Processing...' : isEdit ? 'Update Broadcast' : 'Post to Notice Board'}
             </Button>
         </div>

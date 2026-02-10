@@ -42,7 +42,7 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
     const newEntries = selectedFiles.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       file,
-      progress: 10, // Start with a small visual bump
+      progress: 0,
       status: 'uploading' as const
     }));
 
@@ -58,13 +58,12 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
 
       if (error) {
         toast.error(`Upload failed for ${entry.file.name}`);
-        setFiles(prev => prev.map(f => f.id === entry.id ? { ...f, status: 'error', progress: 100 } : f));
+        setFiles(prev => prev.map(f => f.id === entry.id ? { ...f, status: 'error' } : f));
       } else {
         const { data: { publicUrl } } = supabase.storage
           .from('invoices')
           .getPublicUrl(filePath);
         
-        // FIX: Ensure progress hits 100 and color changes to emerald
         setFiles(prev => prev.map(f => f.id === entry.id ? { 
           ...f, 
           progress: 100, 
@@ -129,14 +128,15 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
           <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1">
             {files.map((fileEntry) => (
               <div key={fileEntry.id} className="bg-white border border-slate-100 p-3 rounded-2xl flex items-center justify-between shadow-sm">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                       <div className="h-8 w-8 bg-[#0F172A] rounded-lg flex items-center justify-center text-white shrink-0">
                           <FileText className="h-4 w-4" />
                       </div>
-                      <div className="space-y-1">
-                          <p className="text-[11px] font-black truncate max-w-[180px]">{fileEntry.file.name}</p>
-                          {/* UPDATED PROGRESS BAR LOGIC */}
-                          <div className="w-40 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      {/* FIX: Use flex-1 here to let the bar grow to fill the container */}
+                      <div className="space-y-1.5 flex-1 pr-4">
+                          <p className="text-[11px] font-black truncate max-w-[250px]">{fileEntry.file.name}</p>
+                          {/* UPDATED: Changed w-40 to w-full */}
+                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                               <div 
                                 className={cn(
                                   "h-full transition-all duration-500 ease-out", 
@@ -148,7 +148,7 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
                           </div>
                       </div>
                   </div>
-                  <button type="button" onClick={() => removeFile(fileEntry.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1">
+                  <button type="button" onClick={() => removeFile(fileEntry.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1 shrink-0">
                       <X className="h-4 w-4" />
                   </button>
               </div>
