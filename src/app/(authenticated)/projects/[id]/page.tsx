@@ -241,9 +241,8 @@ export default function ProjectOverview({ params }: { params: any }) {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-slate-100 pt-10 px-4 sm:px-0">
+      <div className="px-4 sm:px-0">
           <ProjectWiki projectId={id} title="Wiki" showHeader={true} />
-          <ProjectThreads projectId={id} title="Discussions" />
       </div>
     </div>
   );
