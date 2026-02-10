@@ -12,6 +12,9 @@ import { toast } from "sonner"
 
 export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any) {
   const isEdit = !!milestone
+  // UPDATED: Added loading state to prevent double creation
+  const [loading, setLoading] = React.useState(false);
+
   const form = useForm({
     defaultValues: {
       name: milestone?.name || "",
@@ -26,38 +29,43 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
   })
 
   async function onSubmit(values: any) {
+    setLoading(true); // UPDATED: Disable button immediately
     let res;
 
-    if (isEdit) {
-      // The error says this expects 5 arguments. 
-      // We pass: id, projectId, name, status, and the rest of the values object
-      res = await updateMilestoneAction(
-        milestone.id, 
-        projectId, 
-        values.name, 
-        values.status, 
-        values
-      );
-    } else {
-      // Ensure createMilestoneAction matches its signature as well
-      res = await createMilestoneAction(phaseId, projectId, values);
-    }
+    try {
+      if (isEdit) {
+        res = await updateMilestoneAction(
+          milestone.id, 
+          projectId, 
+          values.name, 
+          values.status, 
+          values
+        );
+      } else {
+        res = await createMilestoneAction(phaseId, projectId, values);
+      }
 
-    if (res.success) {
-      toast.success(isEdit ? "Milestone Updated" : "Milestone Created");
-      onSuccess?.();
-    } else {
-      toast.error(res.error || "Failed to save milestone");
+      if (res.success) {
+        toast.success(isEdit ? "Milestone Updated" : "Milestone Created");
+        onSuccess?.();
+      } else {
+        toast.error(res.error || "Failed to save milestone");
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false); // UPDATED: Re-enable if there was an error
     }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+        {/* ... (Keep all existing FormFields same) ... */}
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem>
             <FormLabel className="text-[10px] font-bold uppercase">Name</FormLabel>
-            <Input {...field} />
+            <Input {...field} required />
           </FormItem>
         )} />
         
@@ -120,8 +128,13 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
           </FormItem>
         )} />
 
-        <Button type="submit" className="w-full bg-black text-white font-bold hover:bg-gray-800">
-          {isEdit ? 'Update Milestone' : 'Save Milestone'}
+        {/* UPDATED: Button is disabled during loading */}
+        <Button 
+          type="submit" 
+          disabled={loading} 
+          className="w-full bg-black text-white font-bold hover:bg-gray-800"
+        >
+          {loading ? 'Processing...' : isEdit ? 'Update Milestone' : 'Save Milestone'}
         </Button>
       </form>
     </Form>

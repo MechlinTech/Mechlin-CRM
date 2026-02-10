@@ -1,3 +1,4 @@
+// src/components/custom/projects/pm-updates.tsx
 "use client"
 
 import * as React from "react"
@@ -7,9 +8,11 @@ import { Button } from "@/components/ui/button"
 import { createPMUpdateAction, updatePMUpdateAction } from "@/actions/pm-updates"
 import { toast } from "sonner"
 
-export function PMUpdateDialog({ projectId, log, children }: any) {
+// UPDATED: Added onSuccess to the destructured props
+export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
   const [open, setOpen] = React.useState(false)
   const [content, setContent] = React.useState(log?.new_value?.content || log?.content || "")
+  const [loading, setLoading] = React.useState(false) // Added loading state for better UX
   const isEdit = !!log
 
   React.useEffect(() => {
@@ -23,6 +26,7 @@ export function PMUpdateDialog({ projectId, log, children }: any) {
         return toast.error("Notice content cannot be empty");
     }
 
+    setLoading(true)
     const res = isEdit 
       ? await updatePMUpdateAction(log.id, projectId, content)
       : await createPMUpdateAction(projectId, content);
@@ -31,41 +35,41 @@ export function PMUpdateDialog({ projectId, log, children }: any) {
       toast.success(isEdit ? "Notice Updated" : "Notice Posted");
       setContent("");
       setOpen(false); 
+      // UPDATED: Call the refresh function passed from the parent
+      onSuccess?.(); 
     } else {
       toast.error(res.error);
     }
+    setLoading(false)
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      {/* INCREASED WIDTH: max-w-6xl (approx 2/3 of screen)
-          INCREASED HEIGHT: h-[90vh]
-          DECREASED PADDING: p-0 on content, p-4 on header
-      */}
-      <DialogContent className="max-w-[90vw] sm:max-w-[50vw] w-full min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col">
+      
+      <DialogContent className="max-w-[90vw] sm:max-w-[60vw] w-full max-h-[90vh] min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col">
  
-        <DialogHeader className="p-4 pb-2">
-          <DialogTitle className="font-black text-2xl tracking-tighter uppercase">
+        <DialogHeader className="p-6 pb-2 shrink-0">
+          <DialogTitle className="font-black text-sm tracking-tighter uppercase">
             {isEdit ? 'Modify Project Notice' : 'Broadcast New Notice'}
           </DialogTitle>
         </DialogHeader>
         
-        {/* Decreased internal padding to show maximum content */}
-        <div className="flex-1 p-2 w-full overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-6 pt-2 min-h-0">
           <WysiwygEditor 
             content={content} 
             onChange={setContent} 
-            className="h-full min-h-[550px]" 
+            className="w-full" 
           />
         </div>
 
-        <div className="flex items-center gap-3 p-6 pt-0 w-full mt-auto">
-            <Button variant="outline" onClick={() => setOpen(false)} className="w-[120px] h-12 rounded-xl font-bold uppercase text-xs">
+        <div className="flex items-center gap-3 p-6 shrink-0 border-t border-slate-50 bg-white">
+            <Button variant="outline" onClick={() => setOpen(false)} className="w-[120px] h-12 rounded-xl font-bold uppercase text-[10px]">
                 Cancel
             </Button>
-            <Button onClick={handleSave} className="flex-1 bg-black text-white font-black h-12 rounded-xl uppercase text-xs hover:bg-zinc-800 transition-colors">
-              {isEdit ? 'Update Broadcast' : 'Post to Notice Board'}
+            {/* UPDATED: Added disabled state while loading */}
+            <Button disabled={loading} onClick={handleSave} className="flex-1 bg-black text-white font-black h-12 rounded-xl uppercase text-[10px] hover:bg-zinc-800 transition-colors">
+              {loading ? 'Processing...' : isEdit ? 'Update Broadcast' : 'Post to Notice Board'}
             </Button>
         </div>
       </DialogContent>

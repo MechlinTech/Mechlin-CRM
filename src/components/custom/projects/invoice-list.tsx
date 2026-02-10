@@ -1,13 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { Button } from "@/components/ui/button"
 import { Download, FileText, Trash2, Eye } from "lucide-react"
 import { deleteInvoiceAction } from "@/actions/invoices"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 
-export function InvoiceList({ invoices, projectId, organisationName }: { invoices: any[], projectId: string, organisationName?: string }) {
+// UPDATED: Added onRefresh prop
+export function InvoiceList({ invoices, projectId, organisationName, onRefresh }: { invoices: any[], projectId: string, organisationName?: string, onRefresh?: () => void }) {
   
   const handleDownload = async (url: string, filename: string) => {
     if (!url) return toast.error("File not found");
@@ -48,7 +48,17 @@ export function InvoiceList({ invoices, projectId, organisationName }: { invoice
           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
             <button onClick={() => window.open(inv.file_url, '_blank')} className="h-10 w-10 flex items-center justify-center bg-slate-50 text-[#0F172A] rounded-xl hover:bg-[#4F46E5] hover:text-white transition-all shadow-sm cursor-pointer active:scale-90"><Eye className="h-4 w-4" /></button>
             <button onClick={() => handleDownload(inv.file_url, `${inv.invoice_number}.pdf`)} className="h-10 px-5 bg-[#0F172A] text-white rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[#4F46E5] transition-all shadow-md cursor-pointer active:scale-95">Download</button>
-            <button onClick={async () => { if(confirm('Purge record?')) await deleteInvoiceAction(inv.id, projectId, inv.storage_path); toast.success("Purge complete"); }} className="h-10 w-10 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer"><Trash2 className="h-4 w-4" /></button>
+            
+            {/* UPDATED: Added await and onRefresh() to clear UI */}
+            <button onClick={async () => { 
+              if(confirm('Purge record?')) {
+                await deleteInvoiceAction(inv.id, projectId, inv.storage_path); 
+                toast.success("Purge complete");
+                onRefresh?.(); 
+              }
+            }} className="h-10 w-10 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer">
+              <Trash2 className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )) : (

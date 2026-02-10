@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { supabase } from "@/lib/supabase";
-import { FileText, Download, Trash2, ArrowLeft, Calendar, Folder, ArrowUpDown, Eye, Search, Filter, X } from "lucide-react";
+import { FileText, Download, Trash2, ArrowLeft, Calendar, ArrowUpDown, Eye, Search, Filter } from "lucide-react";
 import Link from "next/link";
 import { deleteDocumentAction } from "@/actions/documents";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -78,7 +78,8 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
                     <Link href={`/projects/${id}`} className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-all shadow-sm group">
                         <ArrowLeft className="h-5 w-5 text-[#0F172A] group-hover:text-[#4F46E5]" />
                     </Link>
-                    <h1 className="text-lg font-black tracking-tight uppercase italic text-[#0F172A]">Document Vault</h1>
+                    {/* UI: Removed italic utility */}
+                    <h1 className="text-lg font-black tracking-tight uppercase text-[#0F172A]">Document Vault</h1>
                 </div>
                 
                 <div className="flex items-center gap-3">
@@ -97,7 +98,6 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
                     <Filter className="h-3.5 w-3.5 text-[#4F46E5]" />
                     <span className="text-[10px] font-black uppercase text-slate-500">Filters:</span>
                 </div>
-                {/* SELECTS STYLED SAME AS BUTTONS */}
                 <select onChange={(e) => updateFilter('phaseId', e.target.value)} className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-bold text-slate-700 outline-none hover:border-[#4F46E5]" value={phaseId || ""}>
                     <option value="">All Phases</option>
                     {phases.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -126,8 +126,24 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
                             </div>
                         </div>
                         <div className="space-y-2 pt-4 border-t border-slate-100">
+                            {/* DOWNLOAD BUTTON: Full width Primary Black */}
                             <button onClick={() => handleDownload(doc.file_url, doc.name)} className="w-full h-10 bg-[#0F172A] text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#4F46E5] shadow-sm transition-all active:scale-95">Download</button>
-                            <button onClick={async () => { if(confirm('Delete file?')) await deleteDocumentAction(doc.id, id); fetchData(); }} className="w-full h-8 bg-white border border-slate-100 text-slate-400 rounded-md text-[9px] font-black uppercase hover:text-red-500 hover:border-red-100">Delete</button>
+                            
+                            {/* UTILITY BUTTONS: View & Delete Row */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <button 
+                                    onClick={() => window.open(doc.file_url, '_blank')} 
+                                    className="h-8 bg-slate-50 border border-slate-100 text-[#0F172A] rounded-md text-[9px] font-black uppercase hover:bg-white hover:text-[#4F46E5] hover:border-[#4F46E5] transition-all flex items-center justify-center gap-1 active:scale-95 shadow-sm"
+                                >
+                                    <Eye className="h-3 w-3" /> View
+                                </button>
+                                <button 
+                                    onClick={async () => { if(confirm('Delete file?')) { await deleteDocumentAction(doc.id, id); fetchData(); } }} 
+                                    className="h-8 bg-white border border-slate-100 text-slate-400 rounded-md text-[9px] font-black uppercase hover:text-red-500 hover:border-red-100 transition-all active:scale-95 shadow-sm"
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
