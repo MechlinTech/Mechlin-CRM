@@ -144,7 +144,7 @@ export default function ProjectOverview({ params }: { params: any }) {
           <Dialog open={isAddPhaseOpen} onOpenChange={setIsAddPhaseOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="bg-[#0F172A] text-white rounded-md text-[10px] font-black h-10 px-8 gap-2 hover:bg-[#4F46E5] transition-all shadow-lg cursor-pointer active:scale-95 w-full sm:w-auto">
-                <Plus className="h-4 w-4" /> ADD 
+                <Plus className="h-4 w-4" /> ADD PHASE
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-white max-w-[95vw] sm:max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
