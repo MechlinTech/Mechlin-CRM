@@ -14,6 +14,7 @@ async function logAuditEvent(targetId: string, type: string, action: string, dat
         new_value: data,
         changed_by: user?.id || null // Automatically attribute to logged-in user
     }]);
+
 }
 
 // --- PHASE ACTIONS ---
@@ -117,4 +118,5 @@ export async function deleteTaskAction(taskId: string, projectId: string) {
     if (error) return { success: false, error: error.message };
     revalidatePath(`/projects/${projectId}`);
     return { success: true };
+
 }
