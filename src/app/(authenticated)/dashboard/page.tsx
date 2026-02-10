@@ -109,7 +109,7 @@ export default function DashboardPage() {
     { id: 'etc' as const, label: 'More', icon: Settings, count: null }
   ]
 
-  return (   <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-zinc-50">
+  return (   <div className="min-h-screen ">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="custom-container">
           {/* Tab Navigation */}
