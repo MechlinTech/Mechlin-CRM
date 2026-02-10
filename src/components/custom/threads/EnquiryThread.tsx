@@ -169,10 +169,10 @@ export function EnquiryThread({
             <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4 border-b border-gray-200 pb-3">
                     <div className="min-w-0">
-                        <h2 className="text-xl font-semibold text-gray-900 truncate">
+                        <h2 className="text-lg font-semibold text-gray-900 truncate">
                             {selectedThread.title}
                         </h2>
-                        <div className="text-sm text-gray-600 mt-1">
+                        <div className="text-xs text-gray-600 mt-1">
                             Created by Unknown User • {new Date(selectedThread.created_at).toLocaleDateString()}
                         </div>
                     </div>
@@ -180,7 +180,7 @@ export function EnquiryThread({
                     {showThreadList && (
                         <button
                             onClick={() => setView('list')}
-                            className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                            className="flex items-center gap-2 text-xs text-gray-600 hover:text-blue-600 transition-colors"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -205,14 +205,14 @@ export function EnquiryThread({
                     >
                         ← Back to Threads
                     </button>
-                    <h2 className="text-2xl font-bold">Create New Thread</h2>
+                    <h2 className="text-lg font-bold">Create New Thread</h2>
                 </div>
                 
                 <div className="border rounded-lg p-4">
                     <h3 className="text-lg font-semibold mb-4">Thread Details</h3>
                     <div className="space-y-4">
                         <div>
-                            <label htmlFor="title" className="text-sm font-medium">
+                            <label htmlFor="title" className="text-xs font-medium">
                                 Thread Title *
                             </label>
                             <Input
@@ -230,7 +230,7 @@ export function EnquiryThread({
                         </div>
                         
                         <div>
-                            <label htmlFor="description" className="text-sm font-medium">
+                            <label htmlFor="description" className="text-xs font-medium">
                                 Description
                             </label>
                             <textarea
@@ -245,7 +245,7 @@ export function EnquiryThread({
                         
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="priority" className="text-sm font-medium">
+                                <label htmlFor="priority" className="text-xs font-medium">
                                     Priority
                                 </label>
                                 <select
@@ -262,7 +262,7 @@ export function EnquiryThread({
                             </div>
                             
                             <div>
-                                <label htmlFor="status" className="text-sm font-medium">
+                                <label htmlFor="status" className="text-xs font-medium">
                                     Status
                                 </label>
                                 <select
@@ -286,7 +286,7 @@ export function EnquiryThread({
                                 onChange={(e) => setNewThreadIsPublic(e.target.checked)}
                                 className="rounded"
                             />
-                            <label htmlFor="isPublic" className="text-sm font-medium">
+                            <label htmlFor="isPublic" className="text-xs font-medium">
                                 Public thread (visible to all users)
                             </label>
                         </div>
@@ -339,11 +339,11 @@ export function EnquiryThread({
             {/* Thread List */}
             <div className="space-y-2">
                 {loading ? (
-                    <div className="text-center py-6 text-gray-600">
+                    <div className="text-center py-6 text-gray-600 text-xs">
                         Loading threads...
                     </div>
                 ) : filteredThreads.length === 0 ? (
-                    <div className="text-center py-6 text-gray-600">
+                    <div className="text-center py-6 text-gray-600 text-xs">
                         {searchTerm ? 'No threads found matching your search.' : 'No threads yet. Create the first one!'}
                     </div>
                 ) : (

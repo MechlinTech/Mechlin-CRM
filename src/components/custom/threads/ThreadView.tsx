@@ -159,7 +159,7 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="space-y-2">
-                    <h1 className="text-2xl font-bold">{thread.title}</h1>
+                    <h1 className="text-lg font-bold">{thread.title}</h1>
                     <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs rounded ${getStatusColor(thread.status)}`}>
                             {thread.status}
@@ -171,7 +171,7 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
                             {thread.context_type}
                         </span>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <div className="flex items-center space-x-2 text-xs text-gray-600">
                         <span>Created by Unknown User</span>
                         <span>•</span>
                         <span>{new Date(thread.created_at).toLocaleDateString()}</span>
@@ -188,7 +188,7 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
                 {/* Messages Section - Takes 2/3 space */}
                 <div className="flex-1 bg-white overflow-hidden flex flex-col border border-gray-200 rounded-lg">
                     <div className="shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
-                        <h3 className="text-sm font-medium text-gray-700">Messages</h3>
+                        <h3 className="text-xs font-medium text-gray-700">Messages</h3>
                     </div>
                     <div className="flex-1 overflow-y-auto p-6">
                         <div className="space-y-4">
@@ -212,7 +212,7 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
                             })}
                             
                             {messages.length === 0 && (
-                                <div className="text-center text-gray-600 py-8">
+                                <div className="text-center text-gray-600 py-8 text-xs">
                                     No messages yet. Start the conversation!
                                 </div>
                             )}
@@ -225,7 +225,7 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
                 {/* Input Section - Takes 1/3 space */}
                 <div className="w-1/3 bg-gray-50 border-l border-gray-200 flex flex-col sticky top-0 self-start h-full">
                     <div className="shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
-                        <h3 className="text-sm font-medium text-gray-700">Reply to Thread</h3>
+                        <h3 className="text-xs font-medium text-gray-700">Reply to Thread</h3>
                     </div>
                     <div className="flex-1 overflow-hidden p-4">
                         <MessageComposer

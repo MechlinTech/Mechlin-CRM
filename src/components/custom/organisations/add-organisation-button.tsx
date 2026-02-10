@@ -34,13 +34,13 @@ export function AddOrganisationButton({ onSuccess }: AddOrganisationButtonProps)
     }, [])
 
     if (!mounted) {
-        return <Button variant="default">Add Organisation</Button>
+        return <Button variant="default" className="bg-[#0F172A] hover:bg-[#4F46E5] text-white">Add Organisation</Button>
     }
     
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default">Add Organisation</Button>
+                <Button variant="default" className="bg-[#0F172A] hover:bg-[#4F46E5] text-white">Add Organisation</Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
