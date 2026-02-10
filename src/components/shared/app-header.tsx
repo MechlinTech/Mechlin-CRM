@@ -58,10 +58,10 @@ export function AppHeader() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-10 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 h-12 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 shadow-sm">
       {/* Logo/Brand */}
       <div className="flex items-center">
-        <h1 className="text-lg sm:text-xl font-bold text-gray-900">Mechlin CRM</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900">Mechlin <span className="text-[#4F46E5]">CRM</span></h1>
       </div>
 
       

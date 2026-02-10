@@ -6,8 +6,8 @@ export default async function Page() {
     const users = await getAllUsersAction()
     
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-zinc-50">
-            <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <div className="min-h-screen ">
+            <div className="px-4 sm:px-6 lg:px-8 ">
                 <div className="max-w-7xl mx-auto">
                     {/* Header Section with Inline Button */}
                     <div className="flex items-center justify-between mb-8">
@@ -29,7 +29,7 @@ export default async function Page() {
                     </div>
 
                     {/* Enhanced Table Section */}
-                    <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+                    <div className="bg-white rounded-2xl  overflow-hidden">
                         <UsersTable users={users.users || []} />
                     </div>
                 </div>
