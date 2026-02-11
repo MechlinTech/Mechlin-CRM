@@ -118,7 +118,9 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
                 <p className="text-sm font-black tracking-tight">Drop Your File(s) Here</p>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Or</p>
                 <div className="mt-2">
-                    <span className="bg-[#0ea5e9] text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-sky-600 transition-all shadow-md inline-block">Browse</span>
+<span className="bg-[#000000] text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest group-hover:bg-[#4F46E5] transition-all shadow-md inline-block">
+    Browse
+  </span>
                 </div>
              </div>
              <p className="mt-4 text-[9px] font-bold text-slate-300 uppercase">Maximum File Size 4 MB</p>

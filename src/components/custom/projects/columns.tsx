@@ -35,6 +35,7 @@ export const getColumns = (organisations: any[], users: any[]): ColumnDef<any>[]
   },
   {
     id: "actions",
+    header: "More Actions", // This adds the text header above the 3 dots
     cell: ({ row }) => {
       const project = row.original;
       
@@ -68,7 +69,6 @@ export const getColumns = (organisations: any[], users: any[]): ColumnDef<any>[]
                <EditProjectDialog 
                  project={project} 
                  organisations={organisations} 
-                 // If your EditProjectDialog also needs users, pass them here:
                  users={users} 
                />
             </div>

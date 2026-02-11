@@ -106,7 +106,7 @@ export function DocumentForm({ projectId, ids }: { projectId: string, ids: any }
               <p className="text-sm font-black tracking-tight">Drop Your Documents Here</p>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Or</p>
               <div className="mt-2">
-                  <span className="bg-[#0ea5e9] text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-sky-600 transition-all shadow-md inline-block">Browse Files</span>
+                  <span className="bg-[#000000] text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest group-hover:bg-[#4F46E5] transition-all shadow-md inline-block">Browse Files</span>
               </div>
            </div>
            <p className="mt-4 text-[9px] font-bold text-slate-300 uppercase">Supports Multiple Files</p>

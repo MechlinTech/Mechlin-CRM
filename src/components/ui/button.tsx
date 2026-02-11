@@ -1,24 +1,27 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-
+ 
 import { cn } from "@/lib/utils"
-
+ 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
-        default: "bg-[#0F172A] text-white hover:bg-[#4F46E5]",
+        // Primary Button: #4C5C96
+        default: "bg-[#4C5C96] text-white hover:bg-[#3A4675] shadow-sm",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20",
+        // Outline Button: Soft Border #E5E7EB, Text Primary
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-[#4F46E5] dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border border-[#E5E7EB] bg-white text-[#1F2937] hover:bg-[#F7F8FA] hover:text-[#4C5C96]",
+        // Secondary Button: Use for "Upload" etc.
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:text-[#4F46E5]",
+          "bg-white border border-[#E5E7EB] text-[#1F2937] hover:bg-[#F7F8FA] hover:text-[#4C5C96] shadow-sm",
         ghost:
-          "hover:bg-accent hover:text-[#4F46E5] dark:hover:bg-accent/50",
-        link: "text-[#4F46E5] underline-offset-4 hover:underline",
+          "hover:bg-[#F7F8FA] hover:text-[#4C5C96]",
+        link: "text-[#4C5C96] underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -35,7 +38,7 @@ const buttonVariants = cva(
     },
   }
 )
-
+ 
 function Button({
   className,
   variant = "default",
@@ -47,7 +50,7 @@ function Button({
     asChild?: boolean
   }) {
   const Comp = asChild ? Slot : "button"
-
+ 
   return (
     <Comp
       data-slot="button"
@@ -58,5 +61,5 @@ function Button({
     />
   )
 }
-
+ 
 export { Button, buttonVariants }

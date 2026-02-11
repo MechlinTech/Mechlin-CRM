@@ -57,11 +57,11 @@ export default function ProjectLayout({ children, params }: { children: React.Re
 
       <div className="flex-1 p-8 overflow-y-auto border-r border-slate-100 transition-all duration-300">{children}</div>
 
-      <aside className={cn("bg-white h-screen sticky top-0 flex flex-col border-l border-slate-200 shadow-sm transition-all duration-300 overflow-hidden shrink-0", isSidebarOpen ? "w-[340px]" : "w-0 border-none")}>
+      <aside className={cn("bg-white h-screen sticky top-0 flex flex-col border-l border-slate-200 shadow-sm transition-all duration-300 overflow-hidden shrink-0", isSidebarOpen ? "w-[280px]" : "w-0 border-none")}>
         <section className="shrink-0 p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-black uppercase text-slate-400 tracking-widest">History</h3>
-            <StatusHistory logs={logs || []} />
+            <StatusHistory logs={logs || []} /> 
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 bg-white text-[#0F172A] rounded-lg hover:text-[#4F46E5] transition-all border border-slate-200 cursor-pointer"><PanelRightClose className="h-4 w-4" /></button>
         </section>
