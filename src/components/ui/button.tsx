@@ -9,19 +9,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary Button: #4C5C96
-        default: "bg-[#4C5C96] text-white hover:bg-[#3A4675] shadow-sm",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20",
         // Outline Button: Soft Border #E5E7EB, Text Primary
         outline:
-          "border border-[#E5E7EB] bg-white text-[#1F2937] hover:bg-[#F7F8FA] hover:text-[#4C5C96]",
-        // Secondary Button: Use for "Upload" etc.
+          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
-          "bg-white border border-[#E5E7EB] text-[#1F2937] hover:bg-[#F7F8FA] hover:text-[#4C5C96] shadow-sm",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
-          "hover:bg-[#F7F8FA] hover:text-[#4C5C96]",
-        link: "text-[#4C5C96] underline-offset-4 hover:underline",
+          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

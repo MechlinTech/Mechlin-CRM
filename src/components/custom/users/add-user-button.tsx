@@ -29,7 +29,7 @@ export function AddUserButton({ onSuccess }: AddUserButtonProps) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default" className="bg-[#0F172A] hover:bg-[#4F46E5] text-white">Add User</Button>
+                <Button variant="default" >Add User</Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>

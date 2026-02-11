@@ -64,8 +64,8 @@ export default function ClientDashboardPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Projects</h1>
-              <p className="text-gray-600">Projects assigned to you</p>
+              <h1 className="text-3xl font-bold text-heading-primary">My Projects</h1>
+              <p className="text-secondary">Projects assigned to you</p>
             </div>
             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-semibold">
               {projects.length}
@@ -84,7 +84,7 @@ export default function ClientDashboardPage() {
                   <div className="space-y-4">
                     {/* Project Header */}
                     <div className="flex justify-between items-start">
-                      <h3 className="text-base font-semibold tracking-tight text-gray-900 group-hover:text-blue-600 line-clamp-2">
+                      <h3 className="text-base font-semibold tracking-tight text-heading-primary group-hover:text-blue-600 line-clamp-2">
                         {project.name}
                       </h3>
                       <Badge 
@@ -103,7 +103,7 @@ export default function ClientDashboardPage() {
 
                     {/* Project Details */}
                     <div className="space-y-3 text-sm">
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-secondary">
                         <Building className="h-4 w-4 text-gray-400" />
                         <span className="font-medium truncate">
                           {project.organisations?.name || 'No Organization'}
@@ -111,21 +111,21 @@ export default function ClientDashboardPage() {
                       </div>
                       
                       {project.budget && (
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2 text-secondary">
                           <DollarSign className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-900">{project.currency || '$'}{project.budget.toLocaleString()}</span>
+                          <span className="text-heading-primary">{project.currency || '$'}{project.budget.toLocaleString()}</span>
                         </div>
                       )}
 
                       {project.start_date && (
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2 text-secondary">
                           <Calendar className="h-4 w-4 text-gray-400" />
                           <span className="text-xs uppercase tracking-wider">Start: {project.start_date}</span>
                         </div>
                       )}
 
                       {project.expected_end_date && (
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2 text-secondary">
                           <Calendar className="h-4 w-4 text-gray-400" />
                           <span className="text-xs uppercase tracking-wider">End: {project.expected_end_date}</span>
                         </div>
@@ -140,8 +140,8 @@ export default function ClientDashboardPage() {
               <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg mb-6">
                 <Building className="h-10 w-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold tracking-tight mb-3 text-gray-900">No Projects Assigned</h3>
-              <p className="text-gray-600 max-w-md mx-auto">
+              <h3 className="text-xl font-bold tracking-tight mb-3 text-heading-primary">No Projects Assigned</h3>
+              <p className="text-secondary max-w-md mx-auto">
                 You haven't been assigned to any projects yet. Contact your administrator to get access to projects.
               </p>
             </div>

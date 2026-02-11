@@ -8,12 +8,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F7F8FA]">
       <AppHeader />
       <div className="pt-10">
         <SidebarProvider className="min-h-auto">
           <AppSidebar />
-          <SidebarInset className="p-4 h-[calc(100vh-2.5rem)] overflow-y-auto">
+          <SidebarInset className="p-4 h-[calc(100vh-2.5rem)] overflow-y-auto bg-[#F7F8FA]">
             <div className="flex items-center gap-2 mb-4 -mt-2 -ml-2">
               <SidebarTrigger />
             </div>
