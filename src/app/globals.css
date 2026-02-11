@@ -131,6 +131,12 @@
   .center-content {
     @apply flex min-h-svh w-full items-center justify-center p-6 md:p-10;
   }
+  .text-heading-primary {
+    color: #1F2937;
+  }
+  .text-secondary {
+    color: #6B7280;
+  }
 }
 
 .custom-container {

@@ -14,11 +14,7 @@ export default function DashboardPage() {
   const [organisations, setOrganisations] = React.useState<any[]>([])
   const [activeTab, setActiveTab] = React.useState<'projects' | 'users' | 'organisations' | 'etc'>('organisations')
 
-  React.useEffect(() => {
-    fetchProjects()
-    fetchUsers()
-    fetchOrganisations()
-  }, [])
+  
 
   async function fetchProjects() {
     const { data, error } = await supabase
@@ -102,6 +98,13 @@ export default function DashboardPage() {
     fetchOrganisations()
   }
 
+  
+ React.useEffect(() => {
+    fetchProjects()
+    fetchUsers()
+    fetchOrganisations()
+  }, [])
+
   const tabs = [
     { id: 'organisations' as const, label: 'Organisations', icon: Building2, count: organisations.length },
     { id: 'projects' as const, label: 'Projects', icon: Building, count: projects.length },
@@ -123,7 +126,7 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`group relative flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg font-medium text-xs transition-all duration-200 sm:justify-start ${
                       activeTab === tab.id
-                        ? 'bg-gradient-to-br from-gray-800 to-gray-900 text-white shadow-lg shadow-gray-900/25 scale-[1.02]'
+                        ? 'bg-[#4C5C96] text-white shadow-lg shadow-gray-900/25 scale-[1.02]'
                         : 'text-gray-600 hover:text-[#4F46E5] hover:bg-gray-100/50'
                     }`}
                   >
@@ -147,14 +150,14 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#0F172A] rounded shadow-lg">
+                    <div className="p-2 bg-[#4C5C96] rounded shadow-lg">
                       <Building className="h-5 w-5 text-white" />
                     </div>
                     <div>
                       <h2 className="text-lg font-semibold text-[#0F172A]">All Projects</h2>
-                      <p className="text-sm text-[#0F172A]/60">Manage your active projects</p>
+                      <p className="text-sm text-[#4C5C96]/60">Manage your active projects</p>
                     </div>
-                    <Badge variant="outline" className="bg-[#0F172A]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold">{projects.length}</Badge>
+                    <Badge variant="outline" className="bg-[#4C5C96]/10 text-[#4C5C96] border-[#4C5C96]/20 font-semibold">{projects.length}</Badge>
                   </div>
                 </div>
 
@@ -188,7 +191,7 @@ export default function DashboardPage() {
 
                           {/* Project Details */}
                           <div className="space-y-3 text-xs">
-                            <div className="flex items-center gap-2 text-gray-600">
+                            <div className="flex items-center gap-1 text-gray-600">
                               <Building className="h-4 w-4 text-gray-400" />
                               <span className="font-medium truncate">
                                 {project.organisations?.name || 'No Organization'}
@@ -196,29 +199,20 @@ export default function DashboardPage() {
                             </div>
                             
                             {project.budget && (
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                                  <span className="text-white text-xs font-bold">$</span>
-                                </div>
-                                <p className="text-sm text-gray-900">{project.currency || '$'}{project.budget.toLocaleString()}</p>
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <p className="text-xs font-medium">{project.currency || '$'}{project.budget.toLocaleString()}</p>
                               </div>
                             )}
 
                             {project.start_date && (
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                                  <span className="text-white text-xs font-bold">▶</span>
-                                </div>
-                                <span className="text-sm uppercase tracking-wider">Start: {project.start_date}</span>
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <span className="text-xs font-medium">Start: {project.start_date}</span>
                               </div>
                             )}
 
                             {project.expected_end_date && (
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center">
-                                  <span className="text-white text-xs font-bold">◉</span>
-                                </div>
-                                <span className="text-sm uppercase tracking-wider">End: {project.expected_end_date}</span>
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <span className="text-xs font-medium">End: {project.expected_end_date}</span>
                               </div>
                             )}
                           </div>
@@ -231,7 +225,7 @@ export default function DashboardPage() {
                     <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center shadow-lg mb-6">
                       <Building className="h-10 w-10 text-white" />
                     </div>
-                    <h3 className="text-lg font-bold tracking-tight mb-3 text-gray-900">No Projects Yet</h3>
+                    <h3 className="text-lg font-bold tracking-tight mb-3 text-gray-900 ">No Projects Yet</h3>
                     <p className="text-xs text-gray-600 max-w-md mx-auto">Create your first project to start collaborating with your team and tracking progress</p>
                   </div>
                 )}
@@ -243,14 +237,14 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#0F172A] rounded shadow-lg">
+                    <div className="p-2 bg-[#4C5C96] rounded shadow-lg">
                       <Users className="h-5 w-5 text-white" />
                     </div>
                     <div>
                       <h2 className="text-lg font-semibold text-[#0F172A]">All Users</h2>
-                      <p className="text-sm text-[#0F172A]/60">Team members and collaborators</p>
+                      <p className="text-sm text-[#4C5C96]/60">Team members and collaborators</p>
                     </div>
-                    <Badge variant="outline" className="bg-[#0F172A]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold">{users.length}</Badge>
+                    <Badge variant="outline" className="bg-[#4C5C96]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold">{users.length}</Badge>
                   </div>
                 </div>
 
@@ -269,7 +263,7 @@ export default function DashboardPage() {
                       {mechlinUsers.length > 0 ? (
                         mechlinUsers.map((user) => (
                           <div key={user.id} className="p-4 bg-[#0F172A]/5 border border-[#0F172A]/20 rounded-xl flex items-center gap-4 transition-all duration-300">
-                            <div className="h-10 w-10 bg-[#0F172A] rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                            <div className="h-10 w-10 bg-[#4C5C96] rounded-full flex items-center justify-center text-white font-bold shadow-lg">
                               {user.name?.charAt(0)?.toUpperCase() || 'U'}
                             </div>
                             <div className="flex-1">
@@ -302,7 +296,7 @@ export default function DashboardPage() {
                       {otherUsers.length > 0 ? (
                         otherUsers.map((user) => (
                           <div key={user.id} className="p-4 bg-[#0F172A]/5 border border-[#0F172A]/20 rounded-xl flex items-center gap-4 transition-all duration-300">
-                            <div className="h-10 w-10 bg-[#4F46E5] rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                            <div className="h-10 w-10 bg-[#3A4675] rounded-full flex items-center justify-center text-white font-bold shadow-lg">
                               {user.name?.charAt(0)?.toUpperCase() || 'U'}
                             </div>
                             <div className="flex-1">
@@ -329,14 +323,14 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#0F172A] rounded shadow-lg">
+                    <div className="p-2 bg-[#4C5C96] rounded shadow-lg">
                       <Building2 className="h-5 w-5 text-white" />
                     </div>
                     <div>
                       <h2 className="text-lg font-semibold text-[#0F172A]">All Organisations</h2>
-                      <p className="text-sm text-[#0F172A]/60">Manage your organization portfolio</p>
+                      <p className="text-sm text-[#4C5C96]/60">Manage your organization portfolio</p>
                     </div>
-                    <Badge variant="outline" className="bg-[#0F172A]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold">{organisations.length}</Badge>
+                    <Badge variant="outline" className="bg-[#4C5C96]/10 text-[#4C5C96] border-[#4C5C96]/20 font-semibold">{organisations.length}</Badge>
                   </div>
                 </div>
                 {organisations.length > 0 ? (
@@ -350,7 +344,7 @@ export default function DashboardPage() {
                         <div className="space-y-4">
                           {/* Organization Header */}
                           <div className="flex items-start gap-4">
-                            <div className="h-12 w-12 bg-[#272e3f] rounded flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all duration-300">
+                            <div className="h-12 w-12 bg-[#4C5C96] rounded flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all duration-300">
                               {org.name?.charAt(0)?.toUpperCase() || 'O'}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -383,39 +377,24 @@ export default function DashboardPage() {
                           </div>
 
                           {/* Organization Details */}
-                          <div className="space-y-3 text-xs border-t border-gray-100 pt-4">
+                          <div className="space-y-3 text-xs font-medium border-t border-gray-100 pt-4">
                             {org.slug && (
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                                  <span className="text-white text-xs font-bold">@</span>
-                                </div>
-                                <span className="text-sm font-medium">{org.slug}</span>
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <span className="">{org.slug}</span>
                               </div>
                             )}
                             
                             {org.is_internal !== undefined && (
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <div className={`h-4 w-4 rounded-full flex items-center justify-center ${
-                                  org.is_internal 
-                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
-                                    : 'bg-gradient-to-r from-gray-500 to-zinc-500'
-                                }`}>
-                                  <span className="text-white text-xs font-bold">
-                                    {org.is_internal ? '🏢' : '🌐'}
-                                  </span>
-                                </div>
-                                <span className="text-xs font-medium">
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <span className="">
                                   {org.is_internal ? 'Internal Organization' : 'External Organization'}
                                 </span>
                               </div>
                             )}
 
                             {org.created_at && (
-                              <div className="flex items-center gap-2 text-gray-500">
-                                <div className="h-4 w-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                                  <span className="text-white text-xs font-bold">📅</span>
-                                </div>
-                                <span className="text-sm uppercase tracking-wider">Created {new Date(org.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <span className="">Created {new Date(org.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                               </div>
                             )}
                           </div>
@@ -425,7 +404,7 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="text-center py-20">
-                    <div className="mx-auto w-20 h-20 bg-[#0F172A] rounded-md flex items-center justify-center shadow-lg mb-6">
+                    <div className="mx-auto w-20 h-20 bg-[#4C5C96] rounded-md flex items-center justify-center shadow-lg mb-6">
                       <Building2 className="h-10 w-10 text-white" />
                     </div>
                     <h3 className="text-lg font-bold tracking-tight mb-3 text-gray-900">No Organizations Yet</h3>
