@@ -1,7 +1,6 @@
 "use client"
 
 import React from 'react'
-import { supabase } from '@/lib/supabase'
 import { useParams, useRouter } from 'next/navigation'
 import { Building, ArrowLeft, Users, Calendar, DollarSign, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
@@ -12,6 +11,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { getOrganisationById, getOrganisationProjects } from '@/actions/organisation-management'
 
 export default function OrganisationDetailPage() {
   const params = useParams()
@@ -21,6 +21,19 @@ export default function OrganisationDetailPage() {
   const [loading, setLoading] = React.useState(true)
   const [detailsOpen, setDetailsOpen] = React.useState(false)
 
+  async function fetchOrganisationDetails() {
+    const data = await getOrganisationById(params.id as string)
+    if (data) {
+      setOrganisation(data)
+    }
+  }
+
+  async function fetchOrganisationProjects() {
+    const data = await getOrganisationProjects(params.id as string)
+    setProjects(data)
+    setLoading(false)
+  }
+  
   React.useEffect(() => {
     if (params.id) {
       fetchOrganisationDetails()
@@ -28,36 +41,7 @@ export default function OrganisationDetailPage() {
     }
   }, [params.id])
 
-  async function fetchOrganisationDetails() {
-    const { data, error } = await supabase
-      .from('organisations')
-      .select('*')
-      .eq('id', params.id)
-      .single()
-
-    if (data) {
-      setOrganisation(data)
-    }
-    if (error) {
-      console.error('Error fetching organisation:', error)
-    }
-  }
-
-  async function fetchOrganisationProjects() {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('organisation_id', params.id)
-      .order('created_at', { ascending: false })
-
-    if (data) {
-      setProjects(data)
-    }
-    if (error) {
-      console.error('Error fetching projects:', error)
-    }
-    setLoading(false)
-  }
+  
 
   if (loading) {
     return (
@@ -89,7 +73,7 @@ export default function OrganisationDetailPage() {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           
-          <div className="bg-white rounded-2xl  mb-8">
+          <div className=" rounded-2xl  mb-8">
             <div className="flex items-start gap-6">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -131,24 +115,13 @@ export default function OrganisationDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs mt-4 p-4 bg-gray-50 rounded-lg">
                       {organisation.slug && (
                         <div className="flex items-center gap-2 text-gray-600">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">@</span>
-                          </div>
+                         
                           <span className="font-medium">{organisation.slug}</span>
                         </div>
                       )}
                       
                       {organisation.is_internal !== undefined && (
                         <div className="flex items-center gap-2 text-gray-600">
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                            organisation.is_internal 
-                              ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
-                              : 'bg-gradient-to-r from-gray-500 to-zinc-500'
-                          }`}>
-                            <span className="text-white text-xs font-bold">
-                              {organisation.is_internal ? '🏢' : '🌐'}
-                            </span>
-                          </div>
                           <span className="font-medium">
                             {organisation.is_internal ? 'Internal Organization' : 'External Organization'}
                           </span>
@@ -157,9 +130,7 @@ export default function OrganisationDetailPage() {
 
                       {organisation.created_at && (
                         <div className="flex items-center gap-2 text-gray-600">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">📅</span>
-                          </div>
+                          
                           <span className="font-medium">
                             Created {new Date(organisation.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </span>
@@ -176,7 +147,7 @@ export default function OrganisationDetailPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#0F172A] rounded-xl shadow-lg">
+                <div className="p-2 bg-[#4C5C96] rounded-xl shadow-lg">
                   <Building className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -205,7 +176,7 @@ export default function OrganisationDetailPage() {
                         </h3>
                         <Badge 
                           variant="outline" 
-                          className={`text-xs font-semibold px-2 py-1 rounded-md flex-shrink-0 ${
+                          className={`text-xs font-semibold px-2 py-1 rounded-md shrink-0 ${
                             project.status === 'Active' 
                               ? 'border-[#0F172A]/20 text-[#0F172A] bg-[#0F172A]/10' 
                               : project.status === 'Pending'
@@ -218,31 +189,22 @@ export default function OrganisationDetailPage() {
                       </div>
 
                       
-                      <div className="space-y-3 text-xs">
+                      <div className="space-y-3 text-xs font-medium">
                         {project.budget && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <div className="h-4 w-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                              <span className="text-white text-xs font-bold">$</span>
-                            </div>
-                            <p className="text-xs text-gray-900">{project.currency || '$'}{project.budget.toLocaleString()}</p>
+                          <div className="flex items-center gap-2 text-gray-600"> 
+                            <p className=" text-gray-900">{project.currency || '$'}{project.budget.toLocaleString()}</p>
                           </div>
                         )}
 
                         {project.start_date && (
                           <div className="flex items-center gap-2 text-gray-600">
-                            <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                              <span className="text-white text-xs font-bold">▶</span>
-                            </div>
-                            <span className="text-xs uppercase tracking-wider">Start: {project.start_date}</span>
+                            <span className=" uppercase tracking-wider">Start: {project.start_date}</span>
                           </div>
                         )}
 
                         {project.expected_end_date && (
                           <div className="flex items-center gap-2 text-gray-600">
-                            <div className="h-4 w-4 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center">
-                              <span className="text-white text-xs font-bold">◉</span>
-                            </div>
-                            <span className="text-xs uppercase tracking-wider">End: {project.expected_end_date}</span>
+                            <span className=" uppercase tracking-wider">End: {project.expected_end_date}</span>
                           </div>
                         )}
                       </div>
@@ -252,12 +214,12 @@ export default function OrganisationDetailPage() {
               </div>
             ) : (
               <div className="text-center py-20">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center shadow-lg mb-6">
+                <div className="mx-auto w-20 h-20 bg-linear-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center shadow-lg mb-6">
                   <Building className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="text-lg font-bold tracking-tight mb-3 text-gray-900">No Projects Yet</h3>
                 <p className="text-xs text-gray-600 max-w-md mx-auto">
-                  This organization doesn't have any projects yet. Create the first project to get started.
+                  This organization does not have any projects yet. Create the first project to get started.
                 </p>
               </div>
             )}
