@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -17,19 +16,16 @@ interface AddUserButtonProps {
 }
 
 export function AddUserButton({ onSuccess }: AddUserButtonProps) {
-    const [open, setOpen] = useState(false)
-    
     const handleSuccess = () => {
-        setOpen(false)
         if (onSuccess) {
             onSuccess()
         }
     }
     
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog>
             <DialogTrigger asChild>
-                <Button variant="default" >Add User</Button>
+                <Button variant="default">Add User</Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
