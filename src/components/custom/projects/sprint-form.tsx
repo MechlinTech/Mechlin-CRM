@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form"
+import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -37,35 +37,59 @@ export function SprintForm({ milestoneId, projectId, sprint, onSuccess }: any) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans">
         <FormField control={form.control} name="name" render={({ field }) => (
-          <FormItem><FormLabel className="text-[10px] font-bold uppercase">Sprint Name</FormLabel><Input {...field} /></FormItem>
+          <FormItem>
+            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Sprint Name</FormLabel>
+            <FormControl><Input {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" /></FormControl>
+          </FormItem>
         )} />
+        
         <FormField control={form.control} name="description" render={({ field }) => (
-          <FormItem><FormLabel className="text-[10px] font-bold uppercase">Description</FormLabel><Textarea {...field} /></FormItem>
+          <FormItem>
+            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Description</FormLabel>
+            <FormControl><Textarea {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[100px] resize-none" /></FormControl>
+          </FormItem>
         )} />
-        <div className="grid grid-cols-2 gap-4">
+        
+        {/* Responsive Grid: Stacks on mobile, 2 columns on tablet/desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField control={form.control} name="start_date" render={({ field }) => (
-            <FormItem><FormLabel className="text-[10px] font-bold uppercase">Start Date</FormLabel><Input type="date" {...field} /></FormItem>
+            <FormItem>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Start Date</FormLabel>
+              <FormControl><Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" /></FormControl>
+            </FormItem>
           )} />
           <FormField control={form.control} name="end_date" render={({ field }) => (
-            <FormItem><FormLabel className="text-[10px] font-bold uppercase">End Date</FormLabel><Input type="date" {...field} /></FormItem>
+            <FormItem>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">End Date</FormLabel>
+              <FormControl><Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" /></FormControl>
+            </FormItem>
           )} />
         </div>
+
         <FormField control={form.control} name="status" render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-bold uppercase">Status</FormLabel>
+            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Status</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="Delayed">Delayed</SelectItem>
+              <FormControl>
+                <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer">
+                  <SelectValue />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent className="bg-white border-slate-200 rounded-xl shadow-2xl">
+                <SelectItem value="Active" className="text-xs font-medium cursor-pointer">Active</SelectItem>
+                <SelectItem value="Completed" className="text-xs font-medium cursor-pointer">Completed</SelectItem>
+                <SelectItem value="Delayed" className="text-xs font-medium cursor-pointer">Delayed</SelectItem>
               </SelectContent>
             </Select>
           </FormItem>
         )} />
-        <Button type="submit" className="w-full bg-black text-white font-bold h-11 uppercase text-[10px]">
+
+        <Button 
+          type="submit" 
+          className="ml-33 w-50 bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#99C4FF] transition-all active:scale-95 cursor-pointer mt-2"
+        >
           {isEdit ? "Update Sprint" : "Create Sprint"}
         </Button>
       </form>

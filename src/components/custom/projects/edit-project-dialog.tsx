@@ -10,14 +10,14 @@ export function EditProjectDialog({ project, organisations, users }: { project: 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-          <Pencil className="mr-2 h-4 w-4" /> Edit Project
+        <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-[#060721]">
+          <Pencil className="mr-2 h-4 w-4 h-4"/> Edit Project
         </div>
       </DialogTrigger>
       {/* Added max-h and scrolling to content */}
       <DialogContent className="max-w-2xl bg-white text-black border-none shadow-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Edit Project: {project.name}</DialogTitle>
+          <DialogTitle className="text-xl font-bold cursor-pointer">Edit Project: {project.name}</DialogTitle>
         </DialogHeader>
         <CreateProjectForm 
           project={project} 
