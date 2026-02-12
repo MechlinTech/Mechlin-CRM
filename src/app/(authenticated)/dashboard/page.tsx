@@ -171,7 +171,7 @@ export default function DashboardPage() {
                         <div className="space-y-4">
                           {/* Project Header */}
                           <div className="flex justify-between items-start">
-                            <h3 className="text-lg tracking-tight  group-hover:text-[#006AFF] ">
+                            <h3 className="font-medium text-lg tracking-tight  group-hover:text-[#006AFF] ">
                               {project.name}
                             </h3>
                             <Badge
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                           <div className="flex justify-between items-start gap-4">                          
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
-                                <span className="cursor-pointer text-lg tracking-tight hover:text-[#006AFF] transition-colors line-clamp-2 leading-tight">
+                                <span className=" font-medium cursor-pointer text-lg tracking-tight hover:text-[#006AFF] transition-colors line-clamp-2 leading-tight">
                                   {org.name}
                                 </span>
                                 <Badge
