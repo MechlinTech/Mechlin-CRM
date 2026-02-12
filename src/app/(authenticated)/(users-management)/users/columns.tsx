@@ -76,6 +76,7 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
+    header: "Actions",
     id: "actions",
     cell: ({ row }) => {
       const user = row.original
@@ -122,6 +123,5 @@ export const columns: ColumnDef<User>[] = [
         </>
       )
     },
-    header: "",
   },
 ]

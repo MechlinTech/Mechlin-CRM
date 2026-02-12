@@ -12,7 +12,7 @@ export default async function Page() {
                     {/* Header Section with Inline Button */}
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-[#4C5C96] rounded-xl shadow-lg">
+                            <div className="p-2 bg-[#006AFF] rounded-xl shadow-lg">
                                 <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
@@ -21,7 +21,7 @@ export default async function Page() {
                                 <h1 className="text-lg font-bold text-[#0F172A]">All Organisations</h1>
                                 <p className="text-xs text-[#0F172A]/60">Manage your organization portfolio</p>
                             </div>
-                            <div className="bg-[#0F172A]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
+                            <div className="bg-[#006AFF]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
                                 {organisations.organisations?.length || 0}
                             </div>
                         </div>
