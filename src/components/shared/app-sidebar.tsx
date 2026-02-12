@@ -1,6 +1,6 @@
 "use client"
 import * as React from "react"
-import { ChevronRight, LayoutGrid, Target, Zap } from "lucide-react"
+import { ChevronRight, Folder, Award, CheckCircle, LayoutGrid } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -122,7 +122,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild className="text-sm">
                         <CollapsibleTrigger>
-                          <Target className="mr-2 h-3 w-3 text-orange-500" />
+                          <Folder className="mr-2 h-3 w-3 text-blue-500" />
                           <span>{phase.name}</span>
                           <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                         </CollapsibleTrigger>
@@ -134,7 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                               <SidebarMenuItem>
                                 <SidebarMenuButton asChild className="text-xs">
                                   <CollapsibleTrigger>
-                                    <Zap className="mr-2 h-3 w-3 text-yellow-500" />
+                                    <Award className="mr-2 h-3 w-3 text-purple-500" />
                                     <span>{milestone.name}</span>
                                     <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                                   </CollapsibleTrigger>
@@ -148,7 +148,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                           className="text-xs"
                                         >
                                           <Link href={`/projects/${currentProject.id}/phases/${phase.id}/milestones/${milestone.id}/sprints/${sprint.id}`}>
-                                            <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                            <CheckCircle className="w-3 h-3 text-green-500 mr-2" />
                                             <span>{sprint.name}</span>
                                           </Link>
                                         </SidebarMenuButton>

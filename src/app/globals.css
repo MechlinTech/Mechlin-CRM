@@ -48,9 +48,9 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: #F7F8FA;
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  --card: #FFFFFF;
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -80,7 +80,6 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 }
-
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -105,7 +104,7 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
+  --sidebar: transparent;
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -120,7 +119,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: #F7F8FA !important;
   }
 }
 
@@ -137,6 +137,35 @@
   .text-secondary {
     color: #6B7280;
   }
+  .sidebar-active {
+    border-left: 4px solid #006AFF;
+    color: #006AFF;
+  }
+  .force-white-bg {
+    background-color: #FFFFFF !important;
+  }
+}
+
+/* Aggressive force white for dashboard cards */
+.group.block.p-6 {
+  background-color: #FFFFFF !important;
+}
+
+.bg-white.rounded-md.border {
+  background-color: #FFFFFF !important;
+}
+
+/* Custom sidebar active state styling */
+[data-sidebar="menu-button"][data-active="true"] {
+  background-color: #f1f3f4 !important;
+  border-left: 4px solid #006AFF;
+  color: #006AFF !important;
+  border-radius: 0 !important;
+}
+
+/* Remove border radius from all sidebar menu buttons */
+[data-sidebar="menu-button"] {
+  border-radius: 0 !important;
 }
 
 .custom-container {

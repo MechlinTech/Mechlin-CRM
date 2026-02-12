@@ -171,10 +171,10 @@ export const columns: ColumnDef<Organisation>[] = [
   },
   {
     id: "actions",
+    header: "Actions",
     cell: ({ row }) => {
       const organisation = row.original
       return <ActionsCell organisation={organisation} />
-    },
-    header: "",
+    }, 
   },
 ]
