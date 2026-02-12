@@ -1,4 +1,3 @@
-// src/components/custom/projects/pm-updates.tsx
 "use client"
 
 import * as React from "react"
@@ -8,11 +7,10 @@ import { Button } from "@/components/ui/button"
 import { createPMUpdateAction, updatePMUpdateAction } from "@/actions/pm-updates"
 import { toast } from "sonner"
 
-// UPDATED: Added onSuccess to the destructured props
 export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
   const [open, setOpen] = React.useState(false)
   const [content, setContent] = React.useState(log?.new_value?.content || log?.content || "")
-  const [loading, setLoading] = React.useState(false) // Added loading state for better UX
+  const [loading, setLoading] = React.useState(false)
   const isEdit = !!log
 
   React.useEffect(() => {
@@ -35,7 +33,6 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
       toast.success(isEdit ? "Notice Updated" : "Notice Posted");
       setContent("");
       setOpen(false); 
-      // UPDATED: Call the refresh function passed from the parent
       onSuccess?.(); 
     } else {
       toast.error(res.error);
@@ -47,10 +44,11 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       
-      <DialogContent className="max-w-[90vw] sm:max-w-[60vw] w-full max-h-[90vh] min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col">
- 
-        <DialogHeader className="p-6 pb-2 shrink-0">
-          <DialogTitle className="font-black text-sm tracking-tighter uppercase">
+      <DialogContent className="max-w-[90vw] sm:max-w-[60vw] w-full max-h-[90vh] min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col rounded-[24px]">
+
+        <DialogHeader className="p-6 pb-2 shrink-0 border-b border-slate-50">
+          {/* Header Typography: SemiBold */}
+          <DialogTitle className="font-semibold text-sm tracking-tight text-[#0F172A]">
             {isEdit ? 'Modify Project Notice' : 'Broadcast New Notice'}
           </DialogTitle>
         </DialogHeader>
@@ -64,19 +62,20 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
         </div>
 
       <div className="flex items-center justify-center gap-3 p-6 shrink-0 border-t border-slate-50 bg-white">
+            {/* Secondary Button: White/Outline with brand hover */}
             <Button 
               variant="outline" 
               onClick={() => setOpen(false)} 
-              className="w-[180px] h-12 rounded-xl font-bold uppercase text-[10px]"
+              className="w-[180px] h-12 rounded-xl font-medium text-[10px] border-slate-200 hover:bg-[#99C4FF] hover:text-white hover:border-[#99C4FF] transition-all"
             >
                 Cancel
             </Button>
             
-            {/* UPDATED: Removed flex-1 and set width to match Cancel button */}
+            {/* Primary Button: #006AFF with #99C4FF hover */}
             <Button 
               disabled={loading} 
               onClick={handleSave} 
-              className="w-[180px] h-12 bg-black text-white font-black rounded-xl uppercase text-[10px] hover:bg-zinc-800 transition-colors"
+              className="w-[180px] h-12 bg-[#006AFF] text-white font-semibold rounded-xl text-[10px] hover:bg-[#99C4FF] transition-all shadow-md active:scale-95"
             >
               {loading ? 'Processing...' : isEdit ? 'Update Broadcast' : 'Post to Notice Board'}
             </Button>

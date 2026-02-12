@@ -25,13 +25,13 @@ export function AddProjectButton({ organisations, users }: { organisations: any[
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default">Add Project</Button>
+                <Button variant="default" className="cursor-pointer active:scale-95 transition-all">Add Project</Button>
             </DialogTrigger>
-            {/* Added max-h and scrolling to content */}
-            <DialogContent className="max-w-2xl bg-white text-black max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Add New Project</DialogTitle>
-                    <DialogDescription>
+            {/* Dialog styled with softer borders and brand-compliant typography */}
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl bg-white text-[#0F172A] max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[24px]">
+                <DialogHeader className="p-2">
+                    <DialogTitle className="text-xl font-semibold tracking-tight text-[#0F172A]">Add New Project</DialogTitle>
+                    <DialogDescription className="text-slate-500 font-normal">
                         Create a new project and assign team members.
                     </DialogDescription>
                 </DialogHeader>

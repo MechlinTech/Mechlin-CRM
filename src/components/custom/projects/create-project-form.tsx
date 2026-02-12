@@ -5,13 +5,14 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { createProjectAction, updateProjectAction, getAllActiveUsersWithOrgsAction } from "@/actions/projects"
+import { cn } from "@/lib/utils"
 
 const projectSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -97,15 +98,14 @@ export function CreateProjectForm({ onSuccess, project, organisations }: any) {
 
   const renderSelectionBox = (users: any[], label: string) => (
     <div className="flex flex-col gap-2">
-      <FormLabel className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider">{label}</FormLabel>
-      {/* Scrollable container with fixed height */}
-      <div className="border border-zinc-200 rounded-md p-3 h-[180px] overflow-y-auto bg-white shadow-inner scrollbar-thin">
+      <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">{label}</FormLabel>
+      <div className="border border-slate-200 rounded-xl p-3 h-[180px] overflow-y-auto bg-slate-50/30 transition-all focus-within:bg-white focus-within:border-[#006AFF]/30 scrollbar-hide">
         {users.length > 0 ? users.map((u) => (
           <FormField key={u.id} control={form.control} name="members" render={({ field }) => (
-            <FormItem className="flex flex-row items-center space-x-2 py-1 space-y-0">
+            <FormItem className="flex flex-row items-center space-x-2 py-1.5 space-y-0 group">
               <FormControl>
                 <Checkbox 
-                  className="h-4 w-4 border-zinc-300 data-[state=checked]:bg-black" 
+                  className="h-4 w-4 border-slate-300 data-[state=checked]:bg-[#006AFF] data-[state=checked]:border-[#006AFF] cursor-pointer" 
                   checked={field.value?.includes(u.id)} 
                   onCheckedChange={(checked) => {
                     return checked 
@@ -114,70 +114,102 @@ export function CreateProjectForm({ onSuccess, project, organisations }: any) {
                   }} 
                 />
               </FormControl>
-              <span className="text-xs text-zinc-700 cursor-pointer">{u.name}</span>
+              <span className="text-xs font-medium text-slate-700 cursor-pointer group-hover:text-[#006AFF] transition-colors">{u.name}</span>
             </FormItem>
           )} />
-        )) : <p className="text-[10px] text-zinc-300 italic text-center py-4">No users available</p>}
+        )) : <p className="text-[10px] text-slate-400 font-medium italic text-center py-4">No users available</p>}
       </div>
     </div>
   );
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 bg-white text-black p-1">
-        <div className="grid grid-cols-2 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-white text-[#0F172A] p-1 font-sans">
+        {/* Responsive Grid: Stacks on mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField control={form.control} name="name" render={({ field }) => (
-            <FormItem><FormLabel>Project Name</FormLabel><Input className="bg-white border-zinc-200" {...field} value={field.value ?? ""} /></FormItem>
+            <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Project Name</FormLabel>
+                <FormControl><Input className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF] transition-all" {...field} value={field.value ?? ""} /></FormControl>
+            </FormItem>
           )} />
           <FormField control={form.control} name="organisation_id" render={({ field }) => (
-            <FormItem><FormLabel>Organization</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value ?? ""}>
-                <SelectTrigger className="bg-white border-zinc-200"><SelectValue placeholder="Select Client" /></SelectTrigger>
-                <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
-                  {clientOrgs.map((org: any) => (
-                    <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select></FormItem>
+            <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Organization</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                    <FormControl>
+                        <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer focus:ring-0">
+                            <SelectValue placeholder="Select Client" />
+                        </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-white border-slate-200 rounded-xl shadow-2xl overflow-hidden">
+                        {clientOrgs.map((org: any) => (
+                            <SelectItem key={org.id} value={org.id} className="text-xs font-medium cursor-pointer">{org.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </FormItem>
           )} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {renderSelectionBox(mechlinTeam, "Mechlin Team Members")}
           {renderSelectionBox(clientTeam, "Client Side Users")}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField control={form.control} name="start_date" render={({ field }) => (
-            <FormItem><FormLabel>Start Date</FormLabel><Input type="date" className="bg-white border-zinc-200" {...field} value={field.value ?? ""} /></FormItem>
+            <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Start Date</FormLabel>
+                <FormControl><Input type="date" className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" {...field} value={field.value ?? ""} /></FormControl>
+            </FormItem>
           )} />
           <FormField control={form.control} name="expected_end_date" render={({ field }) => (
-            <FormItem><FormLabel>Expected End Date</FormLabel><Input type="date" className="bg-white border-zinc-200" {...field} value={field.value ?? ""} /></FormItem>
+            <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Expected End Date</FormLabel>
+                <FormControl><Input type="date" className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" {...field} value={field.value ?? ""} /></FormControl>
+            </FormItem>
           )} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-black">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField control={form.control} name="budget" render={({ field }) => (
-            <FormItem><FormLabel>Budget</FormLabel><Input type="number" className="bg-white border-zinc-200" {...field} value={field.value ?? 0} /></FormItem>
+            <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Budget</FormLabel>
+                <FormControl><Input type="number" className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" {...field} value={field.value ?? 0} /></FormControl>
+            </FormItem>
           )} />
           <FormField control={form.control} name="status" render={({ field }) => (
-            <FormItem><FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value ?? ""}>
-                <SelectTrigger className="bg-white border-zinc-200"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Suspended">Suspended</SelectItem>
-                </SelectContent>
-              </Select></FormItem>
+            <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Status</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                    <FormControl>
+                        <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer">
+                            <SelectValue />
+                        </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-white border-slate-200 rounded-xl shadow-2xl">
+                        <SelectItem value="Active" className="text-xs font-medium cursor-pointer">Active</SelectItem>
+                        <SelectItem value="Pending" className="text-xs font-medium cursor-pointer">Pending</SelectItem>
+                        <SelectItem value="Suspended" className="text-xs font-medium cursor-pointer">Suspended</SelectItem>
+                    </SelectContent>
+                </Select>
+            </FormItem>
           )} />
         </div>
 
         <FormField control={form.control} name="repo_link" render={({ field }) => (
-          <FormItem><FormLabel>Repo Link</FormLabel><Input placeholder="https://..." className="bg-white border-zinc-200" {...field} value={field.value ?? ""} /></FormItem>
+          <FormItem>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Repo Link</FormLabel>
+              <FormControl><Input placeholder="https://..." className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF] transition-all" {...field} value={field.value ?? ""} /></FormControl>
+          </FormItem>
         )} />
 
-        <Button type="submit" disabled={loading} className="w-full bg-black text-white hover:bg-zinc-800 font-bold mt-2">
+        <Button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#99C4FF] transition-all active:scale-95 cursor-pointer mt-2"
+        >
           {loading ? "Saving..." : (isEditMode ? "Update Project" : "Create Project & Assign Members")}
         </Button>
       </form>

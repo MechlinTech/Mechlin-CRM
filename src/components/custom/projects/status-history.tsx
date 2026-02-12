@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button"
 import { History, ArrowRight, User } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
+import { cn } from "@/lib/utils"
 
 export function StatusHistory({ logs }: { logs: any[] }) {
   const [mounted, setMounted] = React.useState(false);
@@ -14,7 +15,7 @@ export function StatusHistory({ logs }: { logs: any[] }) {
   }, []);
 
   if (!mounted) return (
-    <Button variant="outline" size="sm" className="h-7 px-3 rounded-full text-[9px] font-bold uppercase gap-2">
+    <Button variant="outline" size="sm" className="h-7 px-3 rounded-full text-[9px] font-semibold uppercase gap-2 cursor-pointer">
       <History className="h-3 w-3" /> Status History
     </Button>
   );
@@ -22,50 +23,55 @@ export function StatusHistory({ logs }: { logs: any[] }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7 px-3 rounded-full border-zinc-200 text-[9px] font-bold uppercase gap-2 hover:bg-zinc-50">
+        {/* Updated with Brand Blue hover and SemiBold weight */}
+        <Button variant="outline" size="sm" className="h-7 px-3 rounded-full border-zinc-200 text-[9px] font-semibold uppercase gap-2 hover:bg-[#99C4FF] hover:text-white hover:border-[#99C4FF] transition-all cursor-pointer">
           <History className="h-3 w-3" /> Status History
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px] bg-white text-black overflow-y-auto border-l-0 shadow-2xl">
+      {/* Width maintained at original spec */}
+      <SheetContent className="w-full sm:w-[540px] bg-white text-[#0F172A] overflow-y-auto border-l-0 shadow-2xl">
         <SheetHeader className="border-b pb-6">
-          <SheetTitle className="text-2xl font-black tracking-tighter uppercase">Audit Trail</SheetTitle>
-          <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">History of all project transitions.</p>
+          <SheetTitle className="text-2xl font-semibold tracking-tight uppercase">Audit Trail</SheetTitle>
+          <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">History of all project transitions.</p>
         </SheetHeader>
         
         <div className="py-8 px-4 space-y-8">
           {logs && logs.length > 0 ? logs.map((log: any) => (
-            <div key={log.id} className="relative pl-8 border-l-2 border-zinc-100 last:border-0 pb-6">
-              <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-black border-4 border-white shadow-md z-10" />
+            <div key={log.id} className="relative pl-8 border-l-2 border-slate-100 last:border-0 pb-6">
+              {/* Timeline marker updated to Brand Blue */}
+              <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-[#006AFF] border-4 border-white shadow-md z-10" />
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-900">
+                  {/* Action Type: SemiBold for visibility */}
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[#1F2937]">
                     {log.action_type?.replace(/_/g, ' ') || 'ACTION'}
                   </p>
-                  <p className="text-[9px] text-zinc-400 font-bold uppercase" suppressHydrationWarning>
+                  <p className="text-[9px] text-slate-400 font-medium uppercase" suppressHydrationWarning>
                     {formatDistanceToNow(new Date(log.created_at))} ago
                   </p>
                 </div>
                 
-                <p className="text-xs text-zinc-600 font-medium leading-relaxed italic border-l-2 border-zinc-100 pl-3">
+                {/* Meta details: Regular weight */}
+                <p className="text-xs text-slate-600 font-normal leading-relaxed italic border-l-2 border-slate-100 pl-3">
                     {log.new_value?.details || "Action recorded by system."}
                 </p>
 
-                <div className="flex items-center gap-1.5 mt-2 bg-zinc-50 w-fit px-2 py-1 rounded-md">
-                    <User className="h-3 w-3 text-zinc-400" />
-                    {/* Displays actual username from joined table */}
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-tighter">
+                <div className="flex items-center gap-1.5 mt-2 bg-slate-50 w-fit px-2 py-1 rounded-md">
+                    <User className="h-3 w-3 text-slate-400" />
+                    <span className="text-[9px] font-semibold text-slate-600 uppercase tracking-tighter">
                         By: {log.users?.name || 'Administrator'}
                     </span>
                 </div>
 
                 {log.old_value?.status && (
                   <div className="flex items-center gap-3 py-1 mt-2">
-                    <span className="text-[9px] font-black px-2 py-0.5 bg-zinc-100 text-zinc-500 rounded uppercase">
+                    <span className="text-[9px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-500 rounded uppercase">
                       {log.old_value.status}
                     </span>
-                    <ArrowRight className="h-3 w-3 text-zinc-300" />
-                    <span className="text-[9px] font-black px-2 py-0.5 bg-black text-white rounded uppercase">
+                    <ArrowRight className="h-3 w-3 text-slate-300" />
+                    {/* Active status now uses Brand Blue */}
+                    <span className="text-[9px] font-semibold px-2 py-0.5 bg-[#006AFF] text-white rounded uppercase">
                       {log.new_value.status}
                     </span>
                   </div>
@@ -73,9 +79,9 @@ export function StatusHistory({ logs }: { logs: any[] }) {
               </div>
             </div>
           )) : (
-            <div className="text-center py-20 bg-zinc-50 rounded-3xl">
-              <History className="h-12 w-12 text-zinc-200 mx-auto mb-4" />
-              <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">No activity recorded yet</p>
+            <div className="text-center py-20 bg-slate-50 rounded-3xl">
+              <History className="h-12 w-12 text-slate-200 mx-auto mb-4" />
+              <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest">No activity recorded yet</p>
             </div>
           )}
         </div>

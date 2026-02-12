@@ -25,16 +25,27 @@ export const getColumns = (organisations: any[], users: any[]): ColumnDef<any>[]
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
+      
+      // Exact color mapping matching the second screenshot logic
       const colorMap: Record<string, string> = {
-        Active: "text-green-500 border-green-500/20 bg-green-500/10",
-        Pending: "text-yellow-500 border-yellow-500/20 bg-yellow-500/10",
-        Suspended: "text-red-500 border-red-500/20 bg-red-500/10",
+        Active: "text-emerald-500 border-emerald-500/20 bg-emerald-500/10",
+        Pending: "text-amber-500 border-amber-500/20 bg-amber-500/10",
+        Suspended: "text-rose-500 border-rose-500/20 bg-rose-500/10",
       };
-      return <Badge variant="outline" className={colorMap[status] || ""}>{status}</Badge>;
+
+      return (
+        <Badge 
+          variant="outline" 
+          className={`rounded-full px-3 py-0.5 text-[10px] font-medium border uppercase tracking-wider ${colorMap[status] || ""}`}
+        >
+          {status}
+        </Badge>
+      );
     } 
   },
   {
     id: "actions",
+    header: "Actions", 
     cell: ({ row }) => {
       const project = row.original;
       
@@ -57,7 +68,7 @@ export const getColumns = (organisations: any[], users: any[]): ColumnDef<any>[]
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             
             <DropdownMenuItem asChild>
-              <Link href={`/projects/${project.id}`} className="flex items-center w-full cursor-pointer">
+              <Link href={`/projects/${project.id}`} className="flex items-center w-full cursor-pointer text-[#060721]">
                 <Eye className="mr-2 h-4 w-4" /> View Profile
               </Link>
             </DropdownMenuItem>
@@ -68,7 +79,6 @@ export const getColumns = (organisations: any[], users: any[]): ColumnDef<any>[]
                <EditProjectDialog 
                  project={project} 
                  organisations={organisations} 
-                 // If your EditProjectDialog also needs users, pass them here:
                  users={users} 
                />
             </div>
@@ -76,7 +86,7 @@ export const getColumns = (organisations: any[], users: any[]): ColumnDef<any>[]
             <DropdownMenuSeparator />
 
             <DropdownMenuItem 
-                className="text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-600" 
+                className="text-[#060721] cursor-pointer " 
                 onClick={handleDelete}
             >
               <Trash2 className="mr-2 h-4 w-4" /> Delete Project
