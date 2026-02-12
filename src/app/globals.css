@@ -48,9 +48,9 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #F7F8FA;
+  --background: #F7F8FA !important;
   --foreground: oklch(0.145 0 0);
-  --card: #FFFFFF;
+  --card: #FFFFFF !important;
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -142,6 +142,16 @@
     color: #006AFF;
   }
   .force-white-bg {
+    background-color: #FFFFFF !important;
+  }
+  /* Enforce white backgrounds for all card-like elements */
+  .bg-card {
+    background-color: #FFFFFF !important;
+  }
+  .bg-white {
+    background-color: #FFFFFF !important;
+  }
+  [data-slot="card"] {
     background-color: #FFFFFF !important;
   }
 }
