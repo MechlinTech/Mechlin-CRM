@@ -77,7 +77,7 @@ export function TaskForm({ ids, task, onSuccess }: { ids: any, task?: any, onSuc
         <Button 
           type="submit" 
           disabled={loading}
-          className="ml-70 w-60 bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#99C4FF] transition-all active:scale-95 cursor-pointer mt-2"
+          className="w-full"
         >
           {loading ? 'Saving...' : 'Save Task'}
         </Button>

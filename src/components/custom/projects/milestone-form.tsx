@@ -147,7 +147,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
         <Button 
           type="submit" 
           disabled={loading} 
-          className="ml-33 w-50 bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#99C4FF] transition-all active:scale-95 cursor-pointer mt-2"
+          className="ml-33 w-50 "
         >
           {loading ? 'Processing...' : isEdit ? 'Update Milestone' : 'Save Milestone'}
         </Button>

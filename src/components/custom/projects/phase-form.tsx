@@ -66,7 +66,7 @@ export function PhaseForm({ projectId, phase, onSuccess }: PhaseFormProps) {
         <Button 
           type="submit" 
           disabled={form.formState.isSubmitting}
-          className="ml-75 w-50 bg-[#006AFF] text-white hover:bg-[#99C4FF] font-semibold h-11 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+          className="ml-75 w-50 "
         >
           {form.formState.isSubmitting ? "Saving..." : (isEdit ? "Update Phase" : "Create Phase")}
         </Button>
