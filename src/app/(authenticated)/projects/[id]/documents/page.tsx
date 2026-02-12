@@ -7,6 +7,7 @@ import Link from "next/link";
 import { deleteDocumentAction } from "@/actions/documents";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export default function ProjectDocumentsPage({ params }: { params: any }) {
     const { id } = React.use(params) as any;
@@ -72,75 +73,69 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
     const filteredDocs = docs.filter(doc => doc.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 py-10 px-4 text-slate-900 font-sans">
+        <div className="max-w-7xl mx-auto space-y-6 py-10 px-4 text-[#0F172A] font-sans">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href={`/projects/${id}`} className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-all shadow-sm group">
-                        <ArrowLeft className="h-5 w-5 text-[#0F172A] group-hover:text-[#4F46E5]" />
+                    <Link href={`/projects/${id}`} className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-all shadow-sm group cursor-pointer">
+                        <ArrowLeft className="h-5 w-5 text-[#0F172A] group-hover:text-[#006AFF]" />
                     </Link>
-                    {/* UI: Removed italic utility */}
-                    <h1 className="text-lg font-black tracking-tight uppercase text-[#0F172A]">Document Vault</h1>
+                    <h1 className="text-xl font-semibold tracking-tight font-semibold">Documents</h1>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                    <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#4F46E5] transition-colors" />
-                        <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-full text-xs w-full md:w-[300px] outline-none focus:border-[#4F46E5] transition-all shadow-sm" />
+                    <div className="relative group flex-1 md:w-[300px]">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#006AFF] transition-colors" />
+                        <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-full text-xs w-full outline-none focus:border-[#006AFF] transition-all shadow-sm font-medium" />
                     </div>
-                    <button onClick={() => updateFilter('sort', sortOrder === 'asc' ? 'desc' : 'asc')} className="h-10 px-4 bg-[#0F172A] text-white rounded-md text-[10px] font-black uppercase hover:bg-[#4F46E5] transition-all shadow-sm flex items-center gap-2">
+                    <button onClick={() => updateFilter('sort', sortOrder === 'asc' ? 'desc' : 'asc')} className="h-10 px-4 bg-[#006AFF] text-white rounded-xl text-[10px] font-semibold hover:bg-[#99C4FF] transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95">
                         <ArrowUpDown className="h-3.5 w-3.5" /> Sort
                     </button>
                 </div>
             </div>
 
-            <div className="bg-slate-100 p-4 rounded-[28px] flex flex-wrap items-center gap-3 border border-slate-200">
+            <div className="bg-[#F7F8FA] p-4 rounded-[28px] flex flex-wrap items-center gap-3 border border-slate-200">
                 <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200">
-                    <Filter className="h-3.5 w-3.5 text-[#4F46E5]" />
-                    <span className="text-[10px] font-black uppercase text-slate-500">Filters:</span>
+                    <Filter className="h-3.5 w-3.5 text-[#006AFF]" />
+                    <span className="text-[10px] font-semibold uppercase text-slate-500 tracking-wider">Filters:</span>
                 </div>
-                <select onChange={(e) => updateFilter('phaseId', e.target.value)} className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-bold text-slate-700 outline-none hover:border-[#4F46E5]" value={phaseId || ""}>
+                {/* Filters using SemiBold for better visibility */}
+                <select onChange={(e) => updateFilter('phaseId', e.target.value)} className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-semibold text-[#1F2937] outline-none hover:border-[#006AFF] cursor-pointer" value={phaseId || ""}>
                     <option value="">All Phases</option>
                     {phases.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
-                <select disabled={!phaseId} onChange={(e) => updateFilter('milestoneId', e.target.value)} className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-bold text-slate-700 outline-none disabled:opacity-50" value={milestoneId || ""}>
+                <select disabled={!phaseId} onChange={(e) => updateFilter('milestoneId', e.target.value)} className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-semibold text-[#1F2937] outline-none disabled:opacity-50 cursor-pointer" value={milestoneId || ""}>
                     <option value="">All Milestones</option>
                     {milestones.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
-                <select disabled={!milestoneId} onChange={(e) => updateFilter('sprintId', e.target.value)} className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-bold text-slate-700 outline-none disabled:opacity-50" value={sprintId || ""}>
+                <select disabled={!milestoneId} onChange={(e) => updateFilter('sprintId', e.target.value)} className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-semibold text-[#1F2937] outline-none disabled:opacity-50 cursor-pointer" value={sprintId || ""}>
                     <option value="">All Sprints</option>
                     {sprints.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {filteredDocs.map((doc: any) => (
-                    <div key={doc.id} className="group bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm hover:border-[#4F46E5] transition-all relative flex flex-col justify-between">
+                    <div key={doc.id} className="group bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm hover:border-[#006AFF]/30 transition-all relative flex flex-col justify-between ring-1 ring-slate-50">
                         <div>
-                            <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center text-[#0F172A] mb-4 group-hover:bg-[#4F46E5] group-hover:text-white transition-all shadow-sm">
+                            <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center text-[#0F172A] mb-4 group-hover:bg-[#006AFF] group-hover:text-white transition-all shadow-sm">
                                 <FileText className="h-7 w-7" />
                             </div>
-                            <h3 className="font-bold text-xs text-slate-800 line-clamp-2 mb-1 group-hover:text-[#4F46E5] transition-colors uppercase tracking-tight">{doc.name}</h3>
+                            <h3 className="font-semibold text-xs text-[#1F2937] line-clamp-2 mb-1 group-hover:text-[#006AFF] transition-colors tracking-tight uppercase">{doc.name}</h3>
                             <div className="flex items-center gap-2 mb-4">
-                                <span className="text-[9px] font-black uppercase text-slate-400">{doc.phases?.name || 'Root'}</span>
-                                <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1 uppercase"><Calendar className="h-3 w-3" /> {new Date(doc.created_at).toLocaleDateString()}</span>
+                                {/* Metadata: Changed to text-slate-600 Medium for noticeability */}
+                                <span className="text-[9px] font-semibold uppercase text-slate-600">{doc.phases?.name || 'Root'}</span>
+                                <span className="text-[9px] font-medium text-slate-600 flex items-center gap-1 uppercase"><Calendar className="h-3 w-3" /> {new Date(doc.created_at).toLocaleDateString()}</span>
                             </div>
                         </div>
                         <div className="space-y-2 pt-4 border-t border-slate-100">
-                            {/* DOWNLOAD BUTTON: Full width Primary Black */}
-                            <button onClick={() => handleDownload(doc.file_url, doc.name)} className="w-full h-10 bg-[#0F172A] text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#4F46E5] shadow-sm transition-all active:scale-95">Download</button>
+                            <button onClick={() => handleDownload(doc.file_url, doc.name)} className="w-full h-10 bg-[#006AFF] text-white rounded-xl text-[10px] font-semibold tracking-wider hover:bg-[#99C4FF] shadow-sm transition-all active:scale-95 cursor-pointer">Download</button>
                             
-                            {/* UTILITY BUTTONS: View & Delete Row */}
                             <div className="grid grid-cols-2 gap-2">
-                                <button 
-                                    onClick={() => window.open(doc.file_url, '_blank')} 
-                                    className="h-8 bg-slate-50 border border-slate-100 text-[#0F172A] rounded-md text-[9px] font-black uppercase hover:bg-white hover:text-[#4F46E5] hover:border-[#4F46E5] transition-all flex items-center justify-center gap-1 active:scale-95 shadow-sm"
-                                >
+                                {/* Utility Buttons: Added border-slate-200 and text-slate-700 for noticeability */}
+                                <button onClick={() => window.open(doc.file_url, '_blank')} className="h-8 bg-white border border-slate-200 text-[#1F2937] rounded-lg text-[9px] font-semibold uppercase hover:bg-[#006AFF] hover:text-white hover:border-[#006AFF] transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-sm">
                                     <Eye className="h-3 w-3" /> View
                                 </button>
-                                <button 
-                                    onClick={async () => { if(confirm('Delete file?')) { await deleteDocumentAction(doc.id, id); fetchData(); } }} 
-                                    className="h-8 bg-white border border-slate-100 text-slate-400 rounded-md text-[9px] font-black uppercase hover:text-red-500 hover:border-red-100 transition-all active:scale-95 shadow-sm"
-                                >
+                                <button onClick={async () => { if(confirm('Delete file?')) { await deleteDocumentAction(doc.id, id); fetchData(); } }} className="h-8 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-semibold uppercase hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all active:scale-95 cursor-pointer shadow-sm">
                                     Delete
                                 </button>
                             </div>

@@ -110,20 +110,20 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-2 text-[#0F172A] font-sans">
         
         <div className="space-y-4">
-          <div className="border-2 border-dashed border-slate-200 rounded-[32px] p-10 flex flex-col items-center justify-center bg-slate-50/30 hover:bg-white hover:border-[#4F46E5]/50 transition-all cursor-pointer relative group overflow-hidden">
-             <div className="bg-slate-100 p-4 rounded-full mb-4 group-hover:bg-[#4F46E5]/10 transition-colors">
-                <CloudUpload className="h-10 w-10 text-slate-400 group-hover:text-[#4F46E5]" />
+          <div className="border-2 border-dashed border-slate-200 rounded-[32px] p-6 md:p-10 flex flex-col items-center justify-center bg-slate-50/30 hover:bg-white hover:border-[#006AFF]/50 transition-all cursor-pointer relative group overflow-hidden">
+             <div className="bg-slate-100 p-4 rounded-full mb-4 group-hover:bg-[#006AFF]/10 transition-colors">
+                <CloudUpload className="h-10 w-10 text-slate-400 group-hover:text-[#006AFF]" />
              </div>
              <div className="text-center space-y-1">
-                <p className="text-sm font-black tracking-tight">Drop Your File(s) Here</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Or</p>
+                <p className="text-sm font-semibold tracking-tight">Drop Your File(s) Here</p>
+                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">Or</p>
                 <div className="mt-2">
-<span className="bg-[#000000] text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest group-hover:bg-[#4F46E5] transition-all shadow-md inline-block">
-    Browse
-  </span>
+                  <span className="bg-[#006AFF] text-white px-6 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest hover:bg-[#99C4FF] transition-all shadow-md inline-block">
+                    Browse
+                  </span>
                 </div>
              </div>
-             <p className="mt-4 text-[9px] font-bold text-slate-300 uppercase">Maximum File Size 4 MB</p>
+             <p className="mt-4 text-[9px] font-medium text-slate-300 uppercase">Maximum File Size 4 MB</p>
              <input type="file" multiple accept=".pdf" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
           </div>
 
@@ -131,18 +131,17 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
             {files.map((fileEntry) => (
               <div key={fileEntry.id} className="bg-white border border-slate-100 p-3 rounded-2xl flex items-center justify-between shadow-sm">
                   <div className="flex items-center gap-3 flex-1">
-                      <div className="h-8 w-8 bg-[#0F172A] rounded-lg flex items-center justify-center text-white shrink-0">
+                      {/* FIXED: Document icon background is now light blue instead of black */}
+                      <div className="h-8 w-8 bg-[#006AFF]/10 rounded-lg flex items-center justify-center text-[#006AFF] shrink-0">
                           <FileText className="h-4 w-4" />
                       </div>
-                      {/* FIX: Use flex-1 here to let the bar grow to fill the container */}
                       <div className="space-y-1.5 flex-1 pr-4">
-                          <p className="text-[11px] font-black truncate max-w-[250px]">{fileEntry.file.name}</p>
-                          {/* UPDATED: Changed w-40 to w-full */}
+                          <p className="text-[11px] font-semibold truncate max-w-[180px] md:max-w-[250px]">{fileEntry.file.name}</p>
                           <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                               <div 
                                 className={cn(
                                   "h-full transition-all duration-500 ease-out", 
-                                  fileEntry.status === 'completed' ? "bg-emerald-500" : "bg-sky-500",
+                                  fileEntry.status === 'completed' ? "bg-[#006AFF]" : "bg-sky-400",
                                   fileEntry.status === 'error' && "bg-red-500"
                                 )} 
                                 style={{ width: `${fileEntry.progress}%` }}
@@ -150,7 +149,7 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
                           </div>
                       </div>
                   </div>
-                  <button type="button" onClick={() => removeFile(fileEntry.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1 shrink-0">
+                  <button type="button" onClick={() => removeFile(fileEntry.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1 shrink-0 cursor-pointer">
                       <X className="h-4 w-4" />
                   </button>
               </div>
@@ -158,34 +157,34 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="invoice_number" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Invoice Reference</FormLabel>
-                <FormControl><Input {...field} className="bg-white border-slate-200 rounded-xl text-xs font-bold h-10" /></FormControl>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Invoice Reference</FormLabel>
+                <FormControl><Input {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" /></FormControl>
               </FormItem>
             )} />
             <FormField control={form.control} name="amount" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Billable Amount</FormLabel>
-                <FormControl><Input type="number" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-bold h-10" /></FormControl>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Billable Amount</FormLabel>
+                <FormControl><Input type="number" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" /></FormControl>
               </FormItem>
             )} />
         </div>
 
         <FormField control={form.control} name="status" render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Current Status</FormLabel>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Current Status</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-bold h-10">
+                  <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="bg-white border-slate-200 rounded-xl shadow-2xl">
-                  <SelectItem value="Sent" className="text-xs font-bold">Sent</SelectItem>
-                  <SelectItem value="Paid" className="text-xs font-bold">Paid</SelectItem>
-                  <SelectItem value="Overdue" className="text-xs font-bold">Overdue</SelectItem>
+                  <SelectItem value="Sent" className="text-xs font-medium cursor-pointer">Sent</SelectItem>
+                  <SelectItem value="Paid" className="text-xs font-medium cursor-pointer">Paid</SelectItem>
+                  <SelectItem value="Overdue" className="text-xs font-medium cursor-pointer">Overdue</SelectItem>
                 </SelectContent>
               </Select>
             </FormItem>
@@ -194,7 +193,7 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
         <Button 
           type="submit" 
           disabled={files.length === 0 || files.some(f => f.status === 'uploading') || isSubmitting} 
-          className="w-full bg-[#0F172A] text-white font-black h-12 rounded-xl shadow-lg hover:bg-[#4F46E5] transition-all active:scale-95"
+          className="w-full bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#99C4FF] transition-all active:scale-95 cursor-pointer"
         >
           {isSubmitting ? "Processing..." : "Finalize Invoice"}
         </Button>

@@ -3,9 +3,9 @@
 import * as React from "react"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form"
+import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { createPhaseAction, updatePhaseAction } from "@/actions/hierarchy" // Ensure path is correct
+import { createPhaseAction, updatePhaseAction } from "@/actions/hierarchy"
 import { toast } from "sonner"
 
 interface PhaseFormProps {
@@ -41,21 +41,32 @@ export function PhaseForm({ projectId, phase, onSuccess }: PhaseFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+      {/* Decreased space-y-6 to space-y-4 to pull the button closer to the input */}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 pt-0 mt-1 font-sans">
         <FormField 
           control={form.control} 
           name="name" 
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-bold uppercase text-zinc-400">Phase Name</FormLabel>
-              <Input {...field} className="bg-white border-zinc-200 text-black" />
+              {/* Typography: Medium weight for label */}
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                Phase Name
+              </FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF] transition-all" 
+                  placeholder="Enter phase name" 
+                />
+              </FormControl>
             </FormItem>
           )} 
         />
+        {/* Button: SemiBold weight per brand guide */}
         <Button 
           type="submit" 
           disabled={form.formState.isSubmitting}
-          className="w-full bg-black text-white hover:bg-zinc-800 font-bold"
+          className="ml-75 w-50 bg-[#006AFF] text-white hover:bg-[#99C4FF] font-semibold h-11 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
         >
           {form.formState.isSubmitting ? "Saving..." : (isEdit ? "Update Phase" : "Create Phase")}
         </Button>

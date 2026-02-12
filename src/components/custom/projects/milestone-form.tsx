@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form"
+import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -12,7 +12,6 @@ import { toast } from "sonner"
 
 export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any) {
   const isEdit = !!milestone
-  // UPDATED: Added loading state to prevent double creation
   const [loading, setLoading] = React.useState(false);
 
   const form = useForm({
@@ -29,7 +28,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
   })
 
   async function onSubmit(values: any) {
-    setLoading(true); // UPDATED: Disable button immediately
+    setLoading(true);
     let res;
 
     try {
@@ -54,85 +53,101 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
     } catch (err) {
       toast.error("An unexpected error occurred");
     } finally {
-      setLoading(false); // UPDATED: Re-enable if there was an error
+      setLoading(false);
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-        {/* ... (Keep all existing FormFields same) ... */}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans">
+        
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-bold uppercase">Name</FormLabel>
-            <Input {...field} required />
+            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Name</FormLabel>
+            <FormControl>
+              <Input {...field} required className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" />
+            </FormControl>
           </FormItem>
         )} />
         
         <FormField control={form.control} name="deliverables" render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-bold uppercase">Deliverables</FormLabel>
-            <Textarea {...field} />
+            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Deliverables</FormLabel>
+            <FormControl>
+              <Textarea {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[80px] resize-none" />
+            </FormControl>
           </FormItem>
         )} />
 
-        <div className="grid grid-cols-3 gap-4">
+        {/* Responsive Grid: Stacks on mobile, 3 columns on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField control={form.control} name="start_date" render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-bold uppercase">Start</FormLabel>
-              <Input type="date" {...field} />
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Start</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" />
+              </FormControl>
             </FormItem>
           )} />
           <FormField control={form.control} name="end_date" render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-bold uppercase">End</FormLabel>
-              <Input type="date" {...field} />
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">End</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" />
+              </FormControl>
             </FormItem>
           )} />
           <FormField control={form.control} name="demo_date" render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-bold uppercase">Demo Date</FormLabel>
-              <Input type="date" {...field} />
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Demo Date</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" />
+              </FormControl>
             </FormItem>
           )} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField control={form.control} name="hours" render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-bold uppercase">Hours</FormLabel>
-              <Input type="number" {...field} />
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Hours</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" />
+              </FormControl>
             </FormItem>
           )} />
           <FormField control={form.control} name="budget" render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-bold uppercase">Budget</FormLabel>
-              <Input type="number" {...field} />
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Budget</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" />
+              </FormControl>
             </FormItem>
           )} />
         </div>
 
         <FormField control={form.control} name="status" render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-bold uppercase">Status</FormLabel>
+            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Status</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
+              <FormControl>
+                <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent className="bg-white border-slate-200 rounded-xl shadow-2xl">
                 {['Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done'].map(s => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                  <SelectItem key={s} value={s} className="text-xs font-medium cursor-pointer">{s}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </FormItem>
         )} />
 
-        {/* UPDATED: Button is disabled during loading */}
         <Button 
           type="submit" 
           disabled={loading} 
-          className="w-full bg-black text-white font-bold hover:bg-gray-800"
+          className="ml-33 w-50 bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#99C4FF] transition-all active:scale-95 cursor-pointer mt-2"
         >
           {loading ? 'Processing...' : isEdit ? 'Update Milestone' : 'Save Milestone'}
         </Button>
