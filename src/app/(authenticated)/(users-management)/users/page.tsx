@@ -5,10 +5,6 @@ import { UsersTable } from "@/components/custom/users/users-table";
 export default async function Page() {
     const users = await getAllUsersAction()
     
-    console.log('Users result:', users)
-    console.log('Users array:', users.users)
-    console.log('Users count:', users.users?.length)
-    
     // Show error if exists
     if (!users.success) {
         return (

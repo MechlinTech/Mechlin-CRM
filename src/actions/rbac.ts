@@ -18,7 +18,10 @@ import {
     updateUserRoles,
     getUserPermissions,
     checkUserPermission,
-    checkUserRole
+    checkUserRole,
+    getUserDirectPermissions,
+    assignUserPermission,
+    removeUserPermission
 } from "@/data/rbac"
 import type { CreateRoleInput, UpdateRoleInput, AssignRoleInput } from "@/types/rbac"
 
@@ -188,4 +191,26 @@ export async function checkUserRoleAction(userId: string, roleName: string) {
         return { success: false, hasRole: false, error: error.message }
     }
     return { success: true, hasRole }
+}
+
+// ============================================
+// USER PERMISSIONS ACTIONS
+// ============================================
+
+export async function assignUserPermissionAction(userId: string, permissionId: string) {
+    const { data, error } = await assignUserPermission(userId, permissionId)
+    if (error) {
+        return { success: false, error: error.message, code: error.code }
+    }
+    revalidatePath("/user-permissions")
+    return { success: true, data }
+}
+
+export async function removeUserPermissionAction(userId: string, permissionId: string) {
+    const { error } = await removeUserPermission(userId, permissionId)
+    if (error) {
+        return { success: false, error: error.message, code: error.code }
+    }
+    revalidatePath("/user-permissions")
+    return { success: true }
 }

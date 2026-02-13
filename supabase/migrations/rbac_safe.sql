@@ -29,7 +29,7 @@ CREATE TABLE role_permissions (
     UNIQUE(role_id, permission_id)
 );
 
--- Step 4: Create User Roles Junction Table (multiple roles per user)
+-- Step 6: Create User Roles Junction Table (multiple roles per user)
 CREATE TABLE user_roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -39,11 +39,22 @@ CREATE TABLE user_roles (
     UNIQUE(user_id, role_id)
 );
 
+-- Step 7: Create User Permissions Table
+CREATE TABLE user_permissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, permission_id)
+);
+
 -- Step 5: Create Indexes for Performance
 CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
 CREATE INDEX idx_user_roles_role_id ON user_roles(role_id);
 CREATE INDEX idx_role_permissions_role_id ON role_permissions(role_id);
 CREATE INDEX idx_role_permissions_permission_id ON role_permissions(permission_id);
+CREATE INDEX idx_user_permissions_user_id ON user_permissions(user_id);
+CREATE INDEX idx_user_permissions_permission_id ON user_permissions(permission_id);
 CREATE INDEX idx_permissions_module ON permissions(module);
 CREATE INDEX idx_permissions_action ON permissions(action);
 CREATE INDEX idx_roles_organisation_id ON roles(organisation_id);

@@ -15,6 +15,7 @@ export const SIDEBAR_NAVIGATION = [
       { title: "Organizations", url: "/organisations" },
       { title: "Users", url: "/users" },
       { title: "Role Based Permissions", url: "/roles" },
+      { title: "User Permissions", url: "/user-permissions" },
     ],
   },
 ];

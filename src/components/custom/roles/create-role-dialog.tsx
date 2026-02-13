@@ -17,8 +17,8 @@ interface CreateRoleDialogProps {
 export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto p-0">
-                <div className="sticky top-0 bg-gradient-to-r from-[#0F172A] to-[#1e293b] px-6 py-5 border-b z-10">
+            <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto p-0">
+                <div className="sticky top-0 bg-gradient-to-r from-[#006AFF] to-[#0055CC] px-6 py-5 border-b z-10">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold text-white">Create New Role</DialogTitle>
                         <DialogDescription className="text-gray-300 text-sm">

@@ -13,13 +13,41 @@ export async function getAllUsers() {
                 roles(
                     id,
                     name,
-                    display_name
+                    display_name,
+                    role_permissions!role_permissions_role_id_fkey(
+                        permission_id,
+                        permissions(
+                            id,
+                            display_name,
+                            module,
+                            action
+                        )
+                    )
+                )
+            ),
+            user_permissions!user_permissions_user_id_fkey(
+                permission_id,
+                permissions(
+                    id,
+                    display_name,
+                    module,
+                    action
                 )
             )
         `)
         .order("created_at", { ascending: false })
     
-    console.log('getAllUsers query result:', result)
+    // Filter out empty arrays for cleaner response
+    if (result.data) {
+        result.data = result.data.map((user: any) => {
+            return {
+                ...user,
+                user_roles: user.user_roles && user.user_roles.length > 0 ? user.user_roles : undefined,
+                user_permissions: user.user_permissions && user.user_permissions.length > 0 ? user.user_permissions : undefined
+            }
+        })
+    }
+    
     return result
 }
 

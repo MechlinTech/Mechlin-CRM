@@ -12,7 +12,7 @@ export function AddRoleButton() {
         <>
             <Button
                 onClick={() => setIsOpen(true)}
-                className="bg-[#0F172A] hover:bg-[#0F172A]/90 text-white shadow-lg hover:shadow-xl transition-all"
+                className="bg-[#006AFF] hover:bg-[#0055CC] text-white shadow-lg hover:shadow-xl transition-all"
             >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Role
