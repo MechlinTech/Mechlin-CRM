@@ -5,6 +5,25 @@ import { UsersTable } from "@/components/custom/users/users-table";
 export default async function Page() {
     const users = await getAllUsersAction()
     
+    console.log('Users result:', users)
+    console.log('Users array:', users.users)
+    console.log('Users count:', users.users?.length)
+    
+    // Show error if exists
+    if (!users.success) {
+        return (
+            <div className="min-h-screen p-8">
+                <div className="max-w-4xl mx-auto">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <h2 className="text-red-800 font-semibold mb-2">Error Loading Users</h2>
+                        <p className="text-red-700">{users.error}</p>
+                        <p className="text-sm text-red-600 mt-2">Error Code: {users.code}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+    
     return (
         <div className="p-0">
             <div className="px-4 sm:px-6 lg:px-8 ">

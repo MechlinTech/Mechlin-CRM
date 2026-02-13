@@ -15,11 +15,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, Shield } from "lucide-react"
 import { ColumnDef } from "@tanstack/react-table"
+import { Badge } from "@/components/ui/badge"
 import type { User } from "@/actions/user-management"
 import { deleteUserAction } from "@/actions/user-management"
 import { CreateUserForm } from "@/components/custom/users/create-user-form"
+import { ManageUserRolesDialog } from "@/components/custom/users/manage-user-roles-dialog"
 import { useState } from "react"
 import { formatDate } from "@/lib/utils"
 
@@ -39,6 +41,37 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const user = row.original
       return <span className="text-xs font-medium text-gray-900">{user.organisations?.name || "N/A"}</span>
+    },
+  },
+  {
+    accessorKey: "user_roles",
+    header: "Roles",
+    cell: ({ row }) => {
+      const user = row.original as any
+      const userRoles = user.user_roles || []
+      
+      if (userRoles.length === 0) {
+        return <span className="text-xs text-gray-400">No roles</span>
+      }
+      
+      return (
+        <div className="flex flex-wrap gap-1">
+          {userRoles.slice(0, 2).map((ur: any) => (
+            <Badge 
+              key={ur.id} 
+              variant="outline" 
+              className="text-xs"
+            >
+              {ur.roles?.display_name || ur.roles?.name}
+            </Badge>
+          ))}
+          {userRoles.length > 2 && (
+            <Badge variant="secondary" className="text-xs">
+              +{userRoles.length - 2}
+            </Badge>
+          )}
+        </div>
+      )
     },
   },
   {
@@ -81,6 +114,7 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const user = row.original
       const [editDialogOpen, setEditDialogOpen] = useState(false)
+      const [rolesDialogOpen, setRolesDialogOpen] = useState(false)
  
       return (
         <>
@@ -97,6 +131,12 @@ export const columns: ColumnDef<User>[] = [
                 onClick={() => setEditDialogOpen(true)}
               >
                 Edit User
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setRolesDialogOpen(true)}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Manage Roles
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => deleteUserAction(user.id)}
@@ -120,6 +160,12 @@ export const columns: ColumnDef<User>[] = [
               />
             </DialogContent>
           </Dialog>
+
+          <ManageUserRolesDialog
+            user={user}
+            open={rolesDialogOpen}
+            onOpenChange={setRolesDialogOpen}
+          />
         </>
       )
     },
