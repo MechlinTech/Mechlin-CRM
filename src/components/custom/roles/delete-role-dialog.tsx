@@ -3,7 +3,6 @@
 import { useState } from "react"
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -11,9 +10,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { deleteRoleAction } from "@/actions/rbac"
-import { ActionButton } from "@/components/shared/action-button"
 
 interface DeleteRoleDialogProps {
     role: any
@@ -54,14 +53,14 @@ export function DeleteRoleDialog({ role, open, onOpenChange }: DeleteRoleDialogP
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <ActionButton
+                    <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+                    <Button
                         onClick={handleDelete}
-                        loading={loading}
-                        className="bg-red-600 hover:bg-red-700"
+                        disabled={loading}
+                        className="bg-red-600 hover:bg-red-700 text-white"
                     >
-                        Delete
-                    </ActionButton>
+                        {loading ? "Deleting..." : "Delete"}
+                    </Button>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
