@@ -43,25 +43,30 @@ export async function deletePhaseAction(phaseId: string, projectId: string) {
 }
 
 // --- MILESTONE ACTIONS ---
+// --- MILESTONE ACTIONS ---
 export async function createMilestoneAction(phaseId: string, projectId: string, data: any) {
     const { data: milestone, error } = await supabase.from("milestones").insert([{ ...data, phase_id: phaseId }]).select().single();
     if (error) return { success: false, error: error.message };
     await logAuditEvent(milestone.id, 'milestone', 'MILESTONE_CREATED', { details: `Milestone "${data.name}" initialized.` });
+    
     revalidatePath(`/projects/${projectId}`);
     return { success: true };
 }
 
-export async function updateMilestoneAction(milestoneId: string, projectId: string, phaseId: string, data: any, oldStatus: string) {
+// FIX: Synchronized parameters with the form and added specific path revalidation
+export async function updateMilestoneAction(milestoneId: string, projectId: string, data: any) {
     const { error } = await supabase.from("milestones").update(data).eq("id", milestoneId);
     if (error) return { success: false, error: error.message };
-    await supabase.from("status_logs").insert({
-        target_id: milestoneId,
-        target_type: 'milestone',
-        action_type: 'UPDATE',
-        old_value: { status: oldStatus },
-        new_value: { status: data.status, details: `Milestone "${data.name}" status changed to ${data.status}.` }
+
+    await logAuditEvent(milestoneId, 'milestone', 'UPDATE', { 
+        status: data.status, 
+        details: `Milestone "${data.name}" updated.` 
     });
+
+    // This forces the Project page AND the specific Milestone page to refresh
     revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}/phases/[phaseId]/milestones/${milestoneId}`, 'page');
+    
     return { success: true };
 }
 

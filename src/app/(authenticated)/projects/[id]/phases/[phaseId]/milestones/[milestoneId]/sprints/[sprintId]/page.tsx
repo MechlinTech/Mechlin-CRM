@@ -4,7 +4,7 @@ import * as React from "react";
 import { supabase } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Pencil, Plus, Trash2, CheckCircle2, FileUp, FolderOpen, Activity } from "lucide-react";
+import { Pencil, Plus, Trash2, CheckCircle2, FileUp, FolderOpen, Activity, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SprintForm } from "@/components/custom/projects/sprint-form";
@@ -15,6 +15,92 @@ import { deleteSprintAction, deleteTaskAction } from "@/actions/hierarchy";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { SprintThreads } from "@/components/custom/threads/SprintThreads";
+
+function TaskItem({ task, ids, onRefresh }: { task: any, ids: any, onRefresh: () => void }) {
+  const [open, setOpen] = React.useState(false);
+
+  const handleSuccess = () => {
+    setOpen(false);
+    setTimeout(() => {
+      onRefresh();
+    }, 100);
+  };
+
+  // Status mapping logic for Pending (Yellow), In Progress (Green), Completed (Red)
+  const taskStatusStyles = 
+    task.status === 'Pending' ? 'text-amber-500 border-amber-500/20 bg-amber-500/10' : 
+    task.status === 'In Progress' ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10' : 
+    task.status === 'Completed' ? 'text-rose-500 border-rose-500/20 bg-rose-500/10' : 
+    'text-slate-500 border-slate-200 bg-slate-50';
+
+  return (
+    <div className="p-5 bg-white border border-slate-100 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between hover:border-[#006AFF]/30 transition-all group shadow-sm gap-4">
+      <div className="space-y-2 flex-1">
+        <div className="flex items-center gap-3">
+            <p className="font-semibold text-sm text-slate-700 tracking-tight">{task.title}</p>
+            {/* Task Status Badge matching pill-style reference */}
+            <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5 text-[9px] font-medium border uppercase tracking-wider", taskStatusStyles)}>
+                {task.status || 'Pending'}
+            </Badge>
+        </div>
+        <div className="text-xs text-slate-400 font-normal leading-relaxed line-clamp-1 prose prose-slate prose-xs" dangerouslySetInnerHTML={{ __html: task.description || "" }} />
+      </div>
+
+      <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all">
+        
+        {/* 1. VIEW TASK BUTTON: High-width modal matching Broadcast style */}
+        <Dialog>
+            <DialogTrigger asChild>
+                <button className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-400 hover:text-[#006AFF] hover:border-[#006AFF] bg-white active:scale-95 transition-all cursor-pointer">
+                    <Eye className="h-3.5 w-3.5" />
+                </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[95vw] md:min-w-[80vw] bg-white text-slate-900 border-none shadow-2xl p-0 overflow-hidden rounded-[24px] flex flex-col min-h-[70vh]">
+                <DialogHeader className="p-6 bg-slate-50 border-b border-slate-100 shrink-0">
+                    <DialogTitle className="font-semibold text-sm uppercase tracking-tight flex items-center justify-between pr-8">
+                        <div className="flex items-center gap-2">
+                            <Activity className="h-4 w-4 text-[#006AFF]" /> Task Details
+                        </div>
+                        <Badge variant="outline" className={cn("rounded-full px-3 py-0.5 text-[10px] font-medium border uppercase tracking-wider", taskStatusStyles)}>
+                            {task.status}
+                        </Badge>
+                    </DialogTitle>
+                </DialogHeader>
+                <div className="p-8 flex-1 overflow-y-auto">
+                    <h2 className="text-xl font-semibold mb-6 text-[#0F172A]">{task.title}</h2>
+                    <div className="prose prose-slate prose-sm max-w-none font-normal text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: task.description || "No description provided." }} />
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        {/* 2. EDIT TASK BUTTON */}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <button className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-400 hover:text-[#006AFF] bg-white active:scale-95 transition-all cursor-pointer">
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-[95vw] sm:max-w-[50vw] w-full max-h-[90vh] bg-white flex flex-col border-none shadow-2xl overflow-hidden rounded-[24px]">
+            <DialogHeader className="p-6 border-b">
+              <DialogTitle className="text-lg font-semibold tracking-tight">Edit Task</DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+              <TaskForm task={task} ids={ids} onSuccess={handleSuccess} />
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* 3. DELETE TASK BUTTON */}
+        <button 
+          onClick={() => confirm('Delete task?') && deleteTaskAction(task.id, ids.project_id).then(onRefresh)} 
+          className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-300 hover:text-red-600 bg-white active:scale-95 transition-all cursor-pointer"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function SprintPage({ params }: { params: any }) {
   const router = useRouter();
@@ -60,9 +146,12 @@ export default function SprintPage({ params }: { params: any }) {
                     <Pencil className="h-4 w-4" />
                   </button>
                 </DialogTrigger>
-                <DialogContent className="bg-white border-none shadow-2xl">
-                  <DialogHeader><DialogTitle className="text-lg font-semibold">Edit Sprint</DialogTitle></DialogHeader>
-                  <SprintForm projectId={id} milestoneId={milestoneId} sprint={sprint} onSuccess={() => { setIsEditOpen(false); fetchData(); }} />
+                {/* Sync Edit Sprint Modal width with Create Task Modal */}
+                <DialogContent className="max-w-[95vw] sm:max-w-[50vw] w-full max-h-[90vh] bg-white border-none shadow-2xl overflow-hidden rounded-[24px]">
+                  <DialogHeader className="p-6 border-b"><DialogTitle className="text-lg font-semibold">Edit Sprint</DialogTitle></DialogHeader>
+                  <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+                    <SprintForm projectId={id} milestoneId={milestoneId} sprint={sprint} onSuccess={() => { setIsEditOpen(false); fetchData(); }} />
+                  </div>
                 </DialogContent>
               </Dialog>
               <button 
@@ -126,7 +215,7 @@ export default function SprintPage({ params }: { params: any }) {
               <DialogContent className="max-w-[95vw] sm:max-w-[50vw] w-full max-h-[90vh] bg-white flex flex-col border-none shadow-2xl overflow-hidden rounded-[24px]">
                 <DialogHeader className="p-6 border-b"><DialogTitle className="text-lg font-semibold">Create Task</DialogTitle></DialogHeader>
                 <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
-                   <TaskForm ids={{ project_id: id, phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} onSuccess={() => { setIsAddTaskOpen(false); fetchData(); }} />
+                   <TaskForm ids={{ project_id: id, phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} onSuccess={() => { setIsAddTaskOpen(false); setTimeout(fetchData, 100); }} />
                 </div>
               </DialogContent>
             </Dialog>
@@ -134,18 +223,12 @@ export default function SprintPage({ params }: { params: any }) {
         
         <div className="grid gap-3">
           {sprint.tasks?.map((task: any) => (
-            <div key={task.id} className="p-5 bg-white border border-slate-100 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between hover:border-[#006AFF]/30 transition-all group shadow-sm gap-4">
-                <div className="space-y-1">
-                    <p className="font-semibold text-sm text-slate-700 tracking-tight">{task.title}</p>
-                    <div className="text-xs text-slate-400 font-normal leading-relaxed line-clamp-1 prose prose-slate prose-xs" dangerouslySetInnerHTML={{ __html: task.description || "" }} />
-                </div>
-                <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all">
-                    <ActionButton title="Edit" trigger={<button className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-400 hover:text-[#006AFF] bg-white active:scale-95 transition-all cursor-pointer"><Pencil className="h-3.5 w-3.5" /></button>}>
-                        <TaskForm task={task} ids={{ project_id: id, phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} onSuccess={fetchData} />
-                    </ActionButton>
-                    <button onClick={() => deleteTaskAction(task.id, id).then(fetchData)} className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-300 hover:text-red-600 bg-white active:scale-95 transition-all cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
-                </div>
-            </div>
+            <TaskItem 
+              key={task.id} 
+              task={task} 
+              ids={{ project_id: id, phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} 
+              onRefresh={fetchData} 
+            />
           ))}
         </div>
       </section>
