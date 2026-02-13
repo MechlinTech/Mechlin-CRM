@@ -2,7 +2,25 @@ import { supabase } from "@/lib/supabase"
 import type { CreateUserInput } from "@/actions/user-management"
 
 export async function getAllUsers() {
-    return await supabase.from("users").select("*, organisations(name)")
+    const result = await supabase
+        .from("users")
+        .select(`
+            *,
+            organisations(name),
+            user_roles!user_roles_user_id_fkey(
+                id,
+                role_id,
+                roles(
+                    id,
+                    name,
+                    display_name
+                )
+            )
+        `)
+        .order("created_at", { ascending: false })
+    
+    console.log('getAllUsers query result:', result)
+    return result
 }
 
 export async function createUser(data: CreateUserInput) {
