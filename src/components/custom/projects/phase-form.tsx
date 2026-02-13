@@ -66,7 +66,7 @@ export function PhaseForm({ projectId, phase, onSuccess }: PhaseFormProps) {
         <Button 
           type="submit" 
           disabled={form.formState.isSubmitting}
-          className="ml-75 w-50 "
+          className="w-full"
         >
           {form.formState.isSubmitting ? "Saving..." : (isEdit ? "Update Phase" : "Create Phase")}
         </Button>

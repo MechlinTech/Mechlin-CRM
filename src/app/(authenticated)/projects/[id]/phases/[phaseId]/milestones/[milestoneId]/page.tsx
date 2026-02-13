@@ -26,14 +26,16 @@ export default function MilestonePage({ params }: { params: any }) {
 
   const fetchData = React.useCallback(async () => {
     const { data } = await supabase.from("milestones").select("*, sprints(*)").eq("id", milestoneId).single();
-    setMilestone(data);
+    if (data) {
+      // Use object spread to ensure React detects a reference change
+      setMilestone({ ...data }); 
+    }
   }, [milestoneId]);
 
   React.useEffect(() => { fetchData(); }, [fetchData]);
 
   if (!m) return null;
 
-  // Consistent Status mapping with Brand Colors
   const statusColor = m.status === 'Active' ? 'text-[#006AFF] border-[#006AFF]/20 bg-[#006AFF]/5' : 
                     m.status === 'Backlog' ? 'text-red-500 border-red-500/20 bg-red-50/50' : 
                     'text-emerald-600 border-emerald-500/20 bg-emerald-50/50';
@@ -41,13 +43,11 @@ export default function MilestonePage({ params }: { params: any }) {
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
       
-      {/* 1. TOP SECTION: ABOUT & STATS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <section className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div className="space-y-1">
               <div className="flex items-center gap-3">
-                {/* Heading: SemiBold */}
                 <h1 className="text-xl font-semibold tracking-tight">{m.name}</h1>
                 <Badge variant="outline" className={cn("px-3 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider", statusColor)}>
                     {m.status}
@@ -64,7 +64,20 @@ export default function MilestonePage({ params }: { params: any }) {
                 </DialogTrigger>
                 <DialogContent className="bg-white border-none shadow-2xl">
                   <DialogHeader><DialogTitle className="text-lg font-semibold">Edit Milestone</DialogTitle></DialogHeader>
-                  <MilestoneForm projectId={id} phaseId={phaseId} milestone={m} onSuccess={() => { setIsEditOpen(false); fetchData(); }} />
+                  
+                  {/* FIX: key={m.id + m.status + m.name} forces form to update when parent data changes */}
+                  <MilestoneForm 
+                    key={`${m.id}-${m.status}-${m.name}`}
+                    projectId={id} 
+                    phaseId={phaseId} 
+                    milestone={m} 
+                    onSuccess={() => { 
+                      setIsEditOpen(false); 
+                      fetchData(); 
+                      router.refresh(); // Sync server state
+                    }} 
+                  />
+                  
                 </DialogContent>
               </Dialog>
               <button 
@@ -88,7 +101,6 @@ export default function MilestonePage({ params }: { params: any }) {
              }>
                 <DocumentForm projectId={id} ids={{ phase_id: phaseId, milestone_id: milestoneId }} />
              </ActionButton>
-             {/* Updated Link to be identical to Project Overview "View Doc" */}
              <Link href={`/projects/${id}/documents?milestoneId=${milestoneId}`} className="flex items-center justify-center h-10 w-32 bg-[#006AFF] text-white rounded-md font-semibold text-xs gap-2 hover:bg-[#99C4FF] transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer">
                 <FolderOpen className="h-4 w-4" /> View Doc
              </Link>
@@ -111,13 +123,12 @@ export default function MilestonePage({ params }: { params: any }) {
                 </div>
                 <div className="flex items-center justify-between text-xs pt-4 border-t border-slate-100">
                     <span className="text-slate-400 font-medium uppercase tracking-wider">Demo Date</span>
-                    <p className="font-semibold ">{m.demo_date || "TBD"}</p>
+                    <p className="font-semibold text-[#006AFF]">{m.demo_date || "TBD"}</p>
                 </div>
             </div>
         </section>
       </div>
 
-      {/* 2. SPRINTS SECTION */}
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4">
           <h2 className="text-lg font-semibold tracking-tight text-slate-900">Milestone Sprints</h2>
@@ -146,7 +157,6 @@ export default function MilestonePage({ params }: { params: any }) {
         </div>
       </section>
 
-      {/* 3. DISCUSSIONS SECTION */}
       <section className="mt-8 border-t border-slate-100 pt-10">
         <MilestoneThreads milestoneId={milestoneId} title="Discussions" />
       </section>

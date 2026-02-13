@@ -27,39 +27,33 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
     }
   })
 
-  async function onSubmit(values: any) {
-    setLoading(true);
+ async function onSubmit(values: any) {
+  setLoading(true);
+  try {
     let res;
-
-    try {
-      if (isEdit) {
-        res = await updateMilestoneAction(
-          milestone.id, 
-          projectId, 
-          values.name, 
-          values.status, 
-          values
-        );
-      } else {
-        res = await createMilestoneAction(phaseId, projectId, values);
-      }
-
-      if (res.success) {
-        toast.success(isEdit ? "Milestone Updated" : "Milestone Created");
-        onSuccess?.();
-      } else {
-        toast.error(res.error || "Failed to save milestone");
-      }
-    } catch (err) {
-      toast.error("An unexpected error occurred");
-    } finally {
-      setLoading(false);
+    if (isEdit) {
+      // FIX: Only passing 3 arguments now: ID, ProjectID, and the Data object
+      res = await updateMilestoneAction(milestone.id, projectId, values);
+    } else {
+      res = await createMilestoneAction(phaseId, projectId, values);
     }
+
+    if (res.success) {
+      toast.success(isEdit ? "Milestone Updated" : "Milestone Created");
+      onSuccess?.(); // This triggers fetchData() in your page
+    } else {
+      toast.error(res.error || "Failed to save milestone");
+    }
+  } catch (err) {
+    toast.error("An unexpected error occurred");
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans text-[#0F172A]">
         
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem>
@@ -79,7 +73,6 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
           </FormItem>
         )} />
 
-        {/* Responsive Grid: Stacks on mobile, 3 columns on desktop */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField control={form.control} name="start_date" render={({ field }) => (
             <FormItem>
@@ -129,7 +122,8 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
         <FormField control={form.control} name="status" render={({ field }) => (
           <FormItem>
             <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Status</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            {/* FIXED: value and onValueChange linked strictly to field */}
+            <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer">
                   <SelectValue placeholder="Select status" />
@@ -147,7 +141,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
         <Button 
           type="submit" 
           disabled={loading} 
-          className="ml-33 w-50 "
+          className="w-full bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#99C4FF] transition-all active:scale-95 cursor-pointer mt-2"
         >
           {loading ? 'Processing...' : isEdit ? 'Update Milestone' : 'Save Milestone'}
         </Button>
