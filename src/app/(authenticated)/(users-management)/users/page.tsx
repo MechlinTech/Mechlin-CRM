@@ -34,7 +34,7 @@ export default async function Page() {
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold text-heading-primary">All Users</h1>
-                                <p className="text-xs text-secondary">Manage your team members and collaborators</p>
+                                <p className="text-xs text-[#6C7F93]">Manage your team members and collaborators</p>
                             </div>
                             <div className="bg-[#006AFF]/10 text-heading-primary border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
                                 {users.users?.length || 0}

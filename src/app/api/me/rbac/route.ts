@@ -7,7 +7,7 @@ export async function GET() {
     try {
         console.log('⏳ Calling getUserRBAC()...')
         const rbacData = await getUserRBAC()
-        console.log('📤📤📤 Returning RBAC data:', rbacData)
+        // console.log('📤📤📤 Returning RBAC data:', rbacData)
         console.log('✅ API call completed successfully\n')
         return Response.json(rbacData)
     } catch (error) {
