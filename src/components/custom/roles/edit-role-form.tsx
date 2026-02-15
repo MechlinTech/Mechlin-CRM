@@ -174,22 +174,22 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
             </div>
 
             {/* Permissions Selection */}
-            <div className="space-y-3">
+            <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <Label className="text-base font-semibold">Permissions</Label>
                     <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full border">
                         {selectedPermissions.length} selected
                     </span>
                 </div>
-                <div className="border rounded-lg p-4 max-h-[350px] overflow-y-auto space-y-4">
+                <div className="space-y-6">
                     {Object.entries(permissionsByModule).map(([module, modulePerms]) => {
                         const modulePermissionIds = modulePerms.map(p => p.id)
                         const allSelected = modulePermissionIds.every(id => selectedPermissions.includes(id))
                         const someSelected = modulePermissionIds.some(id => selectedPermissions.includes(id)) && !allSelected
 
                         return (
-                            <div key={module} className="space-y-2">
-                                <div className="flex items-center space-x-2 pb-2 border-b">
+                            <div key={module} className="bg-white border border-gray-200 rounded-lg p-4">
+                                <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
                                     <Checkbox
                                         id={`module-${module}`}
                                         checked={allSelected}
@@ -198,25 +198,31 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
                                     />
                                     <Label
                                         htmlFor={`module-${module}`}
-                                        className="text-sm font-semibold capitalize cursor-pointer"
+                                        className="text-sm font-semibold capitalize cursor-pointer text-gray-900"
                                     >
                                         {module}
                                     </Label>
+                                    <span className="text-xs text-gray-500 ml-auto">
+                                        {modulePermissionIds.filter(id => selectedPermissions.includes(id)).length}/{modulePermissionIds.length} selected
+                                    </span>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 pl-6">
+                                <div className="grid grid-cols-1 gap-3 pt-3">
                                     {modulePerms.map((permission) => (
-                                        <div key={permission.id} className="flex items-center space-x-2">
+                                        <div key={permission.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
                                             <Checkbox
                                                 id={permission.id}
                                                 checked={selectedPermissions.includes(permission.id)}
                                                 onCheckedChange={() => togglePermission(permission.id)}
                                             />
-                                            <Label
-                                                htmlFor={permission.id}
-                                                className="text-sm cursor-pointer"
-                                            >
-                                                {permission.display_name}
-                                            </Label>
+                                            <div className="flex-1">
+                                                <Label
+                                                    htmlFor={permission.id}
+                                                    className="text-sm cursor-pointer font-medium text-gray-900"
+                                                >
+                                                    {permission.display_name}
+                                                </Label>
+                                                <p className="text-xs text-gray-500 mt-1">{permission.action}</p>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -227,17 +233,17 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
             </div>
 
             {/* Actions */}
-            <div className="flex justify-between items-center pt-4 border-t bg-gray-50 -mx-6 px-6 py-4 sticky bottom-0">
+            <div className="flex justify-between items-center pt-6 border-t border-gray-200">
                 <p className="text-sm text-gray-600 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 002.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span className="font-medium">{selectedPermissions.length}</span> of {permissions.length} permissions selected
                 </p>
                 <Button
                     type="submit"
                     disabled={loading || selectedPermissions.length === 0}
-                    className="bg-[#0F172A] hover:bg-[#0F172A]/90 shadow-lg min-w-[140px]"
+                    className="bg-[#006AFF] hover:bg-[#0055CC] shadow-lg min-w-[140px]"
                 >
                     {loading ? (
                         <span className="flex items-center gap-2">

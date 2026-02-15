@@ -114,14 +114,14 @@ export const columns: ColumnDef<any>[] = [
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => (table.options.meta as any)?.onEdit?.(role)}
+                        >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                        </DropdownMenuItem>
                         {!isSystemRole && (
                             <>
-                                <DropdownMenuItem
-                                    onClick={() => (table.options.meta as any)?.onEdit?.(role)}
-                                >
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit
-                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     onClick={() => (table.options.meta as any)?.onDelete?.(role)}

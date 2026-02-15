@@ -315,3 +315,36 @@ export async function checkUserRole(userId: string, roleName: string) {
     const hasRole = data?.some((ur: any) => ur.roles?.name === roleName) || false
     return { hasRole, error: null }
 }
+
+// ============================================
+// USER PERMISSIONS
+// ============================================
+
+export async function getUserDirectPermissions(userId: string) {
+    return await supabase
+        .from("user_permissions")
+        .select(`
+            permission_id,
+            permissions(*)
+        `)
+        .eq("user_id", userId)
+}
+
+export async function assignUserPermission(userId: string, permissionId: string) {
+    return await supabase
+        .from("user_permissions")
+        .insert({
+            user_id: userId,
+            permission_id: permissionId
+        })
+        .select()
+        .single()
+}
+
+export async function removeUserPermission(userId: string, permissionId: string) {
+    return await supabase
+        .from("user_permissions")
+        .delete()
+        .eq("user_id", userId)
+        .eq("permission_id", permissionId)
+}

@@ -68,7 +68,7 @@ export function AppHeader() {
       
       <div className="flex items-center gap-2 sm:gap-4">
        
-        <form onSubmit={handleSearch} className="hidden sm:block relative">
+        {/* <form onSubmit={handleSearch} className="hidden sm:block relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             type="search"
@@ -77,7 +77,7 @@ export function AppHeader() {
             onChange={handleSearchChange}
             className="pl-10 w-32 sm:w-48 h-8 bg-gray-50 border-gray-200 focus:border-gray-300"
           />
-        </form>
+        </form> */}
 
        
         {mounted ? (
