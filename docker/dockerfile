@@ -15,12 +15,12 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy the rest of the app
 COPY . .
 
-# Pass Supabase env variables at build time
+# Pass only public Supabase env at build time (required for Next.js build).
+# SUPABASE_SERVICE_ROLE_KEY must be provided at runtime (e.g. docker-compose env).
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
-ENV SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY
 
 # Build the Next.js app
 RUN npm run build
