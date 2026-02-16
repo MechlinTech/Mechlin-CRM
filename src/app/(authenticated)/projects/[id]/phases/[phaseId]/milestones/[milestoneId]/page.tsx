@@ -15,21 +15,20 @@ import { ActionButton } from "@/components/shared/action-button";
 import { DocumentForm } from "@/components/custom/projects/document-form";
 import { MilestoneThreads } from "@/components/custom/threads/MilestoneThreads";
 import { cn } from "@/lib/utils";
+import { useRBAC } from "@/context/rbac-context"; 
 
 export default function MilestonePage({ params }: { params: any }) {
   const router = useRouter();
   const { id, phaseId, milestoneId } = React.use(params) as any;
   const [m, setMilestone] = React.useState<any>(null);
-  
+  const { hasPermission, loading } = useRBAC(); 
+
   const [isSprintOpen, setIsSprintOpen] = React.useState(false);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
 
   const fetchData = React.useCallback(async () => {
     const { data } = await supabase.from("milestones").select("*, sprints(*)").eq("id", milestoneId).single();
-    if (data) {
-      // Use object spread to ensure React detects a reference change
-      setMilestone({ ...data }); 
-    }
+    if (data) { setMilestone({ ...data }); }
   }, [milestoneId]);
 
   React.useEffect(() => { fetchData(); }, [fetchData]);
@@ -42,89 +41,59 @@ export default function MilestonePage({ params }: { params: any }) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
-      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <section className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div className="space-y-1">
               <div className="flex items-center gap-3">
                 <h1 className="text-xl font-semibold tracking-tight">{m.name}</h1>
-                <Badge variant="outline" className={cn("px-3 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider", statusColor)}>
-                    {m.status}
-                </Badge>
+                <Badge variant="outline" className={cn("px-3 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider", statusColor)}>{m.status}</Badge>
               </div>
               <p className="text-sm font-medium text-slate-500">Milestone Details</p>
             </div>
             <div className="flex gap-2">
-              <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogTrigger asChild>
-                  <button className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:text-[#006AFF] hover:border-[#006AFF] transition-all active:scale-95 bg-white cursor-pointer">
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                </DialogTrigger>
-                <DialogContent className="bg-white border-none shadow-2xl">
-                  <DialogHeader><DialogTitle className="text-lg font-semibold">Edit Milestone</DialogTitle></DialogHeader>
-                  
-                  {/* FIX: key={m.id + m.status + m.name} forces form to update when parent data changes */}
-                  <MilestoneForm 
-                    key={`${m.id}-${m.status}-${m.name}`}
-                    projectId={id} 
-                    phaseId={phaseId} 
-                    milestone={m} 
-                    onSuccess={() => { 
-                      setIsEditOpen(false); 
-                      fetchData(); 
-                      router.refresh(); // Sync server state
-                    }} 
-                  />
-                  
-                </DialogContent>
-              </Dialog>
-              <button 
-                onClick={() => confirm('Delete?') && deleteMilestoneAction(milestoneId, id).then(() => router.push(`/projects/${id}`))} 
-                className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              {!loading && hasPermission('milestones.update') && (
+                <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                  <DialogTrigger asChild>
+                    <button className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:text-[#006AFF] active:scale-95 bg-white cursor-pointer"><Pencil className="h-4 w-4" /></button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-white border-none shadow-2xl">
+                    <DialogHeader><DialogTitle className="text-lg font-semibold">Edit Milestone</DialogTitle></DialogHeader>
+                    <MilestoneForm key={`${m.id}-${m.status}-${m.name}`} projectId={id} phaseId={phaseId} milestone={m} onSuccess={() => { setIsEditOpen(false); fetchData(); router.refresh(); }} />
+                  </DialogContent>
+                </Dialog>
+              )}
+              {!loading && hasPermission('milestones.delete') && (
+                <button onClick={() => confirm('Delete?') && deleteMilestoneAction(milestoneId, id).then(() => router.push(`/projects/${id}`))} className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer"><Trash2 className="h-4 w-4" /></button>
+              )}
             </div>
           </div>
-          
-          <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8">
-            {m.deliverables || "No deliverables description provided for this milestone."}
-          </div>
-
+          <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8">{m.deliverables || "No deliverables description provided for this milestone."}</div>
           <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-slate-100">
-             <ActionButton title="Upload" trigger={
-               <Button variant="secondary" className="h-10 w-32 cursor-pointer">
-                 <FileUp className="h-4 w-4" /> Upload
-               </Button>
-             }>
-                <DocumentForm projectId={id} ids={{ phase_id: phaseId, milestone_id: milestoneId }} />
-             </ActionButton>
-             <Link href={`/projects/${id}/documents?milestoneId=${milestoneId}`} className="flex items-center justify-center h-10 w-32 bg-[#006AFF] text-white rounded-md font-semibold text-xs gap-2 hover:bg-[#99C4FF] transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer">
-                <FolderOpen className="h-4 w-4" /> View Doc
-             </Link>
+            {loading ? (
+  <Button variant="secondary" className="h-10 w-32" disabled>
+    <FileUp className="h-4 w-4" /> Upload
+  </Button>
+) : hasPermission('documents.create') ? (
+  <ActionButton title="Upload" trigger={
+    <Button variant="secondary" className="h-10 w-32 cursor-pointer">
+      <FileUp className="h-4 w-4" /> Upload
+    </Button>
+  }>
+    <DocumentForm projectId={id} ids={{ phase_id: phaseId, milestone_id: milestoneId }} />
+  </ActionButton>
+) : null}
+             <Link href={`/projects/${id}/documents?milestoneId=${milestoneId}`} className="flex items-center justify-center h-10 w-32 bg-[#006AFF] text-white rounded-md font-semibold text-xs gap-2 hover:bg-[#99C4FF] transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"><FolderOpen className="h-4 w-4" /> View Doc</Link>
           </div>
         </section>
 
-        <section className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between overflow-hidden">
-            <div className="flex items-center gap-2 mb-6">
-                <Activity className="h-4 w-4 text-[#006AFF]" />
-                <h3 className="text-sm font-semibold tracking-wide uppercase">Milestone Stats</h3>
-            </div>
-            <div className="space-y-4">
-                <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400 font-medium uppercase tracking-wider">Timeline</span>
-                    <span className="font-semibold text-slate-900">{m.start_date} — {m.end_date}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400 font-medium uppercase tracking-wider">Budget</span>
-                    <span className="font-semibold text-slate-900">${m.budget?.toLocaleString() || 0}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs pt-4 border-t border-slate-100">
-                    <span className="text-slate-400 font-medium uppercase tracking-wider">Demo Date</span>
-                    <p className="font-semibold text-[#006AFF]">{m.demo_date || "TBD"}</p>
-                </div>
+        {/* Milestone Stats Section - Fixed spacing to prevent blank look */}
+        <section className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between overflow-hidden h-full">
+            <div className="flex items-center gap-2 mb-6"><Activity className="h-4 w-4 text-[#006AFF]" /><h3 className="text-sm font-semibold tracking-wide uppercase">Milestone Stats</h3></div>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between text-xs"><span className="text-slate-400 font-medium uppercase tracking-wider">Timeline</span><span className="font-semibold text-slate-900">{m.start_date} — {m.end_date}</span></div>
+                <div className="flex items-center justify-between text-xs"><span className="text-slate-400 font-medium uppercase tracking-wider">Budget</span><span className="font-semibold text-slate-900">${m.budget?.toLocaleString() || 0}</span></div>
+                <div className="flex items-center justify-between text-xs pt-6 border-t border-slate-100"><span className="text-slate-400 font-medium uppercase tracking-wider">Demo Date</span><p className="font-semibold text-[#006AFF]">{m.demo_date || "TBD"}</p></div>
             </div>
         </section>
       </div>
@@ -132,34 +101,26 @@ export default function MilestonePage({ params }: { params: any }) {
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4">
           <h2 className="text-lg font-semibold tracking-tight text-slate-900">Milestone Sprints</h2>
-          <Dialog open={isSprintOpen} onOpenChange={setIsSprintOpen}>
-            <DialogTrigger asChild>
-              <Button className="cursor-pointer">
-                <Plus className="h-4 w-4" /> Add Sprint
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-white border-none shadow-2xl">
-              <DialogHeader><DialogTitle className="text-lg font-semibold">Create Sprint Cycle</DialogTitle></DialogHeader>
-              <SprintForm milestoneId={milestoneId} projectId={id} onSuccess={() => { setIsSprintOpen(false); fetchData(); }} />
-            </DialogContent>
-          </Dialog>
+          {!loading && hasPermission('sprints.create') && (
+            <Dialog open={isSprintOpen} onOpenChange={setIsSprintOpen}>
+              <DialogTrigger asChild><Button className="cursor-pointer"><Plus className="h-4 w-4" /> Add Sprint</Button></DialogTrigger>
+              <DialogContent className="bg-white border-none shadow-2xl"><DialogHeader><DialogTitle className="text-lg font-semibold">Create Sprint Cycle</DialogTitle></DialogHeader>
+                <SprintForm milestoneId={milestoneId} projectId={id} onSuccess={() => { setIsSprintOpen(false); fetchData(); }} />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
         <div className="grid gap-4">
           {m.sprints?.map((sprint: any) => (
             <div key={sprint.id} className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-[#006AFF]/30 transition-all group shadow-sm ring-1 ring-slate-50">
                 <Link href={`/projects/${id}/phases/${phaseId}/milestones/${milestoneId}/sprints/${sprint.id}`} className="flex-1 font-medium text-sm text-slate-700 hover:text-[#006AFF] transition-colors cursor-pointer">{sprint.name}</Link>
-                <div className="flex items-center gap-5">
-                  <span className="text-[10px] font-normal text-slate-400">Starts: {sprint.start_date || 'TBD'}</span>
-                  <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-[#006AFF] transition-all group-hover:translate-x-1" />
-                </div>
+                <div className="flex items-center gap-5"><span className="text-[10px] font-normal text-slate-400">Starts: {sprint.start_date || 'TBD'}</span><ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-[#006AFF] transition-all group-hover:translate-x-1" /></div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="mt-8 border-t border-slate-100 pt-10">
-        <MilestoneThreads milestoneId={milestoneId} title="Discussions" />
-      </section>
+      <section className="mt-8 border-t border-slate-100 pt-10"><MilestoneThreads milestoneId={milestoneId} title="Discussions" /></section>
     </div>
   );
 }

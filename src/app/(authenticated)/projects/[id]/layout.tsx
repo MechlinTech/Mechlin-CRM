@@ -12,33 +12,58 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useRBAC } from "@/context/rbac-context"; 
 
 export default function ProjectLayout({ children, params }: { children: React.ReactNode, params: any }) {
   const { id } = React.use(params) as any;
   const [project, setProject] = React.useState<any>(null);
   const [logs, setLogs] = React.useState<any[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+  const { hasPermission, loading } = useRBAC();
 
-  const loadData = React.useCallback(async () => {
+const loadData = React.useCallback(async () => {
+    // 1. Fetch project details
     const { data: p } = await supabase
       .from("projects")
       .select(`*, organisations(name), project_members(users(id, name, organisations(name, is_internal)))`)
       .eq("id", id)
       .single();
-    
-    const { data: l } = await supabase
+    setProject(p);
+
+    // 2. FIXED QUERY: Using explicit relationship names to resolve ambiguity
+    // 'users!status_logs_changed_by_fkey' explicitly targets the 'changed_by' column
+    // 'user_roles!user_roles_user_id_fkey' explicitly targets the user's roles
+    const { data: l, error } = await supabase
       .from("status_logs")
-      .select("*, users(name)")
+      .select(`
+        *,
+        users!status_logs_changed_by_fkey (
+          name,
+          user_roles!user_roles_user_id_fkey (
+            roles (
+              display_name
+            )
+          )
+        )
+      `)
       .eq("target_id", id)
       .order("created_at", { ascending: false });
-      
-    setProject(p);
-    setLogs(l || []);
+
+    if (error) {
+      console.error("Audit Trail Join Failed:", error.message);
+      // Fallback: simple fetch to keep the app running
+      const { data: simpleLogs } = await supabase
+        .from("status_logs")
+        .select("*")
+        .eq("target_id", id)
+        .order("created_at", { ascending: false });
+      setLogs(simpleLogs || []);
+    } else {
+      setLogs(l || []);
+    }
   }, [id]);
 
-  React.useEffect(() => {
-    loadData();
-  }, [loadData]);
+  React.useEffect(() => { loadData(); }, [loadData]);
 
   if (!project) return null;
   const pmNotices = logs.filter(l => l.action_type === "PM_UPDATE");
@@ -58,7 +83,8 @@ export default function ProjectLayout({ children, params }: { children: React.Re
         {children}
       </div>
 
-      <aside className={cn("bg-white h-screen sticky top-0 flex flex-col border-l border-slate-200 shadow-sm transition-all duration-300 overflow-hidden shrink-0 z-[50]", isSidebarOpen ? "w-full md:w-[280px]" : "w-0 border-none")}>
+  <aside data-app-sidebar className={cn("bg-white h-screen sticky top-0 flex flex-col ...", isSidebarOpen ? "w-full md:w-[280px]" : "w-0 border-none")}>
+
         <section className="shrink-0 p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium uppercase text-slate-400 tracking-widest">History</h3>
@@ -68,7 +94,6 @@ export default function ProjectLayout({ children, params }: { children: React.Re
         </section>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {/* Mechlin Team */}
           <Collapsible defaultOpen>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-2 bg-slate-50 rounded-xl group">
               <span className="text-sm font-medium uppercase text-slate-400 flex items-center gap-2"><ShieldCheck className="h-3 w-3 text-[#006AFF]" /> Mechlin Team</span>
@@ -84,7 +109,6 @@ export default function ProjectLayout({ children, params }: { children: React.Re
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Client Team - Now matches Mechlin Team styling */}
           <Collapsible defaultOpen>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-2 bg-slate-50 rounded-xl group">
               <span className="text-sm font-medium uppercase text-slate-400 flex items-center gap-2"><Users className="h-3 w-3 text-[#006AFF]" /> Client Team</span>
@@ -104,44 +128,60 @@ export default function ProjectLayout({ children, params }: { children: React.Re
         <section className="p-5 border-t border-slate-100 bg-white flex flex-col h-[45%] shrink-0">
           <div className="flex justify-between items-center mb-5 shrink-0">
             <h3 className="text-sm font-medium uppercase text-slate-400 tracking-widest flex items-center gap-2"><Megaphone className="h-3 w-3 text-[#006AFF]" /> Broadcasts</h3>
-            <PMUpdateDialog projectId={id} onSuccess={loadData}>
-              <button className="h-7 w-7 bg-[#006AFF] text-white rounded-lg flex items-center justify-center hover:bg-[#99C4FF] transition-all shadow-md active:scale-90 cursor-pointer"><Plus className="h-4 w-4" /></button>
-            </PMUpdateDialog>
+            {!loading && hasPermission('pmupdates.create') && (
+              <PMUpdateDialog projectId={id} onSuccess={loadData}>
+                <button className="h-7 w-7 bg-[#006AFF] text-white rounded-lg flex items-center justify-center hover:bg-[#99C4FF] transition-all shadow-md active:scale-90 cursor-pointer"><Plus className="h-4 w-4" /></button>
+              </PMUpdateDialog>
+            )}
           </div>
+          
           <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-            {pmNotices.map((log: any) => (
-              <div key={log.id} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-3 relative group hover:border-[#006AFF]/30 transition-all">
-                <div className="flex gap-1.5 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-100 rounded-lg p-1 shadow-sm">
-                  <PMUpdateDialog projectId={id} log={log} onSuccess={loadData}>
-                    <button className="p-1.5 text-slate-400 hover:text-[#006AFF] cursor-pointer"><Pencil className="h-3 w-3" /></button>
-                  </PMUpdateDialog>
-                  <form action={async () => { 
-                    if(confirm('Delete this broadcast?')) {
-                      await deletePMUpdateAction(log.id, id); 
-                      toast.success("Broadcast deleted");
-                      loadData(); 
-                    }
-                  }}>
-                    <button type="submit" className="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"><Trash2 className="h-3 w-3" /></button>
-                  </form>
+            {!loading && hasPermission('pmupdates.read') ? (
+              pmNotices.map((log: any) => (
+                <div key={log.id} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-3 relative group hover:border-[#006AFF]/30 transition-all">
+                  <div className="flex gap-1.5 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-100 rounded-lg p-1 shadow-sm">
+                    {!loading && hasPermission('pmupdates.update') && (
+                      <PMUpdateDialog projectId={id} log={log} onSuccess={loadData}>
+                        <button className="p-1.5 text-slate-400 hover:bg-[#99C4FF] cursor-pointer"><Pencil className="h-3 w-3" /></button>
+                      </PMUpdateDialog>
+                    )}
+                    {!loading && hasPermission('pmupdates.delete') && (
+                      <form action={async () => { 
+                        if(confirm('Delete this broadcast?')) {
+                          await deletePMUpdateAction(log.id, id); 
+                          toast.success("Broadcast deleted");
+                          loadData(); 
+                        }
+                      }}>
+                        <button type="submit" className="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"><Trash2 className="h-3 w-3" /></button>
+                      </form>
+                    )}
+                  </div>
+                  <div className="text-xs text-slate-600 line-clamp-2 font-normal" dangerouslySetInnerHTML={{ __html: log.new_value?.content }} />
+                  <div className="flex items-center justify-between border-t border-slate-200 pt-2.5">
+                    <p className="text-[9px] text-slate-400 font-medium uppercase">{formatDistanceToNow(new Date(log.created_at))} ago</p>
+                    <Dialog>
+                      <DialogTrigger asChild><button className="text-[10px] font-semibold uppercase text-white bg-[#006AFF] hover:bg-[#99C4FF] flex items-center gap-1 cursor-pointer transition-colors px-2 py-1 rounded-md"><Eye className="h-3 w-3" /> View Full</button></DialogTrigger>
+                      <DialogContent className="max-w-[95vw] md:min-w-[80vw] bg-white text-slate-900 border-none shadow-2xl p-0 overflow-hidden rounded-[32px] flex flex-col min-h-[70vh]">
+                        <div className="p-6 bg-slate-50 border-b border-slate-100 shrink-0 flex items-center justify-between">
+                          <DialogTitle className="font-semibold text-sm uppercase ">Project Notice</DialogTitle>
+                          {/* <span className="text-[10px] font-bold text-slate-400 uppercase">
+                            By: {log.users?.name || "Administrator"} ({log.users?.user_roles?.[0]?.roles?.display_name || "System"})
+                          </span> */}
+                        </div>
+                        <div className="p-8 overflow-y-auto prose prose-slate prose-sm flex-1 font-normal" dangerouslySetInnerHTML={{ __html: log.new_value?.content }} />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
-                <div className="text-xs text-slate-600 line-clamp-2 font-normal" dangerouslySetInnerHTML={{ __html: log.new_value?.content }} />
-                <div className="flex items-center justify-between border-t border-slate-200 pt-2.5">
-                  <p className="text-[9px] text-slate-400 font-medium uppercase">{formatDistanceToNow(new Date(log.created_at))} ago</p>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <button className="text-[10px] font-semibold uppercase text-[#0F172A] hover:text-[#006AFF] flex items-center gap-1 cursor-pointer transition-colors"><Eye className="h-3 w-3" /> View Full</button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-[95vw] md:min-w-[80vw] bg-white text-slate-900 border-none shadow-2xl p-0 overflow-hidden rounded-[24px] flex flex-col min-h-[70vh]">
-                      <DialogHeader className="p-6 bg-slate-50 border-b border-slate-100 shrink-0">
-                        <DialogTitle className="font-semibold text-sm uppercase ">Project Notice</DialogTitle>
-                      </DialogHeader>
-                      <div className="p-8 overflow-y-auto prose prose-slate prose-sm flex-1 font-normal" dangerouslySetInnerHTML={{ __html: log.new_value?.content }} />
-                    </DialogContent>
-                  </Dialog>
+              ))
+            ) : (
+              !loading && (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest opacity-50">No updates available</p>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </section>
       </aside>

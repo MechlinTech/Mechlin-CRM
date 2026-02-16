@@ -1,9 +1,18 @@
 import { AddUserButton } from "@/components/custom/users/add-user-button";
 import { getAllUsersAction } from "@/actions/user-management";
 import { UsersTable } from "@/components/custom/users/users-table";
+import { getServerUserPermissions } from "@/lib/rbac-middleware";
+import { redirect } from "next/navigation";
 
 export default async function Page() {
     const users = await getAllUsersAction()
+    
+    // RBAC: Fetch permissions on server
+    const permissions = await getServerUserPermissions();
+    if(!permissions.includes('users.create')) {
+        redirect('/unauthorized');
+    }
+    const canCreate = permissions.includes('users.create');
     
     // Show error if exists
     if (!users.success) {
@@ -40,7 +49,9 @@ export default async function Page() {
                                 {users.users?.length || 0}
                             </div>
                         </div>
-                        <AddUserButton />
+                        
+                        {/* RBAC: Only show Add button if user has users.create permission */}
+                        {canCreate && <AddUserButton />}
                     </div>
 
                     {/* Enhanced Table Section */}

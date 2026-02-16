@@ -1,9 +1,18 @@
 import { AddOrganisationButton } from "@/components/custom/organisations/add-organisation-button";
 import { getAllOrganisationsAction } from "@/actions/user-management";
 import { OrganisationsTable } from "../../../../components/custom/organisations/organisations-table";
+import { getServerUserPermissions } from "@/lib/rbac-middleware";
+import { redirect } from "next/navigation";
 
 export default async function Page() {
     const organisations = await getAllOrganisationsAction()
+    
+    // RBAC: Fetch permissions on server
+    const permissions = await getServerUserPermissions();
+    if(!permissions.includes('organisations.create')) {
+        redirect('/unauthorized');
+    }
+    const canCreate = permissions.includes('organisations.create');
     
     return (
         <div className="min-h-screen ">
@@ -25,7 +34,9 @@ export default async function Page() {
                                 {organisations.organisations?.length || 0}
                             </div>
                         </div>
-                        <AddOrganisationButton />
+                        
+                        {/* RBAC: Only show Add button if user has organisations.create permission */}
+                        {canCreate && <AddOrganisationButton />}
                     </div>
 
                     {/* Enhanced Table Section */}

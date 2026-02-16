@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { WysiwygEditor } from '@/components/shared/wysiwyg-editor'
 import { Paperclip, Send } from 'lucide-react'
 import { createMessageAction } from '@/actions/threads'
+import { useRBAC } from '@/context/rbac-context'
 
 interface MessageComposerProps {
     threadId: string
@@ -23,9 +24,16 @@ export function MessageComposer({
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
     const [editorKey, setEditorKey] = useState(0) // Force editor re-render
+    const { hasPermission, loading: rbacLoading } = useRBAC()
 
     const handleSubmit = async () => {
         if (!content.trim()) return
+        
+        // RBAC check: Sending a message requires thread update permission 
+        if (!hasPermission('threads.update')) {
+            console.error('Unauthorized to send messages')
+            return
+        }
 
         setIsSubmitting(true)
         try {
@@ -81,6 +89,18 @@ export function MessageComposer({
             event.preventDefault()
             handleSubmit()
         }
+    }
+
+    // While permissions are loading, return null to avoid layout shift
+    if (rbacLoading) return null;
+
+    // RBAC: Hide entire composer if user lacks update permissions 
+    if (!hasPermission('threads.update')) {
+        return (
+            <div className="h-full flex items-center justify-center p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                You do not have permission to reply to this thread.
+            </div>
+        )
     }
 
     return (

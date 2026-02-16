@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { Organisation } from "@/actions/user-management"
+import { useRBAC } from "@/context/rbac-context"
 
 interface OrganisationsTableProps {
   organisations: Organisation[]
@@ -20,6 +21,7 @@ interface OrganisationsTableProps {
 export function OrganisationsTable({ organisations }: OrganisationsTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const { hasPermission, loading } = useRBAC();
 
   // Filter organisations based on search query and status
   const filteredOrganisations = organisations.filter((org) => {
@@ -34,6 +36,17 @@ export function OrganisationsTable({ organisations }: OrganisationsTableProps) {
 
     return matchesSearch && matchesStatus
   })
+
+  // RBAC: Show restriction if user cannot read organisations
+  if (!loading && !hasPermission('organisations.read')) {
+    return (
+        <div className="p-8 text-center bg-white rounded-md border border-gray-100">
+            <p className="text-sm text-red-500 font-medium italic">
+                Access Restricted: You do not have permission to view organisations.
+            </p>
+        </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

@@ -3,8 +3,15 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ShieldAlert, ArrowLeft } from "lucide-react"
+import { useRBAC } from "@/context/rbac-context" // RBAC Integration
 
 export default function UnauthorizedPage() {
+    // RBAC Hook
+    const { hasPermission, loading } = useRBAC();
+
+    // Logic: Only show dashboard link if they have basic portal access
+    const canSeeDashboard = hasPermission('projects.read') || hasPermission('organisations.read');
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-zinc-50 flex items-center justify-center px-4">
             <div className="max-w-md w-full text-center space-y-6">
@@ -37,19 +44,27 @@ export default function UnauthorizedPage() {
 
                 {/* Actions */}
                 <div className="flex gap-3 justify-center">
-                    <Button
+                    {/* <Button
                         variant="outline"
                         onClick={() => window.history.back()}
                         className="gap-2"
                     >
-                        <ArrowLeft className="h-4 w-4" />
-                        Go Back
-                    </Button>
-                    <Link href="/dashboard">
-                        <Button className="bg-[#0F172A] hover:bg-[#0F172A]/90">
-                            Go to Dashboard
-                        </Button>
-                    </Link>
+                        {/* <ArrowLeft className="h-4 w-4" /> */}
+                        
+                    {/* </Button> */} 
+
+                    {/* RBAC: Only show Dashboard button if user has read permissions and state is loaded */}
+                  {loading ? (
+    <Button className="bg-[#0F172A]/50" disabled>
+        Go to Dashboard
+    </Button>
+) : canSeeDashboard ? (
+    <Link href="/users-dashboard">
+        <Button className="bg-[#0F172A] hover:bg-[#0F172A]/90">
+            Go to Dashboard
+        </Button>
+    </Link>
+) : null}
                 </div>
 
                 {/* Help */}

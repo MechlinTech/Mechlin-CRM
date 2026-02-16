@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { getAllUsersAction, getAllOrganisationsAction } from "@/actions/user-management"
 import type { User, Organisation } from "@/actions/user-management"
+import { useRBAC } from "@/context/rbac-context" // RBAC Integration
 
 function SearchPageContent() {
   const router = useRouter()
@@ -18,6 +19,9 @@ function SearchPageContent() {
   const [users, setUsers] = React.useState<User[]>([])
   const [organisations, setOrganisations] = React.useState<Organisation[]>([])
   const [error, setError] = React.useState<string | null>(null)
+
+  // RBAC Hook
+  const { hasPermission, loading: rbacLoading } = useRBAC();
 
   // Load data on component mount and when query changes
   React.useEffect(() => {
@@ -67,17 +71,21 @@ function SearchPageContent() {
     setSearchQuery(e.target.value)
   }
 
-  // Filter results based on search query
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(query.toLowerCase()) ||
-    user.email.toLowerCase().includes(query.toLowerCase()) ||
-    user.organisations?.name.toLowerCase().includes(query.toLowerCase())
-  )
+  // Filter results based on search query AND RBAC permissions
+  const filteredUsers = !rbacLoading && hasPermission('users.read') 
+    ? users.filter(user =>
+        user.name.toLowerCase().includes(query.toLowerCase()) ||
+        user.email.toLowerCase().includes(query.toLowerCase()) ||
+        user.organisations?.name.toLowerCase().includes(query.toLowerCase())
+      )
+    : []
 
-  const filteredOrganisations = organisations.filter(org =>
-    org.name.toLowerCase().includes(query.toLowerCase()) ||
-    org.slug.toLowerCase().includes(query.toLowerCase())
-  )
+  const filteredOrganisations = !rbacLoading && hasPermission('organisations.read')
+    ? organisations.filter(org =>
+        org.name.toLowerCase().includes(query.toLowerCase()) ||
+        org.slug.toLowerCase().includes(query.toLowerCase())
+      )
+    : []
 
   // Combine all results
   const allResults = [
@@ -136,12 +144,13 @@ function SearchPageContent() {
       {!error && query && (
         <div className="text-sm text-gray-600">
           Found {allResults.length} results for "{query}"
-          {filteredUsers.length > 0 && ` (${filteredUsers.length} users, ${filteredOrganisations.length} organisations)`}
+          {filteredUsers.length > 0 && ` (${filteredUsers.length} users)`}
+          {filteredOrganisations.length > 0 && `${filteredUsers.length > 0 ? ',' : ''} ${filteredOrganisations.length} organisations`}
         </div>
       )}
 
       {/* Search Results */}
-      {isSearching ? (
+      {isSearching || rbacLoading ? (
         <div className="flex items-center justify-center h-32">
           <div className="text-gray-500">Searching...</div>
         </div>

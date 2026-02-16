@@ -6,11 +6,13 @@ import { WysiwygEditor } from "@/components/shared/wysiwyg-editorPM"
 import { Button } from "@/components/ui/button"
 import { createPMUpdateAction, updatePMUpdateAction } from "@/actions/pm-updates"
 import { toast } from "sonner"
+import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
 
 export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
   const [open, setOpen] = React.useState(false)
   const [content, setContent] = React.useState(log?.new_value?.content || log?.content || "")
   const [loading, setLoading] = React.useState(false)
+  const { hasPermission, loading: rbacLoading } = useRBAC(); // Added RBAC Hook
   const isEdit = !!log
 
   React.useEffect(() => {
@@ -20,6 +22,12 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
   }, [open, isEdit]);
 
   async function handleSave() {
+    // RBAC check before save
+    const permissionNeeded = isEdit ? 'threads.update' : 'threads.create';
+    if (!hasPermission(permissionNeeded)) {
+        return toast.error("You do not have permission to post/edit updates.");
+    }
+
     if (!content || content === "<p></p>") {
         return toast.error("Notice content cannot be empty");
     }
@@ -40,6 +48,10 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
     setLoading(false)
   }
 
+  // RBAC: If user cannot create or update, disable the dialog completely
+  const canPerformAction = isEdit ? hasPermission('threads.update') : hasPermission('threads.create');
+  if (!rbacLoading && !canPerformAction) return null;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -47,7 +59,6 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
       <DialogContent className="max-w-[90vw] sm:max-w-[60vw] w-full max-h-[90vh] min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col rounded-[24px]">
 
         <DialogHeader className="p-6 pb-2 shrink-0 border-b border-slate-50">
-          {/* Header Typography: SemiBold */}
           <DialogTitle className="font-semibold text-sm tracking-tight text-[#0F172A]">
             {isEdit ? 'Modify Project Notice' : 'Broadcast New Notice'}
           </DialogTitle>
@@ -62,7 +73,6 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
         </div>
 
       <div className="flex items-center justify-center gap-3 p-6 shrink-0 border-t border-slate-50 bg-white">
-            {/* Secondary Button: White/Outline with brand hover */}
             <Button 
               variant="outline" 
               onClick={() => setOpen(false)} 
@@ -71,7 +81,6 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
                 Cancel
             </Button>
             
-            {/* Primary Button: #006AFF with #99C4FF hover */}
             <Button 
               disabled={loading} 
               onClick={handleSave} 

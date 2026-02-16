@@ -1,7 +1,17 @@
 import { getAllUsersAction } from "@/actions/user-management"
 import { UserPermissionsTable } from "@/components/custom/user-permissions/user-permissions-table"
+import { getServerUserPermissions } from "@/lib/rbac-middleware"
+import { redirect } from "next/navigation"
 
 export default async function UserPermissionsPage() {
+    // RBAC: Fetch permissions on server
+    const permissions = await getServerUserPermissions();
+    
+    // Check if user has permission to read user information
+    if (!permissions.includes('users.read')) {
+        redirect('/unauthorized');
+    }
+
     const result = await getAllUsersAction()
     
     return (

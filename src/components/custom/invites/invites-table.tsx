@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
+import { useRBAC } from "@/context/rbac-context" // RBAC Integration
 
 interface Invite {
     id: string
@@ -31,10 +32,18 @@ interface Invite {
 export function InvitesTable() {
     const [invites, setInvites] = useState<Invite[]>([])
     const [loading, setLoading] = useState(true)
+    
+    // RBAC Hook
+    const { hasPermission, loading: rbacLoading } = useRBAC()
 
     useEffect(() => {
-        fetchInvites()
-    }, [])
+        // Only fetch if RBAC is loaded and user has permission to read user-related data
+        if (!rbacLoading && hasPermission('users.read')) {
+            fetchInvites()
+        } else if (!rbacLoading) {
+            setLoading(false)
+        }
+    }, [rbacLoading, hasPermission])
 
     async function fetchInvites() {
         try {
@@ -70,10 +79,20 @@ export function InvitesTable() {
         )
     }
 
-    if (loading) {
+    // Combined loading state
+    if (loading || rbacLoading) {
         return (
             <div className="p-8 text-center">
                 <p className="text-sm text-gray-500">Loading invitations...</p>
+            </div>
+        )
+    }
+
+    // RBAC Check for Table Visibility
+    if (!hasPermission('users.read')) {
+        return (
+            <div className="p-8 text-center">
+                <p className="text-sm text-red-500 font-medium">Access Restricted: You do not have permission to view invitations.</p>
             </div>
         )
     }

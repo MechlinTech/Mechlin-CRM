@@ -601,3 +601,37 @@ COMMENT ON TABLE user_invites IS 'Tracks user invitations before they are authen
 -- ============================================
 SELECT '✅ Migration Complete!' as status;
 SELECT 'All tables, RBAC system, and user invites have been set up successfully.' as message;
+
+
+
+-- ADD NEW PERMISSIONS FOR PM UPDATES & TASKS
+-- ============================================
+
+INSERT INTO permissions (name, display_name, description, module, action) VALUES
+    -- PM Updates (Broadcasts)
+    ('pmupdates.create', 'Create PM Updates', 'Can post new project broadcasts', 'pmupdates', 'create'),
+    ('pmupdates.read', 'View PM Updates', 'Can view project broadcasts', 'pmupdates', 'read'),
+    ('pmupdates.update', 'Update PM Updates', 'Can edit project broadcasts', 'pmupdates', 'update'),
+    ('pmupdates.delete', 'Delete PM Updates', 'Can delete project broadcasts', 'pmupdates', 'delete'),
+    
+    -- Tasks
+    ('tasks.create', 'Create Tasks', 'Can create new tasks within sprints', 'tasks', 'create'),
+    ('tasks.read', 'View Tasks', 'Can view task details', 'tasks', 'read'),
+    ('tasks.update', 'Update Tasks', 'Can edit task information', 'tasks', 'update'),
+    ('tasks.delete', 'Delete Tasks', 'Can delete tasks', 'tasks', 'delete')
+ON CONFLICT (name) DO NOTHING;
+
+
+
+CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    phase_id UUID REFERENCES phases(id) ON DELETE CASCADE,
+    milestone_id UUID REFERENCES milestones(id) ON DELETE CASCADE,
+    sprint_id UUID REFERENCES sprints(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'Pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

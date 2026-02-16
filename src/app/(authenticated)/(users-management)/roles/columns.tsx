@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Shield, Edit, Trash2, Eye } from "lucide-react"
 import type { Role } from "@/types/rbac"
+import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
 
 export const columns: ColumnDef<any>[] = [
     {
@@ -97,6 +98,12 @@ export const columns: ColumnDef<any>[] = [
         cell: ({ row, table }) => {
             const role = row.original
             const isSystemRole = role.is_system_role
+            const { hasPermission, loading } = useRBAC() // Added RBAC Hook
+
+            if (loading) return <div className="h-8 w-8" />
+
+            const canUpdate = hasPermission('roles.update')
+            const canDelete = hasPermission('roles.delete')
 
             return (
                 <DropdownMenu>
@@ -114,13 +121,19 @@ export const columns: ColumnDef<any>[] = [
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => (table.options.meta as any)?.onEdit?.(role)}
-                        >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                        </DropdownMenuItem>
-                        {!isSystemRole && (
+
+                        {/* RBAC: Edit permission */}
+                        {canUpdate && (
+                            <DropdownMenuItem
+                                onClick={() => (table.options.meta as any)?.onEdit?.(role)}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                        )}
+
+                        {/* RBAC: Delete permission for non-system roles */}
+                        {!isSystemRole && canDelete && (
                             <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem

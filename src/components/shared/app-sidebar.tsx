@@ -21,12 +21,16 @@ import {
 } from "@/components/ui/collapsible"
 import { SIDEBAR_NAVIGATION } from "@/config/navigation"
 import { supabase } from "@/lib/supabase"
+import { useRBAC } from "@/context/rbac-context" // RBAC Integration
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const [mounted, setMounted] = React.useState(false)
   const [projects, setProjects] = React.useState<any[]>([])
-  const [loading, setLoading] = React.useState(true)
+  const [hierarchyLoading, setHierarchyLoading] = React.useState(true)
+  
+  // RBAC Hook to manage sidebar visibility
+  const { hasPermission, loading: rbacLoading } = useRBAC()
 
   const isProjectsPage = pathname.startsWith('/projects/') && pathname !== '/projects'
 
@@ -56,7 +60,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       } else {
         setProjects(data || [])
       }
-      setLoading(false)
+      setHierarchyLoading(false)
     }
     
     if (isProjectsPage) {
@@ -67,6 +71,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   React.useEffect(() => {
     setMounted(true)
   }, [])
+    if (rbacLoading) {
+    return (
+      <Sidebar {...props} className="pt-10 overflow-y-hidden">
+        <SidebarContent />
+      </Sidebar>
+    )
+  }
 
   if (!mounted) {
     return (
@@ -77,12 +88,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   const renderProjectHierarchy = () => {
-    // Don't show anything if not on a specific project page
     if (!isProjectsPage) {
       return null
     }
 
-    if (loading) {
+    if (hierarchyLoading) {
       return (
         <SidebarGroup>
           <SidebarGroupLabel>Current Project</SidebarGroupLabel>
@@ -95,12 +105,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       )
     }
 
-    // Get current project from URL if we're on a specific project page
     const currentProjectId = pathname.match(/\/projects\/([a-f0-9-]+)(?:\/phases\/[a-f0-9-]+\/milestones\/[a-f0-9-]+\/sprints\/[a-f0-9-]+)?/)?.[1]
     const currentProject = projects.find(p => p.id === currentProjectId)
 
     if (!currentProject) {
-      return null // Don't show project section if no specific project is open
+      return null 
     }
 
     return (
@@ -123,7 +132,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <SidebarMenuButton asChild className="text-sm">
                         <CollapsibleTrigger>
                           <Folder className="mr-2 h-3 w-3 text-blue-500" />
-                          <span>{phase.name}</span>
+                          <Link href={`/projects/${currentProject.id}`}>
+                            <span>{phase.name}</span>
+                          </Link>
                           <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                         </CollapsibleTrigger>
                       </SidebarMenuButton>
@@ -135,7 +146,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 <SidebarMenuButton asChild className="text-xs">
                                   <CollapsibleTrigger>
                                     <Award className="mr-2 h-3 w-3 text-purple-500" />
+                                       <Link href={`/projects/${currentProject.id}/phases/${phase.id}/milestones/${milestone.id}`}>
                                     <span>{milestone.name}</span>
+                                   </Link>
                                     <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                                   </CollapsibleTrigger>
                                 </SidebarMenuButton>
@@ -175,8 +188,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props} className="pt-12">
       <SidebarContent className="gap-0">
-        {/* Show existing navigation */}
         {SIDEBAR_NAVIGATION.map((item) => {
+          // RBAC Filtering Logic: 
+          // dashboard, project management, and user management are administrative zones
+          // We check for "Create" permissions as requested to identify Admin/Super Admin status
+          const isUserManagement = item.title.toLowerCase().includes("user");
+          const isProjectManagement = item.title.toLowerCase().includes("project");
+          const isDashboard = item.title.toLowerCase() === "dashboard";
+
+          if (!rbacLoading) {
+            // Requirement: Only show User Management to those who can add users/roles
+            if (isUserManagement && !(hasPermission('users.create') || hasPermission('roles.create'))) {
+              return null;
+            }
+            // Requirement: Only show Project Management to those who can create projects
+            if (isProjectManagement && !hasPermission('projects.create')) {
+              return null;
+            }
+            // Requirement: Only show primary Dashboard to admins (who have organisation creation rights)
+            if (isDashboard && !hasPermission('organisations.create')) {
+              return null;
+            }
+          }
+
           const isDirectLink = item.url && (!item.items || item.items.length === 0);
 
           if (isDirectLink) {
@@ -200,10 +234,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Collapsible key={item.title} defaultOpen className="group/collapsible">
               <SidebarGroup>
                 <SidebarGroupLabel asChild>
-                  <CollapsibleTrigger>
-                    {item.title}
-                    <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                  </CollapsibleTrigger>
+                  <SidebarMenuButton asChild>
+                    <CollapsibleTrigger>
+                      {item.title}
+                      <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                    </CollapsibleTrigger>
+                  </SidebarMenuButton>
                 </SidebarGroupLabel>
                 <CollapsibleContent>
                   <SidebarGroupContent>
@@ -223,7 +259,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           );
         })}
         
-        {/* Show project hierarchy if on a specific project page */}
         {renderProjectHierarchy()}
       </SidebarContent>
       <SidebarRail />

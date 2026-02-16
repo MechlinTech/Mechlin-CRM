@@ -10,18 +10,26 @@ import {
     DialogTrigger,
   } from "@/components/ui/dialog"
 import { CreateOrganisationForm } from "./create-organisation-form"
+import { useRBAC } from "@/context/rbac-context"
 
 interface AddOrganisationButtonProps {
     onSuccess?: () => void
 }
 
 export function AddOrganisationButton({ onSuccess }: AddOrganisationButtonProps) {
+    const { hasPermission, loading } = useRBAC();
+    
     const handleSuccess = () => {
         if (onSuccess) {
             onSuccess()
         }
     }
     
+    // RBAC: Hide button if user cannot create organisations
+    if (loading || !hasPermission('organisations.create')) {
+        return null;
+    }
+
     return (
         <Dialog>
             <DialogTrigger asChild>

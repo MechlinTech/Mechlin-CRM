@@ -12,6 +12,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { getOrganisationById, getOrganisationProjects } from '@/actions/organisation-management'
+import { useRBAC } from "@/context/rbac-context" // RBAC Integration
 
 export default function OrganisationDetailPage() {
   const params = useParams()
@@ -20,6 +21,9 @@ export default function OrganisationDetailPage() {
   const [projects, setProjects] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
   const [detailsOpen, setDetailsOpen] = React.useState(false)
+
+  // RBAC Hook
+  const { hasPermission, loading: rbacLoading } = useRBAC();
 
   async function fetchOrganisationDetails() {
     const data = await getOrganisationById(params.id as string)
@@ -41,9 +45,7 @@ export default function OrganisationDetailPage() {
     }
   }, [params.id])
 
-  
-
-  if (loading) {
+  if (loading || rbacLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -115,7 +117,6 @@ export default function OrganisationDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs mt-4 p-4 bg-gray-50 rounded-lg">
                       {organisation.slug && (
                         <div className="flex items-center gap-2 text-gray-600">
-                         
                           <span className="font-medium">{organisation.slug}</span>
                         </div>
                       )}
@@ -130,7 +131,6 @@ export default function OrganisationDetailPage() {
 
                       {organisation.created_at && (
                         <div className="flex items-center gap-2 ">
-                          
                           <span className="">
                             Created {new Date(organisation.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </span>
@@ -143,7 +143,6 @@ export default function OrganisationDetailPage() {
             </div>
           </div>
 
-         
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -155,57 +154,63 @@ export default function OrganisationDetailPage() {
                   <p className="text-sm text-[#0F172A]/60">All projects for {organisation.name}</p>
                 </div>
                 <Badge variant="outline" className="bg-[#006AFF]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
-                  {projects.length}
+                  {hasPermission('projects.read') ? projects.length : 0}
                 </Badge>
               </div>
             </div>
 
-            {projects.length > 0 ? (
+            {/* RBAC: Only show project grid if user has projects.read permission */}
+            {hasPermission('projects.read') && projects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projects.map((project) => (
+                               {projects.map((project) => (
                   <Link 
                     key={project.id} 
                     href={`/projects/${project.id}`}
                     className="group block p-6 bg-white/80 backdrop-blur-sm rounded-md border border-[#0F172A]/10 hover:border-[#006AFF] transition-all duration-300"
                   >
                     <div className="space-y-4">
-                      
                       <div className="flex justify-between items-start">
-                        <h3 className="text-lg  tracking-tight group-hover:text-[#006AFF] line-clamp-2">
+                        <h3 className="text-lg tracking-tight group-hover:text-[#006AFF] line-clamp-2 text-[#0F172A]">
                           {project.name}
                         </h3>
                         <Badge
-                            variant="outline"
-                            className={`text-xs font-semibold px-2 py-1 rounded-md ${
-                              project.status === 'Active'
-                                ? 'border-green-500/30 text-green-600 bg-green-50'
-                                : project.status === 'Pending'
-                                ? 'border-yellow-500/30 text-yellow-600 bg-yellow-50'
-                                : project.status === 'Suspended'
-                                ? 'border-red-500/30 text-red-600 bg-red-50'
-                                : 'border-gray-300 text-gray-600 bg-gray-50'
-                            }`}
-                          >
+                          variant="outline"
+                          className={`text-xs font-semibold px-2 py-1 rounded-md ${
+                            project.status === 'Active'
+                              ? 'border-green-500/30 text-green-600 bg-green-50'
+                              : project.status === 'Pending'
+                              ? 'border-yellow-500/30 text-yellow-600 bg-yellow-50'
+                              : project.status === 'Suspended'
+                              ? 'border-red-500/30 text-red-600 bg-red-50'
+                              : 'border-gray-300 text-gray-600 bg-gray-50'
+                          }`}
+                        >
                           {project.status}
                         </Badge>
                       </div>
 
-                      
-                      <div className="space-y-1 text-xs">
+                      <div className="space-y-1 text-xs text-[#0F172A]">
+                        {/* Organization Name Row - Consistent with Organisation Detail metadata list */}
+                        <div className="flex items-center gap-2 mb-1">
+                          <Building className="h-3.5 w-3.5 text-[#006AFF]" />
+                          <span className="truncate">{project.organisations?.name || 'No Organization'}</span>
+                        </div>
+
                         {project.budget && (
                           <div className="flex items-center gap-2"> 
-                            <p className=" text-gray-900">{project.currency || '$'}{project.budget.toLocaleString()}</p>
+                            <DollarSign className="h-3.5 w-3.5 text-[#006AFF]" />
+                            <p className="font-medium">{project.currency || 'USD'}: {project.budget.toLocaleString()}</p>
                           </div>
                         )}
-
                         {project.start_date && (
                           <div className="flex items-center gap-2">
+                            <Calendar className="h-3.5 w-3.5 text-[#006AFF]" />
                             <span className="tracking-wider">Start: {project.start_date}</span>
                           </div>
                         )}
-
                         {project.expected_end_date && (
                           <div className="flex items-center gap-2">
+                            <Calendar className="h-3.5 w-3.5 text-[#006AFF]" />
                             <span className="tracking-wider">End: {project.expected_end_date}</span>
                           </div>
                         )}
@@ -219,9 +224,13 @@ export default function OrganisationDetailPage() {
                 <div className="mx-auto w-20 h-20 bg-linear-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center shadow-lg mb-6">
                   <Building className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-lg font-bold tracking-tight mb-3 text-gray-900">No Projects Yet</h3>
+                <h3 className="text-lg font-bold tracking-tight mb-3 text-gray-900">
+                  {hasPermission('projects.read') ? "No Projects Yet" : "Access Restricted"}
+                </h3>
                 <p className="text-xs text-gray-600 max-w-md mx-auto">
-                  This organization does not have any projects yet. Create the first project to get started.
+                  {hasPermission('projects.read') 
+                    ? "This organization does not have any projects yet." 
+                    : "You do not have the required permissions to view projects."}
                 </p>
               </div>
             )}

@@ -3,11 +3,23 @@
 import React from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { getAllUsersAction } from "@/actions/user-management"
+import { UserPermissionsTable } from "@/components/custom/user-permissions/user-permissions-table"
 import { Building, Users, User, Settings, BarChart3, Building2 } from 'lucide-react'
 import { getAllOrganisationsWithProjectCounts } from "@/data/organisations"
 import { Badge } from '@/components/ui/badge'
+import { useRBAC } from "@/context/rbac-context"
+import { redirect } from 'next/navigation'
+import { isAdmin,isSuperAdmin } from '@/lib/permissions'
+type CheckRoleResponse = {
+  hasRole: boolean
+  roleNames?: string[]
+  error?: string
+}
+ // RBAC Integration
 
-export default function DashboardPage() {
+export default  function DashboardPage() {
+  
   const [projects, setProjects] = React.useState<any[]>([])
   const [users, setUsers] = React.useState<any[]>([])
   const [mechlinUsers, setMechlinUsers] = React.useState<any[]>([])
@@ -15,14 +27,27 @@ export default function DashboardPage() {
   const [organisations, setOrganisations] = React.useState<any[]>([])
   const [activeTab, setActiveTab] = React.useState<'projects' | 'users' | 'organisations' | 'etc'>('organisations')
 
-  
+  // RBAC Hook
+  const { hasPermission, loading } = useRBAC();
 
+
+  if (!isAdmin() && !isSuperAdmin()) {
+  redirect('/unauthorized')
+}
+
+    
+    // Check if user has permission to read user information
+  
   async function fetchProjects() {
+    const roles=await getMyRoleNames();
+   if(!roles.includes('admin') && !roles.includes('super_admin')){
+    redirect('/unauthorized')
+   }
     const { data, error } = await supabase
       .from('projects')
       .select('*, organisations(*)')
       .order('created_at', { ascending: false })
-
+   
     if (data) {
       setProjects(data)
     }
@@ -30,6 +55,31 @@ export default function DashboardPage() {
       console.error('Error fetching projects:', error)
     }
   }
+      async function getMyRoleNames(): Promise<string[]> {
+    try {
+      const res = await fetch("/api/check-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // send empty role to get roleNames back, OR send a dummy role and read roleNames
+        body: JSON.stringify({ role: "__list__" }),
+        cache: "no-store",
+      })
+
+      const data: CheckRoleResponse = await res.json().catch(() => ({ hasRole: false }))
+
+      // If API failed, return empty
+      if (!res.ok) {
+        console.error("[check-role] failed", data)
+        return []
+      }
+
+      return Array.isArray(data.roleNames) ? data.roleNames : []
+    } catch (e) {
+      console.error("[check-role] error", e)
+      return []
+    }
+  }
+  
 
   async function fetchUsers() {
     const { data, error } = await supabase
@@ -39,7 +89,6 @@ export default function DashboardPage() {
 
     if (data) {
       setUsers(data)
-      // Separate Mechlin users from others based on organization name
       const mechlin = data.filter(user => 
         user.organisations?.name?.toLowerCase().includes('mechlin') ||
         user.email?.includes('@mechlin') || 
@@ -59,59 +108,54 @@ export default function DashboardPage() {
   }
 
   async function fetchOrganisations() {
-    // Fetch organisations with project counts
     const { data: organisations, error: orgError } = await getAllOrganisationsWithProjectCounts()
-
     if (orgError) {
       console.error('Error fetching organisations:', orgError)
       return
     }
-
+    
     if (organisations) {
-      // Then fetch user counts for each organisation
       const organisationsWithCounts = await Promise.all(
         organisations.map(async (org) => {
           const { count, error: countError } = await supabase
             .from('users')
             .select('*', { count: 'exact', head: true })
             .eq('organisation_id', org.id)
-
           return {
             ...org,
             user_count: countError ? 0 : count || 0
           }
         })
       )
-      
       setOrganisations(organisationsWithCounts)
     }
   }
 
-  // Function to refresh users after creating a new one
-  const handleUserCreated = () => {
-    fetchUsers()
-  }
-
-  // Function to refresh organisations after creating a new one
-  const handleOrganizationCreated = () => {
-    fetchOrganisations()
-  }
-
-  
- React.useEffect(() => {
+  React.useEffect(() => {
     fetchProjects()
     fetchUsers()
     fetchOrganisations()
   }, [])
 
+  // RBAC: Filter tabs based on user permissions
   const tabs = [
-    { id: 'organisations' as const, label: 'Organisations', icon: Building2, count: organisations.length },
-    { id: 'projects' as const, label: 'Projects', icon: Building, count: projects.length },
-    { id: 'users' as const, label: 'Users', icon: Users, count: users.length },
-    { id: 'etc' as const, label: 'More', icon: Settings, count: null }
-  ]
+    { id: 'organisations' as const, label: 'Organisations', icon: Building2, count: organisations.length, permission: 'organisations.read' },
+    { id: 'projects' as const, label: 'Projects', icon: Building, count: projects.length, permission: 'projects.read' },
+    { id: 'users' as const, label: 'Users', icon: Users, count: users.length, permission: 'users.read' },
+    { id: 'etc' as const, label: 'More', icon: Settings, count: null, permission: null }
+  ].filter(tab => !tab.permission || hasPermission(tab.permission));
 
-  return (   <div className="min-h-screen">
+  // Handle initial tab selection if 'organisations' is not allowed
+  React.useEffect(() => {
+    if (!loading && tabs.length > 0 && !tabs.find(t => t.id === activeTab)) {
+      setActiveTab(tabs[0].id);
+    }
+  }, [loading, tabs, activeTab]);
+
+  if (loading) return null;
+
+  return (
+    <div className="min-h-screen">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="custom-container">
           {/* Tab Navigation */}
@@ -141,11 +185,10 @@ export default function DashboardPage() {
               })}
             </div>
           </div>
- 
 
           <div className="w-full">
             {/* Projects Tab */}
-            {activeTab === 'projects' && (
+            {activeTab === 'projects' && hasPermission('projects.read') && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -169,7 +212,6 @@ export default function DashboardPage() {
                         className="group block p-6 bg-white backdrop-blur-sm rounded-md border border-[#0F172A]/10 hover:border-[#006AFF] transition-all duration-300 force-white-bg"
                       >
                         <div className="space-y-4">
-                          {/* Project Header */}
                           <div className="flex justify-between items-start">
                             <h3 className="font-medium text-lg tracking-tight  group-hover:text-[#006AFF] ">
                               {project.name}
@@ -188,10 +230,7 @@ export default function DashboardPage() {
                             >
                               {project.status}
                             </Badge>
-
                           </div>
-
-                          {/* Project Details */}
                           <div className="space-y-3 text-xs">
                             <div className="flex items-center gap-1">
                               <Building className="h-4 w-4 text-[#006AFF]" />
@@ -199,19 +238,16 @@ export default function DashboardPage() {
                                 {project.organisations?.name || 'No Organization'}
                               </span>
                             </div>
-                            
                             {project.budget && (
                               <div className="flex items-center gap-1 ">
                                 <p className="text-xs ">{project.currency || '$'}{project.budget.toLocaleString()}</p>
                               </div>
                             )}
-
                             {project.start_date && (
                               <div className="flex items-center gap-1 ">
                                 <span className="text-xs ">Start: {project.start_date}</span>
                               </div>
                             )}
-
                             {project.expected_end_date && (
                               <div className="flex items-center gap-1 ">
                                 <span className="text-xs ">End: {project.expected_end_date}</span>
@@ -235,7 +271,7 @@ export default function DashboardPage() {
             )}
 
             {/* Users Tab */}
-            {activeTab === 'users' && (
+            {activeTab === 'users' && hasPermission('users.read') && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -251,10 +287,8 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Mechlin Users */}
                   <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm force-white-bg">
                     <div className="flex items-center gap-3 mb-6">
-                      
                       <div>
                         <h3 className="text-lg">Mechlin Team</h3>
                         <p className="text-sm text-[#0F172A]/60">Internal team members</p>
@@ -284,10 +318,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Other Users */}
                   <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm force-white-bg">
                     <div className="flex items-center gap-3 mb-6">
-                      
                       <div>
                         <h3 className="text-lg">Other Users</h3>
                         <p className="text-sm text-gray-500">Client Collaborators</p>
@@ -321,7 +353,7 @@ export default function DashboardPage() {
             )}
 
             {/* Organisations Tab */}
-            {activeTab === 'organisations' && (
+            {activeTab === 'organisations' && hasPermission('organisations.read') && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -344,8 +376,7 @@ export default function DashboardPage() {
                         className="group block p-6 bg-white backdrop-blur-sm rounded-md border border-[#0F172A]/10 hover:border-[#006AFF] transition-all duration-300 force-white-bg"
                       >
                         <div className="space-y-4">
-                          {/* Organization Header */}
-                          <div className="flex justify-between items-start gap-4">                          
+                          <div className="flex justify-between items-start gap-4">                           
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
                                 <span className=" font-medium cursor-pointer text-lg tracking-tight hover:text-[#006AFF] transition-colors line-clamp-2 leading-tight">
@@ -376,13 +407,10 @@ export default function DashboardPage() {
                               )}
                             </div>
                           </div>
-
-                          {/* Organization Details */}
                           <div className="space-y-1 text-sm border-t border-gray-100 pt-4">
                             <div className="flex items-center">
                               <span className="">Projects: {org.project_count || 0}</span>
                             </div>
-                            
                             {org.is_internal !== undefined && (
                               <div className="flex items-center ">
                                 <span className="">
@@ -390,7 +418,6 @@ export default function DashboardPage() {
                                 </span>
                               </div>
                             )}
-
                             {org.created_at && (
                               <div className="flex items-center">
                                 <span className="">Created {new Date(org.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>

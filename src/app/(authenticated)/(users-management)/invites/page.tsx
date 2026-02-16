@@ -1,6 +1,20 @@
 import { InvitesTable } from "@/components/custom/invites/invites-table"
+import { getServerUserPermissions } from "@/lib/rbac-middleware" // RBAC Server Utility
+import { redirect } from "next/navigation"
 
 export default async function InvitesPage() {
+    // 1. RBAC CHECK: Verify permission on the server side
+    const permissions = await getServerUserPermissions();
+    
+    // Track and manage invitations requires the ability to create/manage users
+    const canManageInvites = permissions.includes('users.create');
+
+    // 2. RESTRICTION: If user lacks permission, prevent access
+    if (!canManageInvites) {
+        redirect('/unauthorized');
+    }
+
+    // 3. UI: Remains 100% exactly as you setup
     return (
         <div className="p-0">
             <div className="px-4 sm:px-6 lg:px-8">
