@@ -117,9 +117,12 @@ CREATE TABLE IF NOT EXISTS status_logs (
 -- Documents
 CREATE TABLE IF NOT EXISTS documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+        phase_id UUID REFERENCES phases(id) ON DELETE SET NULL,
     milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
     sprint_id UUID REFERENCES sprints(id) ON DELETE SET NULL,
+
     name TEXT NOT NULL,
     file_url TEXT NOT NULL,
     version INTEGER DEFAULT 1,

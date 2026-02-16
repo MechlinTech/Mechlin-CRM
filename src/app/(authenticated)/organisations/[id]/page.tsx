@@ -199,7 +199,7 @@ export default function OrganisationDetailPage() {
                         {project.budget && (
                           <div className="flex items-center gap-2"> 
                             <DollarSign className="h-3.5 w-3.5 text-[#006AFF]" />
-                            <p className="font-medium">{project.currency || 'USD'}: {project.budget.toLocaleString()}</p>
+                            <p className="truncate">{project.currency || 'USD'}: {project.budget.toLocaleString()}</p>
                           </div>
                         )}
                         {project.start_date && (

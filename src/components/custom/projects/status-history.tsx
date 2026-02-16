@@ -37,8 +37,8 @@ export function StatusHistory({ logs }: { logs: any[] }) {
             const dbName = log.users?.name;
             const dbRole = log.users?.user_roles?.[0]?.roles?.display_name;
             
-            const finalName = dbName || user?.user_metadata?.full_name || "Admin";
-            const finalRole = dbRole || user?.user_metadata?.role || "System";
+            const finalName = dbName || "Admin";
+            const finalRole = dbRole || "System";
 
             return (
               <div key={log.id} className="relative pl-8 border-l-2 border-slate-100 last:border-0 pb-6">

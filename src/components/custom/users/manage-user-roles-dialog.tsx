@@ -84,7 +84,7 @@ export function ManageUserRolesDialog({ user, open, onOpenChange }: ManageUserRo
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md h-180">
                 <DialogHeader>
                     <DialogTitle>Manage Roles</DialogTitle>
                     <DialogDescription>

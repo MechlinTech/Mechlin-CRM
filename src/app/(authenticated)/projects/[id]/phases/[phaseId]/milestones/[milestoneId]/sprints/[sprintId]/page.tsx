@@ -153,10 +153,11 @@ export default function SprintPage({ params }: { params: any }) {
       <FileUp className="h-4 w-4" /> Upload
     </Button>
   }>
-    <DocumentForm projectId={id} ids={{ phase_id: phaseId, milestone_id: milestoneId }} />
-  </ActionButton>
-) : null}
-             <Link href={`/projects/${id}/documents?sprintId=${sprintId}`} className="flex items-center justify-center h-10 w-32 bg-[#006AFF] text-white rounded-md font-semibold text-xs gap-2 hover:bg-[#99C4FF] transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"><FolderOpen className="h-4 w-4" /> View Doc</Link>
+ <DocumentForm projectId={id} ids={{ phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} />
+                </ActionButton>
+                ) : null}
+              {/* FIX: Updated URL to include hierarchy for the filters to work immediately */}
+              <Link href={`/projects/${id}/documents?phaseId=${phaseId}&milestoneId=${milestoneId}&sprintId=${sprintId}`} className="flex items-center justify-center h-10 w-32 bg-[#006AFF] text-white rounded-md font-semibold text-xs gap-2 hover:bg-[#99C4FF] transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"><FolderOpen className="h-4 w-4" /> View Doc</Link>
           </div>
         </section>
 

@@ -41,12 +41,10 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
   )
 
   const updateFilter = (key: "phaseId" | "milestoneId" | "sprintId" | "sort", value: string) => {
-    // When phase changes -> clear milestone + sprint
     if (key === "phaseId") {
       pushParams({ phaseId: value, milestoneId: "", sprintId: "" })
       return
     }
-    // When milestone changes -> clear sprint
     if (key === "milestoneId") {
       pushParams({ milestoneId: value, sprintId: "" })
       return
@@ -70,20 +68,17 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
     }
   }
 
-  // 1) Fetch phases always
   React.useEffect(() => {
     ;(async () => {
       const { data, error } = await supabase.from("phases").select("id, name").eq("project_id", id)
       if (error) {
         console.error(error)
-        toast.error("Failed to load phases")
         return
       }
       setPhases(data || [])
     })()
   }, [id])
 
-  // 2) Fetch milestones when phase changes + auto-fix invalid milestoneId
   React.useEffect(() => {
     ;(async () => {
       if (!phaseId) {
@@ -94,20 +89,17 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
       const { data, error } = await supabase.from("milestones").select("id, name").eq("phase_id", phaseId)
       if (error) {
         console.error(error)
-        toast.error("Failed to load milestones")
         return
       }
       const list = data || []
       setMilestones(list)
 
-      // If URL has milestoneId that doesn't belong to this phase, clear it
       if (milestoneId && !list.some((m) => m.id === milestoneId)) {
         pushParams({ milestoneId: "", sprintId: "" })
       }
     })()
   }, [phaseId, milestoneId, pushParams])
 
-  // 3) Fetch sprints when milestone changes + auto-fix invalid sprintId
   React.useEffect(() => {
     ;(async () => {
       if (!milestoneId) {
@@ -117,36 +109,31 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
       const { data, error } = await supabase.from("sprints").select("id, name").eq("milestone_id", milestoneId)
       if (error) {
         console.error(error)
-        toast.error("Failed to load sprints")
         return
       }
       const list = data || []
       setSprints(list)
 
-      // If URL has sprintId that doesn't belong to this milestone, clear it
       if (sprintId && !list.some((s) => s.id === sprintId)) {
         pushParams({ sprintId: "" })
       }
     })()
   }, [milestoneId, sprintId, pushParams])
 
-  // 4) Fetch documents whenever filters/sort change
   const fetchDocs = React.useCallback(async () => {
     setLoading(true)
     try {
       let q = supabase
         .from("documents")
-        .select(
-          `
+        .select(`
           *,
           phases:phase_id(name),
           milestones:milestone_id(name),
           sprints:sprint_id(name)
-        `
-        )
+        `)
         .eq("project_id", id)
 
-      // Most specific filter wins
+      // Filtering logic using the new phase_id column
       if (sprintId) q = q.eq("sprint_id", sprintId)
       else if (milestoneId) q = q.eq("milestone_id", milestoneId)
       else if (phaseId) q = q.eq("phase_id", phaseId)
@@ -234,19 +221,19 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
           ))}
         </select>
 
-        <select
-          disabled={!milestoneId}
-          onChange={(e) => updateFilter("sprintId", e.target.value)}
-          className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-semibold text-[#1F2937] outline-none disabled:opacity-50 cursor-pointer"
-          value={sprintId}
-        >
-          <option value="">All Sprints</option>
-          {sprints.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+   <select
+  disabled={!milestoneId} // FIX: Now disabled if no milestone is selected
+  onChange={(e) => updateFilter("sprintId", e.target.value)}
+  className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-semibold text-[#1F2937] outline-none disabled:opacity-50 cursor-pointer"
+  value={sprintId}
+>
+  <option value="">All Sprints</option>
+  {sprints.map((s) => (
+    <option key={s.id} value={s.id}>
+      {s.name}
+    </option>
+  ))}
+</select>
       </div>
 
       {loading ? (
