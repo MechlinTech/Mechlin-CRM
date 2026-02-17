@@ -9,11 +9,17 @@ export default async function Page() {
     
     // RBAC: Fetch permissions on server
     const permissions = await getServerUserPermissions();
-    if(!permissions.includes('organisations.create')) {
+    console.log("Current User Permissions:", permissions);
+const canCreate = permissions.includes('organisations.create');
+    const canRead = permissions.includes('organisations.read');
+    const canUpdate = permissions.includes('organisations.update');
+    const canDelete = permissions.includes('organisations.delete');
+
+    // FIX: User has 'organisations.read', so this condition will now be FALSE.
+    // They will NOT be redirected.
+    if (!canRead && !canCreate && !canUpdate && !canDelete) {
         redirect('/unauthorized');
     }
-    const canCreate = permissions.includes('organisations.create');
-    
     return (
         <div className="min-h-screen ">
             <div className="px-4 sm:px-6 lg:px-8 ">
@@ -28,7 +34,7 @@ export default async function Page() {
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold text-[#0F172A]">All Organisations</h1>
-                                <p className="text-xs text-[#0F172A]/60">Manage your organization portfolio</p>
+                                <p className="text-xs text-[#0F172A]/60">Manage your organization portfolios</p>
                             </div>
                             <div className="bg-[#006AFF]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
                                 {organisations.organisations?.length || 0}

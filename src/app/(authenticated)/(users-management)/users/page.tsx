@@ -9,10 +9,15 @@ export default async function Page() {
     
     // RBAC: Fetch permissions on server
     const permissions = await getServerUserPermissions();
-    if(!permissions.includes('users.create')) {
+   const canRead = permissions.includes('users.read');
+    const canCreate = permissions.includes('users.create');
+    const canUpdate = permissions.includes('users.update');
+    const canDelete = permissions.includes('users.delete');
+
+    // FIX: Only redirect if the user has NO user-related permissions at all
+    if (!canRead && !canCreate && !canUpdate && !canDelete) {
         redirect('/unauthorized');
     }
-    const canCreate = permissions.includes('users.create');
     
     // Show error if exists
     if (!users.success) {

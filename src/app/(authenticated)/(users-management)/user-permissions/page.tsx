@@ -7,8 +7,14 @@ export default async function UserPermissionsPage() {
     // RBAC: Fetch permissions on server
     const permissions = await getServerUserPermissions();
     
-    // Check if user has permission to read user information
-    if (!permissions.includes('users.read')) {
+const canReadUsers = permissions.includes('users.read');
+    const canCreateUsers = permissions.includes('users.create');
+    const canUpdateUsers = permissions.includes('users.update');
+    const canDeleteUsers = permissions.includes('users.delete');
+    const canAssignRoles = permissions.includes('users.assign_roles');
+
+    // FIX: Allow access if the user has ANY user-related management or assignment permission 
+    if (!canReadUsers && !canCreateUsers && !canUpdateUsers && !canDeleteUsers && !canAssignRoles) {
         redirect('/unauthorized');
     }
 

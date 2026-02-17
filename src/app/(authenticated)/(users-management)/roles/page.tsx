@@ -9,11 +9,13 @@ export default async function RolesPage() {
     
     // RBAC: Fetch permissions on server
     const permissions = await getServerUserPermissions();
+const canRead = permissions.includes('roles.read');
     const canCreate = permissions.includes('roles.create');
-    
-    
-    // Check if user has permission to read user information
-    if (!canCreate) {
+    const canUpdate = permissions.includes('roles.update');
+    const canDelete = permissions.includes('roles.delete');
+
+    // FIX: Only redirect if the user has NO role-related permissions at all
+    if (!canRead && !canCreate && !canUpdate && !canDelete) {
         redirect('/unauthorized');
     }
     

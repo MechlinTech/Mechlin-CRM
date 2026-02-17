@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/collapsible"
 import { SIDEBAR_NAVIGATION } from "@/config/navigation"
 import { supabase } from "@/lib/supabase"
-import { useRBAC } from "@/context/rbac-context" // RBAC Integration
+import { useRBAC } from "@/context/rbac-context" 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
@@ -29,7 +29,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [projects, setProjects] = React.useState<any[]>([])
   const [hierarchyLoading, setHierarchyLoading] = React.useState(true)
   
-  // RBAC Hook to manage sidebar visibility
   const { hasPermission, loading: rbacLoading } = useRBAC()
 
   const isProjectsPage = pathname.startsWith('/projects/') && pathname !== '/projects'
@@ -71,15 +70,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   React.useEffect(() => {
     setMounted(true)
   }, [])
-    if (rbacLoading) {
-    return (
-      <Sidebar {...props} className="pt-10 overflow-y-hidden">
-        <SidebarContent />
-      </Sidebar>
-    )
-  }
 
-  if (!mounted) {
+  if (rbacLoading || !mounted) {
     return (
       <Sidebar {...props} className="pt-10 overflow-y-hidden">
         <SidebarContent />
@@ -88,9 +80,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   const renderProjectHierarchy = () => {
-    if (!isProjectsPage) {
-      return null
-    }
+    if (!isProjectsPage) return null
 
     if (hierarchyLoading) {
       return (
@@ -105,12 +95,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       )
     }
 
-    const currentProjectId = pathname.match(/\/projects\/([a-f0-9-]+)(?:\/phases\/[a-f0-9-]+\/milestones\/[a-f0-9-]+\/sprints\/[a-f0-9-]+)?/)?.[1]
+    const currentProjectId = pathname.match(/\/projects\/([a-f0-9-]+)/)?.[1]
     const currentProject = projects.find(p => p.id === currentProjectId)
 
-    if (!currentProject) {
-      return null 
-    }
+    if (!currentProject) return null 
 
     return (
       <Collapsible key="current-project" defaultOpen className="group/collapsible">
@@ -146,9 +134,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 <SidebarMenuButton asChild className="text-xs">
                                   <CollapsibleTrigger>
                                     <Award className="mr-2 h-3 w-3 text-purple-500" />
-                                       <Link href={`/projects/${currentProject.id}/phases/${phase.id}/milestones/${milestone.id}`}>
-                                    <span>{milestone.name}</span>
-                                   </Link>
+                                    <Link href={`/projects/${currentProject.id}/phases/${phase.id}/milestones/${milestone.id}`}>
+                                      <span>{milestone.name}</span>
+                                    </Link>
                                     <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                                   </CollapsibleTrigger>
                                 </SidebarMenuButton>
@@ -156,10 +144,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                   <SidebarMenu className="ml-4">
                                     {milestone.sprints?.map((sprint: any) => (
                                       <SidebarMenuItem key={sprint.id}>
-                                        <SidebarMenuButton 
-                                          asChild 
-                                          className="text-xs"
-                                        >
+                                        <SidebarMenuButton asChild className="text-xs">
                                           <Link href={`/projects/${currentProject.id}/phases/${phase.id}/milestones/${milestone.id}/sprints/${sprint.id}`}>
                                             <CheckCircle className="w-3 h-3 text-green-500 mr-2" />
                                             <span>{sprint.name}</span>
@@ -189,30 +174,68 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props} className="pt-12">
       <SidebarContent className="gap-0">
         {SIDEBAR_NAVIGATION.map((item) => {
-          // RBAC Filtering Logic: 
-          // dashboard, project management, and user management are administrative zones
-          // We check for "Create" permissions as requested to identify Admin/Super Admin status
-          const isUserManagement = item.title.toLowerCase().includes("user");
-          const isProjectManagement = item.title.toLowerCase().includes("project");
-          const isDashboard = item.title.toLowerCase() === "dashboard";
+          // DASHBOARD Visibility (Checks any Organisation CRUD) [cite: 1]
+          const canManageOrgs = hasPermission('organisations.read') || hasPermission('organisations.create') || hasPermission('organisations.update') || hasPermission('organisations.delete');
+          
+          if (item.title === "Dashboard" && !canManageOrgs) {
+            return null;
+          }
 
-          if (!rbacLoading) {
-            // Requirement: Only show User Management to those who can add users/roles
-            if (isUserManagement && !(hasPermission('users.create') || hasPermission('roles.create'))) {
-              return null;
-            }
-            // Requirement: Only show Project Management to those who can create projects
-            if (isProjectManagement && !hasPermission('projects.create')) {
-              return null;
-            }
-            // Requirement: Only show primary Dashboard to admins (who have organisation creation rights)
-            if (isDashboard && !hasPermission('organisations.create')) {
-              return null;
-            }
+          // PROJECT MANAGEMENT Visibility (Requires reading projects) [cite: 1]
+     const canManageProjects = hasPermission('projects.create') || hasPermission('projects.update') || hasPermission('projects.delete') || hasPermission('projects.manage_members');
+          
+          if (item.title === "Project Management" && !canManageProjects) {
+            return null;
+          }
+
+          // USER MANAGEMENT LOGIC [cite: 1, 2]
+          if (item.title === "User Management") {
+            const canManageUsers = hasPermission('users.read') || hasPermission('users.create') || hasPermission('users.update') || hasPermission('users.delete');
+            const canAssignRoles = hasPermission('users.assign_roles');
+            const canManageRoles = hasPermission('roles.read') || hasPermission('roles.create') || hasPermission('roles.update') || hasPermission('roles.delete');
+
+            if (!canManageUsers && !canAssignRoles && !canManageRoles) return null;
+
+            const filteredSubItems = item.items?.filter(sub => {
+              if (sub.title === "Organizations") return canManageOrgs;
+              if (sub.title === "Users") return canManageUsers;
+              if (sub.title === "Role Based Permissions") return canManageRoles;
+              if (sub.title === "User Permissions") return canAssignRoles || canManageUsers;
+              return true;
+            });
+
+            if (!filteredSubItems || filteredSubItems.length === 0) return null;
+
+            return (
+              <Collapsible key={item.title} defaultOpen className="group/collapsible">
+                <SidebarGroup>
+                  <SidebarGroupLabel asChild>
+                    <SidebarMenuButton asChild>
+                      <CollapsibleTrigger>
+                        {item.title}
+                        <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                      </CollapsibleTrigger>
+                    </SidebarMenuButton>
+                  </SidebarGroupLabel>
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {filteredSubItems.map((subItem) => (
+                          <SidebarMenuItem key={subItem.title}>
+                            <SidebarMenuButton asChild isActive={pathname === subItem.url}>
+                              <Link href={subItem.url}>{subItem.title}</Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </SidebarGroup>
+              </Collapsible>
+            );
           }
 
           const isDirectLink = item.url && (!item.items || item.items.length === 0);
-
           if (isDirectLink) {
             return (
               <SidebarGroup key={item.title}>
@@ -229,34 +252,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarGroup>
             );
           }
-
-          return (
-            <Collapsible key={item.title} defaultOpen className="group/collapsible">
-              <SidebarGroup>
-                <SidebarGroupLabel asChild>
-                  <SidebarMenuButton asChild>
-                    <CollapsibleTrigger>
-                      {item.title}
-                      <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                    </CollapsibleTrigger>
-                  </SidebarMenuButton>
-                </SidebarGroupLabel>
-                <CollapsibleContent>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      {item.items?.map((subItem) => (
-                        <SidebarMenuItem key={subItem.title}>
-                          <SidebarMenuButton asChild isActive={pathname === subItem.url}>
-                            <Link href={subItem.url}>{subItem.title}</Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </CollapsibleContent>
-              </SidebarGroup>
-            </Collapsible>
-          );
+          return null;
         })}
         
         {renderProjectHierarchy()}
