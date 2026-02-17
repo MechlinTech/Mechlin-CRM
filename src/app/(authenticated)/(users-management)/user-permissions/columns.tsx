@@ -12,6 +12,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Shield, Edit, Eye } from "lucide-react"
+import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
 
 export const columns: ColumnDef<any>[] = [
     {
@@ -65,6 +66,17 @@ export const columns: ColumnDef<any>[] = [
         id: "actions",
         cell: ({ row, table }) => {
             const user = row.original
+            const { hasPermission, loading } = useRBAC() // Added RBAC Hook
+
+            // Return loading placeholder while permissions are fetching
+            if (loading) return <div className="h-8 w-8" />
+         
+            // Check if user has permission to assign roles/permissions
+            const canEditPermissions = hasPermission('roles.update') ;
+             const canViewPermissions = hasPermission('roles.read') ;
+            
+            
+
 
             return (
                 <DropdownMenu>
@@ -76,18 +88,22 @@ export const columns: ColumnDef<any>[] = [
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
+                       {canViewPermissions && <DropdownMenuItem
                             onClick={() => (table.options.meta as any)?.onView?.(user)}
                         >
                             <Eye className="mr-2 h-4 w-4" />
                             View Permissions
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => (table.options.meta as any)?.onEdit?.(user)}
-                        >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Permissions
-                        </DropdownMenuItem>
+                        </DropdownMenuItem>}
+
+                        {/* RBAC: Only show Edit option if user has users.assign_roles permission */}
+                        {canEditPermissions && (
+                            <DropdownMenuItem
+                                onClick={() => (table.options.meta as any)?.onEdit?.(user)}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Permissions
+                            </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             )

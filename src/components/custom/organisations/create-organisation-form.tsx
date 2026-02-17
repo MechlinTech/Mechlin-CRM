@@ -25,6 +25,7 @@ import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createOrganisationAction, updateOrganisationAction, type Organisation, type EscalationContact } from "@/actions/user-management"
+import { useRBAC } from "@/context/rbac-context"
 
 // Escalation Contacts Field Component
 function EscalationContactsField({ value, onChange, organisationId }: { 
@@ -74,7 +75,6 @@ function EscalationContactsField({ value, onChange, organisationId }: {
 
   return (
     <div className="space-y-2">
-      {/* Add User from Organization */}
       {organisationId && (
         <div className="space-y-2">
           <Select
@@ -102,7 +102,6 @@ function EscalationContactsField({ value, onChange, organisationId }: {
         </div>
       )}
 
-      {/* Existing Contacts */}
       {value.length > 0 && (
         <div className="space-y-2">
           <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -132,7 +131,6 @@ function EscalationContactsField({ value, onChange, organisationId }: {
   )
 }
 
-// Zod schema matching the database schema
 const escalationContactSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Valid email required"),
@@ -167,6 +165,7 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const isEditMode = !!organisation
+  const { hasPermission } = useRBAC();
 
   const form = useForm<OrganisationFormValues>({
     resolver: zodResolver(organisationSchema),
@@ -178,7 +177,6 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
     },
   })
 
-  // Pre-fill form when organisation is provided (edit mode)
   useEffect(() => {
     if (organisation) {
       form.reset({
@@ -188,7 +186,6 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
         escalation_contacts: organisation.escalation_contacts || [],
       })
     } else {
-      // Reset to default values when not in edit mode
       form.reset({
         name: "",
         slug: "",
@@ -203,7 +200,13 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
     try {
       let result
       if (isEditMode && organisation) {
-        // Update existing organisation
+        // RBAC: Update Check
+        if (!hasPermission('organisations.update')) {
+            toast.error("Unauthorized to update organisations");
+            setLoading(false);
+            return;
+        }
+
         result = await updateOrganisationAction(organisation.id, {
           name: data.name,
           slug: data.slug,
@@ -221,7 +224,13 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
         }
         toast.success("Organisation updated successfully!")
       } else {
-        // Create new organisation
+        // RBAC: Create Check
+        if (!hasPermission('organisations.create')) {
+            toast.error("Unauthorized to create organisations");
+            setLoading(false);
+            return;
+        }
+
         result = await createOrganisationAction({
           name: data.name,
           slug: data.slug,
@@ -240,10 +249,7 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
         toast.success("Organisation created successfully!")
       }
       
-      // Refresh the page to show the updated/new organisation
       router.refresh()
-      
-      // Close the dialog after successful operation
       if (onSuccess) {
         onSuccess()
       }
@@ -273,9 +279,6 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
                   disabled={loading}
                 />
               </FormControl>
-              {/* <FormDescription>
-                The display name of the organisation (max 255 characters)
-              </FormDescription> */}
               <FormMessage />
             </FormItem>
           )}
@@ -293,7 +296,6 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
                   {...field}
                   disabled={loading}
                   onChange={(e) => {
-                    // Auto-convert to lowercase and replace spaces with hyphens
                     const value = e.target.value
                       .toLowerCase()
                       .replace(/\s+/g, "-")

@@ -7,11 +7,18 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
+import { useRBAC } from "@/context/rbac-context" // RBAC Integration
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
+  
+  // RBAC Hook
+  const { hasPermission, loading: rbacLoading } = useRBAC()
 
-  if (loading) {
+  // Combined loading state
+  const isLoading = authLoading || rbacLoading
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg text-gray-500">Loading profile...</div>
@@ -47,10 +54,14 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Profile</h1>
-        <Button variant="outline" size="sm">
-          <Edit className="mr-2 h-4 w-4" />
-          Edit Profile
-        </Button>
+        
+        {/* RBAC: Only show Edit button if user has users.update permission */}
+        {hasPermission('users.update') && (
+          <Button variant="outline" size="sm">
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Profile
+          </Button>
+        )}
       </div>
 
       {/* Profile Card */}

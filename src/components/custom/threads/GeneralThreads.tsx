@@ -18,7 +18,6 @@ export function GeneralThreads({
 }: GeneralThreadsProps) {
     const { user } = useAuth()
     
-    // If currentUserId not provided, use authenticated user
     const userId = currentUserId || user?.id
 
     if (!userId) {

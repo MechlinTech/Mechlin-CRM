@@ -1,8 +1,16 @@
 import { supabase } from "@/lib/supabase"
 import { ProjectsTable } from "@/components/custom/projects/projects-table"
 import { AddProjectButton } from "@/components/custom/projects/add-project-button"
+import { redirect } from "next/navigation";
+import { getServerUserPermissions } from "@/lib/rbac-middleware";
 
 export default async function ProjectsPage() {
+      const permissions = await getServerUserPermissions();
+        
+        // Check if user has permission to read user information
+        if (!permissions.includes('projects.create')) {
+            redirect('/unauthorized');
+        }
     const { data: projects } = await supabase
         .from("projects")
         .select(`*, organisations(name), project_members(user_id)`)

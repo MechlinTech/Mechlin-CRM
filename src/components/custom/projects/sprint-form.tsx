@@ -88,7 +88,7 @@ export function SprintForm({ milestoneId, projectId, sprint, onSuccess }: any) {
 
         <Button 
           type="submit" 
-          className="ml-33 w-50 "
+          className="w-full"
         >
           {isEdit ? "Update Sprint" : "Create Sprint"}
         </Button>

@@ -1,9 +1,23 @@
 import { AddRoleButton } from "@/components/custom/roles/add-role-button"
 import { getAllRolesAction } from "@/actions/rbac"
 import { RolesTable } from "@/components/custom/roles/roles-table"
+import { getServerUserPermissions } from "@/lib/rbac-middleware"
+import { redirect } from "next/navigation"
 
 export default async function RolesPage() {
     const result = await getAllRolesAction()
+    
+    // RBAC: Fetch permissions on server
+    const permissions = await getServerUserPermissions();
+const canRead = permissions.includes('roles.read');
+    const canCreate = permissions.includes('roles.create');
+    const canUpdate = permissions.includes('roles.update');
+    const canDelete = permissions.includes('roles.delete');
+
+    // FIX: Only redirect if the user has NO role-related permissions at all
+    if (!canRead && !canCreate && !canUpdate && !canDelete) {
+        redirect('/unauthorized');
+    }
     
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-zinc-50">
@@ -25,7 +39,9 @@ export default async function RolesPage() {
                                 {result.roles?.length || 0}
                             </div>
                         </div>
-                        <AddRoleButton />
+                        
+                        {/* RBAC: Only show Add button if user has roles.create permission */}
+                        {canCreate && <AddRoleButton />}
                     </div>
 
                     {/* Table Section */}

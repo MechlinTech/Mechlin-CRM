@@ -8,6 +8,8 @@ import { MessageComposer } from './MessageComposer'
 import { Thread, Message } from '@/data/threads'
 import { getMessagesByThreadAction, getParticipantsByThreadAction } from '@/actions/threads'
 import { supabase } from '@/lib/supabase'
+import { useRBAC } from '@/context/rbac-context' // RBAC Integration
+import { useRouter } from 'next/navigation'
 
 interface ThreadViewProps {
     thread: Thread
@@ -27,10 +29,22 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
     const [participants, setParticipants] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const messagesEndRef = useRef<HTMLDivElement | null>(null)
+    
+    // RBAC Integration
+    const { hasPermission, loading: rbacLoading } = useRBAC()
+    const router = useRouter()
 
     useEffect(() => {
-        loadThreadData()
-    }, [thread.id])
+        // RBAC: Redirect if user cannot read threads 
+        if (!rbacLoading && !hasPermission('threads.read')) {
+            router.push('/unauthorized')
+            return
+        }
+
+        if (thread.id) {
+            loadThreadData()
+        }
+    }, [thread.id, rbacLoading, hasPermission, router])
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -155,7 +169,7 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
         }
     }
 
-    if (loading) {
+    if (loading || rbacLoading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="space-y-2">
@@ -180,6 +194,9 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
             </div>
         )
     }
+
+    // RBAC check for replying 
+    const canReply = hasPermission('threads.update');
 
     return (
         <div className="h-[70vh] flex flex-col">
@@ -228,12 +245,20 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
                         <h3 className="text-xs font-medium text-gray-700">Reply to Thread</h3>
                     </div>
                     <div className="flex-1 overflow-hidden p-4">
-                        <MessageComposer
-                            threadId={thread.id}
-                            userId={currentUserId}
-                            onMessageSent={handleMessageSent}
-                            placeholder="Type your message here..."
-                        />
+                        {canReply ? (
+                            <MessageComposer
+                                threadId={thread.id}
+                                userId={currentUserId}
+                                onMessageSent={handleMessageSent}
+                                placeholder="Type your message here..."
+                            />
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-center p-6 bg-slate-100 rounded-lg border border-dashed border-slate-300">
+                                <p className="text-xs text-slate-500 font-medium italic">
+                                    You do not have permission to reply to this discussion.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

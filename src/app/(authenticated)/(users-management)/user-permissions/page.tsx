@@ -1,7 +1,23 @@
 import { getAllUsersAction } from "@/actions/user-management"
 import { UserPermissionsTable } from "@/components/custom/user-permissions/user-permissions-table"
+import { getServerUserPermissions } from "@/lib/rbac-middleware"
+import { redirect } from "next/navigation"
 
 export default async function UserPermissionsPage() {
+    // RBAC: Fetch permissions on server
+    const permissions = await getServerUserPermissions();
+    
+const canReadUsers = permissions.includes('users.read');
+    const canCreateUsers = permissions.includes('users.create');
+    const canUpdateUsers = permissions.includes('users.update');
+    const canDeleteUsers = permissions.includes('users.delete');
+    const canAssignRoles = permissions.includes('users.assign_roles');
+
+    // FIX: Allow access if the user has ANY user-related management or assignment permission 
+    if (!canReadUsers && !canCreateUsers && !canUpdateUsers && !canDeleteUsers && !canAssignRoles) {
+        redirect('/unauthorized');
+    }
+
     const result = await getAllUsersAction()
     
     return (

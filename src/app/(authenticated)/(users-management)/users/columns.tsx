@@ -24,6 +24,7 @@ import { CreateUserForm } from "@/components/custom/users/create-user-form"
 import { ManageUserRolesDialog } from "@/components/custom/users/manage-user-roles-dialog"
 import { useState } from "react"
 import { formatDate } from "@/lib/utils"
+import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
 
 // This is the columns for the users table.
 export const columns: ColumnDef<User>[] = [
@@ -115,7 +116,14 @@ export const columns: ColumnDef<User>[] = [
       const user = row.original
       const [editDialogOpen, setEditDialogOpen] = useState(false)
       const [rolesDialogOpen, setRolesDialogOpen] = useState(false)
- 
+      const { hasPermission, loading } = useRBAC() // Added RBAC Hook
+
+      if (loading) return <div className="h-8 w-8" />
+
+      const canUpdate = hasPermission('users.update')
+      const canManageRoles = hasPermission('users.assign_roles')
+      const canDelete = hasPermission('users.delete')
+
       return (
         <>
           <DropdownMenu>
@@ -127,22 +135,31 @@ export const columns: ColumnDef<User>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => setEditDialogOpen(true)}
-              >
-                Edit User
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setRolesDialogOpen(true)}
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                Manage Roles
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => deleteUserAction(user.id)}
-              >
-                Delete User
-              </DropdownMenuItem>
+              
+              {/* RBAC: Update permission */}
+              {canUpdate && (
+                <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                  Edit User
+                </DropdownMenuItem>
+              )}
+
+              {/* RBAC: Assign roles permission */}
+              {canManageRoles && (
+                <DropdownMenuItem onClick={() => setRolesDialogOpen(true)}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Manage Roles
+                </DropdownMenuItem>
+              )}
+
+              {/* RBAC: Delete permission */}
+              {canDelete && (
+                <DropdownMenuItem
+                  className="text-red-600 focus:text-red-600"
+                  onClick={() => confirm('Delete user?') && deleteUserAction(user.id)}
+                >
+                  Delete User
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           

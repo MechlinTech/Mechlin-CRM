@@ -28,32 +28,50 @@ import { deleteOrganisationAction } from "@/actions/user-management"
 import { CreateOrganisationForm } from "@/components/custom/organisations/create-organisation-form"
 import { useState } from "react"
 import { formatDate } from "@/lib/utils"
+import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
 
 // Component for actions cell to properly handle React hooks
 const ActionsCell = ({ organisation }: { organisation: Organisation }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const { hasPermission, loading } = useRBAC() // Added RBAC Hook
+
+  // If permissions are loading, show nothing for actions yet
+  if (loading) return <div className="h-8 w-8" />
+
+  const canEdit = hasPermission('organisations.update')
+  const canDelete = hasPermission('organisations.delete')
+
+  // If user can neither edit nor delete, don't show the menu at all
+  if (!canEdit && !canDelete) return null
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <button className="h-8 w-8 p-0 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors cursor-pointer outline-none">
             <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
+            <MoreHorizontal className="h-4 w-4 text-slate-500" />
+          </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => setEditDialogOpen(true)}
-          >
-            Edit Organisation
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => deleteOrganisationAction(organisation.id)}
-          >
-            Delete Organisation
-          </DropdownMenuItem>
+          
+          {/* RBAC: Edit permission */}
+          {canEdit && (
+            <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+              Edit Organisation
+            </DropdownMenuItem>
+          )}
+
+          {/* RBAC: Delete permission */}
+          {canDelete && (
+            <DropdownMenuItem
+              className="text-red-600 focus:text-red-600"
+              onClick={() => confirm('Delete this organisation?') && deleteOrganisationAction(organisation.id)}
+            >
+              Delete Organisation
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
       
@@ -141,7 +159,7 @@ export const columns: ColumnDef<Organisation>[] = [
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="cursor-pointer text-xs font-medium text-gray-900 hover:text-[#4F46E5] transition-colors">
+              <span className="cursor-pointer text-xs font-medium text-gray-900 hover:text-[#006AFF] transition-colors">
                 {primaryContact}
               </span>
             </TooltipTrigger>

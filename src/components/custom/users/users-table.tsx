@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DataTable } from "@/components/shared/data-table"
 import { columns } from "../../../app/(authenticated)/(users-management)/users/columns"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { User } from "@/actions/user-management"
+import { useRBAC } from "@/context/rbac-context" // RBAC Integration
+import { useRouter } from "next/navigation"
 
 interface UsersTableProps {
   users: User[]
@@ -21,6 +23,17 @@ export function UsersTable({ users }: UsersTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [organisationFilter, setOrganisationFilter] = useState<string>("all")
+  
+  // RBAC Hooks
+  const { hasPermission, loading } = useRBAC()
+  const router = useRouter()
+
+  // RBAC: Path Restriction Logic
+  useEffect(() => {
+    if (!loading && !hasPermission('users.read')) {
+      router.push('/unauthorized')
+    }
+  }, [loading, hasPermission, router])
 
   // Get unique organizations for filter dropdown
   const uniqueOrganisations = Array.from(
@@ -47,6 +60,18 @@ export function UsersTable({ users }: UsersTableProps) {
 
     return matchesSearch && matchesStatus && matchesOrganisation
   })
+
+  // Prevent UI flicker while checking permissions
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-sm text-gray-500">Verifying permissions...</p>
+      </div>
+    )
+  }
+
+  // Double check visibility before rendering content
+  if (!hasPermission('users.read')) return null;
 
   return (
     <div className="space-y-6 p-2">

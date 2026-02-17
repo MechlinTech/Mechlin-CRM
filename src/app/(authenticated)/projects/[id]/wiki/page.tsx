@@ -21,6 +21,7 @@ import {
 } from '@/actions/wiki'
 import type { WikiPage } from '@/data/wiki'
 import { getUserById } from '@/data/user'
+import { useRBAC } from "@/context/rbac-context"; // Added RBAC Integration
 import { 
   ArrowLeft, 
   Edit, 
@@ -45,8 +46,10 @@ export default function WikiPageView() {
   const [versions, setVersions] = useState<any[]>([])
   const [creatorName, setCreatorName] = useState<string>('Unknown')
 
+  // RBAC Hook
+  const { hasPermission, loading } = useRBAC();
+
   useEffect(() => {
-    // Check if we're in edit mode from URL params
     const editMode = searchParams.get('edit') === 'true'
     setIsEditing(editMode)
     
@@ -64,7 +67,6 @@ export default function WikiPageView() {
         setPage(result.page)
         setEditedContent(result.page.content || '')
         
-        // Fetch user details if created_by exists
         if (result.page.created_by) {
           const userResult = await getUserById(result.page.created_by)
           if (userResult.data && userResult.data.name) {
@@ -85,7 +87,6 @@ export default function WikiPageView() {
 
   const handleSave = async () => {
     if (!page) return
-
     setIsSaving(true)
     try {
       const result = await updateWikiPageAction(page.id, {
@@ -93,11 +94,10 @@ export default function WikiPageView() {
         title: page.title,
         status: page.status
       })
-
       if (result.success) {
         toast.success('Page updated successfully!')
         setIsEditing(false)
-        loadPage(page.id) // Reload to get latest data
+        loadPage(page.id)
       } else {
         toast.error(result.error || 'Failed to update page')
       }
@@ -110,7 +110,6 @@ export default function WikiPageView() {
 
   const handleDelete = async () => {
     if (!page) return
-
     try {
       const result = await deleteWikiPageAction(page.id)
       if (result.success) {
@@ -126,7 +125,6 @@ export default function WikiPageView() {
 
   const loadVersions = async () => {
     if (!page) return
-
     try {
       const result = await getWikiPageVersionsAction(page.id)
       if (result.success && result.versions) {
@@ -182,7 +180,6 @@ export default function WikiPageView() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl mx-auto py-8 px-4">
-        {/* Back Button - Top Left */}
         <div className="mb-4">
           <Button
             variant="ghost"
@@ -195,10 +192,8 @@ export default function WikiPageView() {
           </Button>
         </div>
 
-        {/* Header - Thinner */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
-            {/* Left Section - Title and Metadata */}
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-semibold text-gray-900 mb-2 break-words">{page.title}</h1>
               <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
@@ -220,7 +215,6 @@ export default function WikiPageView() {
               </div>
             </div>
             
-            {/* Right Section - Action Buttons */}
             <div className="flex flex-wrap items-center gap-2 lg:flex-shrink-0">
               <Button
                 variant="outline"
@@ -231,6 +225,7 @@ export default function WikiPageView() {
                 <Calendar className="h-4 w-4" />
                 History
               </Button>
+
               {isEditing ? (
                 <>
                   <Button
@@ -257,31 +252,36 @@ export default function WikiPageView() {
                 </>
               ) : (
                 <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <Edit className="h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowDeleteDialog(true)}
-                    className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </Button>
+                  {/* RBAC: wiki.update */}
+                  {!loading && hasPermission('wiki.update') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </Button>
+                  )}
+                  {/* RBAC: wiki.delete */}
+                  {!loading && hasPermission('wiki.delete') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </Button>
+                  )}
                 </>
               )}
             </div>
           </div>
         </div>
 
-        {/* Content */}
         <div className="bg-white rounded-lg shadow-sm border">
           <div className="border-b px-6 py-4">
             <h2 className="text-lg font-semibold text-gray-900">Content</h2>
@@ -325,14 +325,11 @@ export default function WikiPageView() {
           </div>
         </div>
 
-        {/* History Dialog */}
         <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
           <DialogContent className="!max-w-[900px] !w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Page History</DialogTitle>
-              <DialogDescription>
-                View and restore previous versions of this wiki page
-              </DialogDescription>
+              <DialogDescription>View and restore previous versions of this wiki page</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               {versions.length === 0 ? (
@@ -345,33 +342,29 @@ export default function WikiPageView() {
                         <p className="font-medium text-lg">
                           {versions.length === 1 ? 'Previous Version' : `Version ${versions.length - index}`}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          {formatDate(version.created_at)}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {version.changes_summary || 'No summary provided'}
-                        </p>
+                        <p className="text-sm text-gray-600">{formatDate(version.created_at)}</p>
+                        <p className="text-sm text-gray-500">{version.changes_summary || 'No summary provided'}</p>
                       </div>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setEditedContent(version.content)
-                          setIsEditing(true)
-                          setShowHistoryDialog(false)
-                          toast.info('Loaded previous version. Edit and save to restore.')
-                        }}
-                      >
-                        Restore
-                      </Button>
+                      {/* RBAC: wiki.update */}
+                      {!loading && hasPermission('wiki.update') && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setEditedContent(version.content)
+                            setIsEditing(true)
+                            setShowHistoryDialog(false)
+                            toast.info('Loaded previous version. Edit and save to restore.')
+                          }}
+                        >
+                          Restore
+                        </Button>
+                      )}
                     </div>
-                    {/* Content Preview */}
                     <div className="bg-gray-50 rounded-lg p-4">
                       <p className="text-xs text-gray-500 mb-3">Content Preview:</p>
                       <div 
                         className="text-sm prose prose-sm max-w-none overflow-auto max-h-96"
-                        dangerouslySetInnerHTML={{ 
-                          __html: version.content || '<p class="text-gray-400">No content</p>' 
-                        }}
+                        dangerouslySetInnerHTML={{ __html: version.content || '<p class="text-gray-400">No content</p>' }}
                       />
                     </div>
                   </div>
@@ -381,7 +374,6 @@ export default function WikiPageView() {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <DialogContent>
             <DialogHeader>
@@ -391,9 +383,7 @@ export default function WikiPageView() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-                Cancel
-              </Button>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>Cancel</Button>
               <Button 
                 onClick={handleDelete}
                 className="bg-red-600 text-white hover:bg-red-700 focus:bg-red-700"

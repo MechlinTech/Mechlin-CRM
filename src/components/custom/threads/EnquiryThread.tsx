@@ -15,6 +15,8 @@ import {
     createMessageAction,
     deleteThreadAction 
 } from '@/actions/threads'
+import { useRBAC } from '@/context/rbac-context'
+import { useRouter } from 'next/navigation'
 
 interface EnquiryThreadProps {
     contextType: 'project' | 'support' | 'user' | 'general'
@@ -38,6 +40,8 @@ export function EnquiryThread({
     const [selectedThread, setSelectedThread] = useState<Thread | null>(null)
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
+    const { hasPermission, loading: rbacLoading } = useRBAC()
+    const router = useRouter()
     
     // New thread form state
     const [newThreadTitle, setNewThreadTitle] = useState('')
@@ -47,11 +51,17 @@ export function EnquiryThread({
     const [newThreadIsPublic, setNewThreadIsPublic] = useState(true)
 
     useEffect(() => {
+        // RBAC: Path restriction check
+        if (!rbacLoading && !hasPermission('threads.read')) {
+            router.push('/unauthorized')
+            return
+        }
+
         setView(defaultView)
         if (defaultView === 'list' || showThreadList) {
             loadThreads()
         }
-    }, [contextType, contextId, defaultView])
+    }, [contextType, contextId, defaultView, rbacLoading, hasPermission, router])
 
     const loadThreads = async () => {
         setLoading(true)
@@ -69,8 +79,13 @@ export function EnquiryThread({
 
     const handleCreateThread = async () => {
         if (!newThreadTitle.trim()) return
+        
+        // RBAC Check
+        if (!hasPermission('threads.create')) {
+            console.error('Unauthorized to create threads')
+            return
+        }
 
-        // Validate context requirements
         if (contextType !== 'general' && !contextId) {
             console.error(`Context ID is required for ${contextType} threads`)
             return
@@ -81,7 +96,7 @@ export function EnquiryThread({
             const result = await createThreadAction({
                 title: newThreadTitle.trim(),
                 context_type: contextType,
-                context_id: contextId || undefined, // Pass undefined instead of null for optional field
+                context_id: contextId || undefined,
                 status: newThreadStatus,
                 priority: newThreadPriority,
                 created_by: currentUserId,
@@ -89,7 +104,6 @@ export function EnquiryThread({
             })
 
             if (result.success && result.thread) {
-                // Reset form
                 setNewThreadTitle('')
                 setNewThreadDescription('')
                 setNewThreadPriority('medium')
@@ -110,6 +124,12 @@ export function EnquiryThread({
     }
 
     const handleDeleteThread = async (threadId: string) => {
+        // RBAC Check
+        if (!hasPermission('threads.delete')) {
+            console.error('Unauthorized to delete threads')
+            return
+        }
+
         if (!confirm('Are you sure you want to delete this thread? This action cannot be undone.')) {
             return
         }
@@ -118,12 +138,10 @@ export function EnquiryThread({
         try {
             const result = await deleteThreadAction(threadId)
             if (result.success) {
-                // If we're viewing the deleted thread, go back to list
                 if (selectedThread?.id === threadId) {
                     setSelectedThread(null)
                     setView('list')
                 }
-                // Reload threads
                 loadThreads()
             } else {
                 console.error('Failed to delete thread:', result.error)
@@ -163,7 +181,8 @@ export function EnquiryThread({
         thread.title.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    // Render single thread view
+    if (rbacLoading) return null
+
     if (view === 'thread' && selectedThread) {
         return (
             <div className="space-y-4">
@@ -194,7 +213,6 @@ export function EnquiryThread({
         )
     }
 
-    // Render thread creation form
     if (view === 'create') {
         return (
             <div className="space-y-4">
@@ -311,7 +329,6 @@ export function EnquiryThread({
         )
     }
 
-    // Render thread list
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between py-2">
@@ -319,13 +336,14 @@ export function EnquiryThread({
                     <MessageSquare className="mr-2 h-5 w-5" />
                     {title}
                 </h2>
-                <Button onClick={() => setView('create')}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Thread
-                </Button>
+                {hasPermission('threads.create') && (
+                    <Button onClick={() => setView('create')}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Thread
+                    </Button>
+                )}
             </div>
 
-            {/* Search */}
             <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -336,7 +354,6 @@ export function EnquiryThread({
                 />
             </div>
 
-            {/* Thread List */}
             <div className="space-y-2">
                 {loading ? (
                     <div className="text-center py-6 text-gray-600 text-xs">
@@ -380,8 +397,7 @@ export function EnquiryThread({
                                 </div>
                             </div>
                             
-                            {/* Delete Button - Only for thread creator */}
-                            {thread.created_by === currentUserId && (
+                            {hasPermission('threads.delete') && thread.created_by === currentUserId && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -397,8 +413,8 @@ export function EnquiryThread({
                         </div>
                     </div>
                 ))
-            )}
+                )}
+            </div>
         </div>
-    </div>
-)
+    )
 }

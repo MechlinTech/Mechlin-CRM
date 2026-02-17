@@ -15,6 +15,72 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { EditProjectDialog } from "./edit-project-dialog"
+import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
+
+// Component for actions cell to handle RBAC hooks correctly
+const ActionsCell = ({ project, organisations, users }: { project: any, organisations: any[], users: any[] }) => {
+  const { hasPermission, loading } = useRBAC(); // Added RBAC Hook
+
+  const handleDelete = async () => {
+    if(window.confirm("Are you sure you want to delete this project?")) {
+        const res = await deleteProjectAction(project.id);
+        if(res.success) toast.success("Project deleted successfully");
+        else toast.error(res.error);
+    }
+  };
+
+  // Skip rendering actions if permissions are still loading
+  if (loading) return <div className="h-8 w-8" />;
+
+  const canUpdate = hasPermission('projects.update'); // Check permission for edit
+  const canDelete = hasPermission('projects.delete'); // Check permission for delete
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+            <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-white text-black border shadow-md w-[200px]">
+        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        
+        <DropdownMenuItem asChild>
+          <Link href={`/projects/${project.id}`} className="flex items-center w-full cursor-pointer text-[#060721]">
+            <Eye className="mr-2 h-4 w-4" /> View Profile
+          </Link>
+        </DropdownMenuItem>
+
+        {/* RBAC: Only show Edit if user has projects.update permission */}
+        {canUpdate && (
+          <>
+            <DropdownMenuSeparator />
+            <div onClick={(e) => e.stopPropagation()}>
+               <EditProjectDialog 
+                 project={project} 
+                 organisations={organisations} 
+                 users={users} 
+               />
+            </div>
+          </>
+        )}
+
+        {/* RBAC: Only show Delete if user has projects.delete permission */}
+        {canDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+                className="text-red-600 cursor-pointer " 
+                onClick={handleDelete}
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Delete Project
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 // FIX: Added 'users' parameter to match the call in projects-table.tsx
 export const getColumns = (organisations: any[], users: any[]): ColumnDef<any>[] => [
@@ -46,54 +112,12 @@ export const getColumns = (organisations: any[], users: any[]): ColumnDef<any>[]
   {
     id: "actions",
     header: "Actions", 
-    cell: ({ row }) => {
-      const project = row.original;
-      
-      const handleDelete = async () => {
-        if(window.confirm("Are you sure you want to delete this project?")) {
-            const res = await deleteProjectAction(project.id);
-            if(res.success) toast.success("Project deleted successfully");
-            else toast.error(res.error);
-        }
-      };
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-white text-black border shadow-md w-[200px]">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            
-            <DropdownMenuItem asChild>
-              <Link href={`/projects/${project.id}`} className="flex items-center w-full cursor-pointer text-[#060721]">
-                <Eye className="mr-2 h-4 w-4" /> View Profile
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            <div onClick={(e) => e.stopPropagation()}>
-               <EditProjectDialog 
-                 project={project} 
-                 organisations={organisations} 
-                 users={users} 
-               />
-            </div>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem 
-                className="text-[#060721] cursor-pointer " 
-                onClick={handleDelete}
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete Project
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
+    cell: ({ row }) => (
+      <ActionsCell 
+        project={row.original} 
+        organisations={organisations} 
+        users={users} 
+      />
+    ),
   },
 ]
