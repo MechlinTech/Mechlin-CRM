@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog"
 
 import { EditRoleForm } from "@/components/custom/roles/edit-role-form"
+import { X } from "lucide-react"
 
 interface EditRoleDialogProps {
     role: any
@@ -19,10 +20,10 @@ interface EditRoleDialogProps {
 export function EditRoleDialog({ role, open, onOpenChange }: EditRoleDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl max-h-[85vh] p-0 overflow-hidden">
+            <DialogContent className="max-w-4xl max-h-[85vh] p-0 overflow-hidden" showCloseButton={false}>
 
                 {/* Sticky Header */}
-                <div className="sticky top-0 bg-gradient-to-r from-[#006AFF] to-[#0055CC] px-6 py-5 border-b z-10">
+                <div className="sticky top-0 bg-gradient-to-r from-[#006AFF] to-[#0055CC] px-6 py-5 border-b z-10 flex items-start justify-between">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold text-white">
                             Edit Role: {role?.display_name}
@@ -31,6 +32,12 @@ export function EditRoleDialog({ role, open, onOpenChange }: EditRoleDialogProps
                             Update role information and permissions.
                         </DialogDescription>
                     </DialogHeader>
+                    <button
+                        onClick={() => onOpenChange(false)}
+                        className="text-white hover:text-gray-200 transition-colors p-1"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
                 </div>
 
                 {/* Scroll Area Only */}
