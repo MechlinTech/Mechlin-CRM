@@ -11,7 +11,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Shield, Edit, Trash2, Eye } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react"
 import type { Role } from "@/types/rbac"
 import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
 
@@ -20,30 +20,12 @@ export const columns: ColumnDef<any>[] = [
         accessorKey: "display_name",
         header: "Role Name",
         cell: ({ row }) => {
-            const isSystemRole = row.original.is_system_role
             return (
-                <div className="flex items-center gap-2">
-                    <div className="font-medium text-[#0F172A]">
-                        {row.getValue("display_name")}
-                    </div>
-                    {isSystemRole && (
-                        <Badge variant="outline" className="text-xs">
-                            <Shield className="h-3 w-3 mr-1" />
-                            System
-                        </Badge>
-                    )}
+                <div className="font-medium text-[#0F172A]">
+                    {row.getValue("display_name")}
                 </div>
             )
         },
-    },
-    {
-        accessorKey: "name",
-        header: "Internal Name",
-        cell: ({ row }) => (
-            <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                {row.getValue("name")}
-            </code>
-        ),
     },
     {
         accessorKey: "description",
@@ -65,18 +47,6 @@ export const columns: ColumnDef<any>[] = [
             return (
                 <Badge variant="secondary" className="font-normal">
                     {permissions.length} permissions
-                </Badge>
-            )
-        },
-    },
-    {
-        accessorKey: "organisation_id",
-        header: "Scope",
-        cell: ({ row }) => {
-            const orgId = row.getValue("organisation_id")
-            return (
-                <Badge variant={orgId ? "default" : "outline"}>
-                    {orgId ? "Organisation" : "Global"}
                 </Badge>
             )
         },
@@ -114,7 +84,6 @@ export const columns: ColumnDef<any>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem
                             onClick={() => (table.options.meta as any)?.onView?.(role)}
                         >

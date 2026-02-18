@@ -87,7 +87,6 @@ export const columns: ColumnDef<any>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
                        {canViewPermissions && <DropdownMenuItem
                             onClick={() => (table.options.meta as any)?.onView?.(user)}
                         >

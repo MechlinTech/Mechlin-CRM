@@ -9,10 +9,16 @@ export const SIDEBAR_NAVIGATION = [
     items: [], // Always include this to satisfy TypeScript
   },
   {
+    title: "Organization Management",
+    url: "",
+    items: [
+      { title: "Organizations", url: "/organisations" },
+    ],
+  },
+  {
     title: "User Management",
     url: "", // Empty URL for collapsible groups
     items: [
-      { title: "Organizations", url: "/organisations" },
       { title: "Users", url: "/users" },
       { title: "Role Based Permissions", url: "/roles" },
       { title: "User Permissions", url: "/user-permissions" },

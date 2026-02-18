@@ -11,6 +11,7 @@ export type Organisation = {
     name: string
     slug: string
     status: "active" | "suspended" | "trial"
+    is_internal: boolean
     escalation_contacts: EscalationContact[]
     created_at: string
     updated_at: string
@@ -28,6 +29,7 @@ export type CreateOrganisationInput = {
     name: string
     slug: string
     status: "active" | "suspended" | "trial"
+    is_internal: boolean
     escalation_contacts?: EscalationContact[]
 }
 
