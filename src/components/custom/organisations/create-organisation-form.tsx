@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -151,6 +152,7 @@ const organisationSchema = z.object({
       "Slug must be lowercase alphanumeric with hyphens (e.g., my-org-123)"
     ),
   status: z.enum(["active", "suspended", "trial"]),
+  is_internal: z.boolean(),
   escalation_contacts: z.array(escalationContactSchema).optional()
 })
 
@@ -173,9 +175,29 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
       name: "",
       slug: "",
       status: "active",
+      is_internal: false,
       escalation_contacts: [],
     },
   })
+
+  // Auto-generate slug from name
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+  }
+
+  // Watch name changes and update slug
+  const nameValue = form.watch("name")
+  useEffect(() => {
+    if (!isEditMode && nameValue) {
+      const slug = generateSlug(nameValue)
+      form.setValue("slug", slug)
+    }
+  }, [nameValue, form, isEditMode])
 
   useEffect(() => {
     if (organisation) {
@@ -183,6 +205,7 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
         name: organisation.name,
         slug: organisation.slug,
         status: organisation.status,
+        is_internal: organisation.is_internal || false,
         escalation_contacts: organisation.escalation_contacts || [],
       })
     } else {
@@ -190,6 +213,7 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
         name: "",
         slug: "",
         status: "active",
+        is_internal: false,
         escalation_contacts: [],
       })
     }
@@ -211,6 +235,7 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
           name: data.name,
           slug: data.slug,
           status: data.status,
+          is_internal: data.is_internal,
           escalation_contacts: data.escalation_contacts,
         })
         if (!result.success) {
@@ -223,6 +248,14 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
           return
         }
         toast.success("Organisation updated successfully!")
+        
+        // Auto-close modal after successful update
+        setTimeout(() => {
+          form.reset()
+          if (onSuccess) {
+            onSuccess()
+          }
+        }, 1500)
       } else {
         // RBAC: Create Check
         if (!hasPermission('organisations.create')) {
@@ -235,6 +268,7 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
           name: data.name,
           slug: data.slug,
           status: data.status,
+          is_internal: data.is_internal,
           escalation_contacts: data.escalation_contacts,
         })
         if (!result.success) {
@@ -247,13 +281,17 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
           return
         }
         toast.success("Organisation created successfully!")
+        
+        // Auto-close modal after successful creation
+        setTimeout(() => {
+          form.reset()
+          if (onSuccess) {
+            onSuccess()
+          }
+        }, 1500)
       }
       
       router.refresh()
-      if (onSuccess) {
-        onSuccess()
-      }
-      form.reset()
     } catch (error) {
       console.error("Unexpected error:", error)
       toast.error("An unexpected error occurred")
@@ -284,33 +322,36 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="slug"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Slug</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="my-organisation"
-                  {...field}
-                  disabled={loading}
-                  onChange={(e) => {
-                    const value = e.target.value
-                      .toLowerCase()
-                      .replace(/\s+/g, "-")
-                      .replace(/[^a-z0-9-]/g, "")
-                    field.onChange(value)
-                  }}
-                />
-              </FormControl>
-              <FormDescription>
-                A unique URL-friendly identifier (lowercase, alphanumeric with hyphens, max 100 characters)
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Slug field - hidden in create mode, shown in edit mode */}
+        {isEditMode && (
+          <FormField
+            control={form.control}
+            name="slug"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Slug</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="my-organisation"
+                    {...field}
+                    disabled={loading}
+                    onChange={(e) => {
+                      const value = e.target.value
+                        .toLowerCase()
+                        .replace(/\s+/g, "-")
+                        .replace(/[^a-z0-9-]/g, "")
+                      field.onChange(value)
+                    }}
+                  />
+                </FormControl>
+                <FormDescription>
+                  A unique URL-friendly identifier (lowercase, alphanumeric with hyphens, max 100 characters)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
@@ -338,6 +379,30 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
             </FormItem>
           )}
         />
+
+ <FormField
+  control={form.control}
+  name="is_internal"
+  render={({ field }) => (
+    <FormItem className="flex items-center space-x-3 rounded-md border p-4">
+      <FormControl>
+        <Checkbox
+          className="translate-y-[1px]"
+          checked={field.value}
+          onCheckedChange={field.onChange}
+          disabled={loading}
+        />
+      </FormControl>
+
+      <FormLabel className="leading-none cursor-pointer">
+        Internal Organization
+      </FormLabel>
+
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
 
         <FormField
           control={form.control}

@@ -42,7 +42,7 @@ export default async function ProjectsPage() {
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold text-heading-primary">All Projects</h1>
-                                <p className="text-xs text-secondary">Manage your project portfolio</p>
+                                <p className="text-xs text-[#0F172A]/60">Manage your project portfolio</p>
                             </div>
                             <div className="bg-[#006AFF]/10 text-heading-primary border-[#006AFF]/20 font-semibold px-3 py-1 rounded-full text-xs">
                                 {projects?.length || 0}

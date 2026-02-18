@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -18,8 +19,13 @@ interface AddOrganisationButtonProps {
 
 export function AddOrganisationButton({ onSuccess }: AddOrganisationButtonProps) {
     const { hasPermission, loading } = useRBAC();
+    const [open, setOpen] = useState(false)
     
     const handleSuccess = () => {
+        // Close the dialog
+        setOpen(false)
+        
+        // Call parent onSuccess if provided
         if (onSuccess) {
             onSuccess()
         }
@@ -31,9 +37,9 @@ export function AddOrganisationButton({ onSuccess }: AddOrganisationButtonProps)
     }
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default">Add Organisation</Button>
+                <Button variant="default" onClick={() => setOpen(true)}>Add Organisation</Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>

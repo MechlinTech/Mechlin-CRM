@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Shield, Calendar } from "lucide-react"
+import { Calendar } from "lucide-react"
 
 interface ViewRoleDialogProps {
   role: any
@@ -36,15 +36,8 @@ export function ViewRoleDialog({ role, open, onOpenChange }: ViewRoleDialogProps
         {/* ===== Sticky Header ===== */}
         <div className="sticky top-0 bg-[#006AFF] px-6 py-4 border-b z-10">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2 text-lg">
+            <DialogTitle className="text-white text-lg">
               {role?.display_name}
-
-              {role?.is_system_role && (
-                <Badge variant="outline" className="text-xs text-white">
-                  <Shield className="h-3 w-3 mr-1" />
-                  System Role
-                </Badge>
-              )}
             </DialogTitle>
 
             <DialogDescription className="text-white">
@@ -59,12 +52,6 @@ export function ViewRoleDialog({ role, open, onOpenChange }: ViewRoleDialogProps
 
             {/* -------- Basic Info -------- */}
             <div className="space-y-3">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Internal Name</p>
-                <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                  {role?.name}
-                </code>
-              </div>
 
               {role?.description && (
                 <div>
@@ -81,12 +68,6 @@ export function ViewRoleDialog({ role, open, onOpenChange }: ViewRoleDialogProps
                   </Badge>
                 </div>
 
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Scope</p>
-                  <Badge variant={role?.organisation_id ? "default" : "outline"}>
-                    {role?.organisation_id ? "Organisation" : "Global"}
-                  </Badge>
-                </div>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-gray-500">

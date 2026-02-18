@@ -7,6 +7,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { X } from "lucide-react"
 import { EditUserPermissionsForm } from "./edit-user-permissions-form"
 
 interface EditUserPermissionsDialogProps {
@@ -21,7 +22,7 @@ export function EditUserPermissionsDialog({ user, open, onOpenChange }: EditUser
     <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
       
       {/* Header — fixed */}
-      <div className="sticky top-0 bg-gradient-to-r from-[#006AFF] to-[#0055CC] px-6 py-4 border-b z-10">
+      <div className="sticky top-0 bg-gradient-to-r from-[#006AFF] to-[#0055CC] px-6 py-4 border-b z-10 flex items-start justify-between">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-white">
             Edit Permissions: {user?.name}
@@ -30,6 +31,12 @@ export function EditUserPermissionsDialog({ user, open, onOpenChange }: EditUser
             Manage direct permissions for this user.
           </DialogDescription>
         </DialogHeader>
+        <button
+          onClick={() => onOpenChange(false)}
+          className="text-white hover:text-gray-200 transition-colors p-1"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Scroll area — only this scrolls */}

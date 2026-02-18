@@ -6,10 +6,15 @@ export async function getAllOrganisations() {
 }
 
 export async function getAllOrganisationsWithProjectCounts() {
-    // First fetch all organisations
+    // Use a single optimized query with left joins to include all organisations
     const { data: organisations, error: orgError } = await supabase
         .from("organisations")
-        .select("*")
+        .select(`
+            *,
+            projects (
+              id
+            )
+        `)
         .order('created_at', { ascending: false })
 
     if (orgError) {
@@ -17,22 +22,15 @@ export async function getAllOrganisationsWithProjectCounts() {
         return { data: [], error: orgError }
     }
 
-    // Then fetch project counts for each organisation
-    const organisationsWithCounts = await Promise.all(
-        organisations.map(async (org) => {
-            const { count, error: countError } = await supabase
-                .from('projects')
-                .select('*', { count: 'exact', head: true })
-                .eq('organisation_id', org.id)
+    if (!organisations) {
+        return { data: [], error: null }
+    }
 
-            const projectCount = countError ? 0 : count || 0
-
-            return {
-                ...org,
-                project_count: projectCount
-            }
-        })
-    )
+    // Transform the data to extract project counts from the joined data
+    const organisationsWithCounts = organisations.map(org => ({
+        ...org,
+        project_count: org.projects?.length || 0
+    }))
 
     return { data: organisationsWithCounts, error: null }
 }

@@ -55,12 +55,12 @@ export function AddUserButton({ onSuccess }: AddUserButtonProps) {
                     
                     <TabsContent value="invite" className="mt-6">
                         <div className="space-y-4">
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                 <p className="text-sm text-blue-800">
                                     <strong>Recommended:</strong> Send an email invitation to the user. 
                                     They will receive a secure link to set up their account.
                                 </p>
-                            </div>
+                            </div> */}
                             <InviteUserForm onSuccess={handleSuccess} />
                         </div>
                     </TabsContent>

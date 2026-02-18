@@ -6,6 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -94,14 +95,6 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "created_at",
-    header: "Created At",
-    cell: ({ row }) => {
-      const user = row.original
-      return <span className="text-xs text-gray-600">{formatDate(user.created_at)}</span>
-    },
-  },
-  {
     accessorKey: "updated_at",
     header: "Updated At",
     cell: ({ row }) => {
@@ -134,7 +127,6 @@ export const columns: ColumnDef<User>[] = [
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
               
               {/* RBAC: Update permission */}
               {canUpdate && (
@@ -146,7 +138,6 @@ export const columns: ColumnDef<User>[] = [
               {/* RBAC: Assign roles permission */}
               {canManageRoles && (
                 <DropdownMenuItem onClick={() => setRolesDialogOpen(true)}>
-                  <Shield className="mr-2 h-4 w-4" />
                   Manage Roles
                 </DropdownMenuItem>
               )}

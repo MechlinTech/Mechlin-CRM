@@ -6,6 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -54,7 +55,6 @@ const ActionsCell = ({ organisation }: { organisation: Organisation }) => {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
           
           {/* RBAC: Edit permission */}
           {canEdit && (
@@ -124,10 +124,10 @@ export const columns: ColumnDef<Organisation>[] = [
     accessorKey: "name",
     header: "Name",
   },
-  {
-    accessorKey: "slug",
-    header: "Slug",
-  },
+  // {
+  //   accessorKey: "slug",
+  //   header: "Slug",
+  // },
   {
     accessorKey: "status",
     header: "Status",
@@ -169,14 +169,6 @@ export const columns: ColumnDef<Organisation>[] = [
           </Tooltip>
         </TooltipProvider>
       )
-    },
-  },
-  {
-    accessorKey: "created_at",
-    header: "Created At",
-    cell: ({ row }) => {
-      const organisation = row.original
-      return <span className="text-xs text-gray-600">{formatDate(organisation.created_at)}</span>
     },
   },
   {
