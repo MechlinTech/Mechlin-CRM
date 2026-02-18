@@ -33,7 +33,7 @@ export function EditUserPermissionsDialog({ user, open, onOpenChange }: EditUser
         </DialogHeader>
         <button
           onClick={() => onOpenChange(false)}
-          className="text-white hover:text-gray-200 transition-colors p-1"
+          className="text-white hover:text-gray-200 hover:bg-white/10 transition-all duration-200 p-1 rounded"
         >
           <X className="h-4 w-4" />
         </button>
