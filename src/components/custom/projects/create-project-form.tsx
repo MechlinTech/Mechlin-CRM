@@ -5,7 +5,7 @@
   import { zodResolver } from "@hookform/resolvers/zod"
   import * as z from "zod"
   import { Button } from "@/components/ui/button"
-  import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form"
+  import { Form, FormControl, FormField, FormItem, FormLabel , FormMessage } from "@/components/ui/form"
   import { Input } from "@/components/ui/input"
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
   import { Checkbox } from "@/components/ui/checkbox"
@@ -15,17 +15,18 @@
   import { cn } from "@/lib/utils"
   import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
 
-  const projectSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    organisation_id: z.string().uuid("Please select an organization"),
-    status: z.enum(["Active", "Pending", "Suspended"]),
-    repo_link: z.string().optional().nullable(),
-    start_date: z.string().min(1, "Start date is required"),
-    expected_end_date: z.string().optional().nullable(),
-    budget: z.coerce.number().optional().nullable(),
-    currency: z.string().default("USD"),
-    members: z.array(z.string()).min(1, "Assign at least one member"),
-  })
+
+const projectSchema = z.object({
+  name: z.string().min(1, "Project name is required"),
+  organisation_id: z.string().uuid("Please select an organization"),
+status: z.enum(["Active", "Pending", "Suspended"]),
+  repo_link: z.string().url("Must be a valid URL").or(z.literal("")).nullable(),
+  start_date: z.string().min(1, "Start date is required"),
+  expected_end_date: z.string().optional().nullable(),
+  budget: z.coerce.number().min(0, "Budget must be a positive number").optional().nullable(),
+  currency: z.string().min(1, "Currency is required").default("USD"),
+  members: z.array(z.string()).min(1, "Assign at least one member"),
+})
 
   export function CreateProjectForm({ onSuccess, project, organisations }: any) {
     const [loading, setLoading] = React.useState(false)
@@ -138,35 +139,67 @@
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-white text-[#0F172A] p-1 font-sans">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField control={form.control} name="name" render={({ field }) => (
-              <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Project Name</FormLabel>
-                  <FormControl><Input className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF] transition-all" {...field} value={field.value ?? ""} /></FormControl>
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="organisation_id" render={({ field }) => (
-              <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Organization</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? ""}>
-                      <FormControl>
-                          <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer focus:ring-0">
-                              <SelectValue placeholder="Select Client" />
-                          </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-white border-slate-200 rounded-xl shadow-2xl overflow-hidden">
-                          {clientOrgs.map((org: any) => (
-                              <SelectItem key={org.id} value={org.id} className="text-xs font-medium cursor-pointer">{org.name}</SelectItem>
-                          ))}
-                      </SelectContent>
-                  </Select>
-              </FormItem>
-            )} />
-          </div>
+           <FormField
+    control={form.control}
+    name="name"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Project Name</FormLabel>
+        <FormControl>
+          <Input 
+            {...field} 
+            className={cn(
+              "bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF]",
+              form.formState.errors.name && "border-red-500 focus:border-red-500"
+            )}
+          />
+        </FormControl>
+        <FormMessage className="text-[10px] text-red-500 font-medium" />
+      </FormItem>
+    )}
+  />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {renderSelectionBox(mechlinTeam, "Mechlin Team Members")}
-            {renderSelectionBox(clientTeam, "Client Side Users")}
-          </div>
+  {/* Organization Select */}
+  <FormField
+    control={form.control}
+    name="organisation_id"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Organization</FormLabel>
+        <Select onValueChange={field.onChange} value={field.value ?? ""}>
+          <FormControl>
+            <SelectTrigger className={cn(
+              "bg-white border-slate-200 rounded-xl text-xs font-medium h-10",
+              form.formState.errors.organisation_id && "border-red-500"
+            )}>
+              <SelectValue placeholder="Select Client" />
+            </SelectTrigger>
+          </FormControl>
+          <SelectContent>
+            {clientOrgs.map((org: any) => (
+              <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <FormMessage className="text-[10px] text-red-500 font-medium" />
+      </FormItem>
+    )}
+  />
+</div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="flex flex-col gap-2">
+        {renderSelectionBox(mechlinTeam, "Mechlin Team Members")}
+        {/* Render error for the members array specifically here */}
+     {form.formState.errors.members && (
+  <p className="text-[10px] text-red-500 font-medium mt-1">
+    {/* Use Type Assertion or check for string explicitly */}
+    {String(form.formState.errors.members.message || "Assign at least one member")}
+  </p>
+)}
+    </div>
+    {renderSelectionBox(clientTeam, "Client Side Users")}
+</div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="start_date" render={({ field }) => (

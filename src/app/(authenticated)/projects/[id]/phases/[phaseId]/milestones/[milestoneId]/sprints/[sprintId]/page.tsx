@@ -12,7 +12,7 @@ import { ActionButton } from "@/components/shared/action-button";
 import { TaskForm } from "@/components/custom/projects/task-form";
 import { DocumentForm } from "@/components/custom/projects/document-form";
 import { deleteSprintAction, deleteTaskAction } from "@/actions/hierarchy";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { SprintThreads } from "@/components/custom/threads/SprintThreads";
 import { useRBAC } from "@/context/rbac-context"; 
@@ -21,11 +21,16 @@ function TaskItem({ task, ids, onRefresh }: { task: any, ids: any, onRefresh: ()
   const [open, setOpen] = React.useState(false);
   const { hasPermission, loading } = useRBAC(); 
 
+    if(!loading && !hasPermission('sprints.read')) {
+          redirect('/unauthorized');
+    }
+  
+
   const handleSuccess = () => {
     setOpen(false);
     setTimeout(() => { onRefresh(); }, 100);
   };
-
+ 
   const taskStatusStyles = 
     task.status === 'Pending' ? 'text-amber-500 border-amber-500/20 bg-amber-500/10' : 
     task.status === 'In Progress' ? 'text-emerald-500 border-emerald-500/20 bg-emerald-50/10' : 
@@ -33,7 +38,9 @@ function TaskItem({ task, ids, onRefresh }: { task: any, ids: any, onRefresh: ()
     'text-slate-500 border-slate-200 bg-slate-50';
 
   return (
-    <div className="p-5 bg-white border border-slate-100 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between hover:border-[#006AFF]/30 transition-all group shadow-sm gap-4">
+   <>
+      {hasPermission('tasks.read') && (
+         <div className="p-5 bg-white border border-slate-100 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between hover:border-[#006AFF]/30 transition-all group shadow-sm gap-4">
       <div className="space-y-2 flex-1">
         <div className="flex items-center gap-3">
             <p className="font-semibold text-sm text-slate-700 tracking-tight">{task.title}</p>
@@ -82,7 +89,9 @@ function TaskItem({ task, ids, onRefresh }: { task: any, ids: any, onRefresh: ()
           <button onClick={() => confirm('Delete task?') && deleteTaskAction(task.id, ids.project_id).then(onRefresh)} className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-300 hover:text-red-600 bg-white active:scale-95 transition-all cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
         )}
       </div>
-    </div>
+    </div> 
+   )}
+    </>
   );
 }
 

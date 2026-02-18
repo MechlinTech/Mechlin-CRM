@@ -10,7 +10,7 @@ import { SprintForm } from "@/components/custom/projects/sprint-form";
 import { MilestoneForm } from "@/components/custom/projects/milestone-form";
 import { deleteMilestoneAction } from "@/actions/hierarchy";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { ActionButton } from "@/components/shared/action-button";
 import { DocumentForm } from "@/components/custom/projects/document-form";
 import { MilestoneThreads } from "@/components/custom/threads/MilestoneThreads";
@@ -32,6 +32,9 @@ export default function MilestonePage({ params }: { params: any }) {
   }, [milestoneId]);
 
   React.useEffect(() => { fetchData(); }, [fetchData]);
+  if(!loading && !hasPermission('milestones.read')) {
+        redirect('/unauthorized');
+  }
 
   if (!m) return null;
 
@@ -110,7 +113,9 @@ export default function MilestonePage({ params }: { params: any }) {
             </Dialog>
           )}
         </div>
-        <div className="grid gap-4">
+       <>
+      {hasPermission('sprints.read') && (
+          <div className="grid gap-4">
           {m.sprints?.map((sprint: any) => (
             <div key={sprint.id} className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-[#006AFF]/30 transition-all group shadow-sm ring-1 ring-slate-50">
                 <Link href={`/projects/${id}/phases/${phaseId}/milestones/${milestoneId}/sprints/${sprint.id}`} className="flex-1 font-medium text-sm text-slate-700 hover:text-[#006AFF] transition-colors cursor-pointer">{sprint.name}</Link>
@@ -118,6 +123,9 @@ export default function MilestonePage({ params }: { params: any }) {
             </div>
           ))}
         </div>
+        )
+        }
+        </>
       </section>
 
       <section className="mt-8 border-t border-slate-100 pt-10"><MilestoneThreads milestoneId={milestoneId} title="Discussions" /></section>

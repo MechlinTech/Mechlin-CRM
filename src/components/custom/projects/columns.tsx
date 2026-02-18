@@ -43,7 +43,7 @@ const ActionsCell = ({ project, organisations, users }: { project: any, organisa
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white text-black border shadow-md w-[200px]">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+      
         
         <DropdownMenuItem asChild>
           <Link href={`/projects/${project.id}`} className="flex items-center w-full cursor-pointer text-[#060721]">
