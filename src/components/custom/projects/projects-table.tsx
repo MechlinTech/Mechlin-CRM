@@ -46,7 +46,7 @@ export function ProjectsTable({ projects, organisations, users }: any) {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="Active">Active</SelectItem>
             <SelectItem value="Pending">Pending</SelectItem>
             <SelectItem value="Suspended">Suspended</SelectItem>

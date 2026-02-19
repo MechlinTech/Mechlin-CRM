@@ -64,7 +64,7 @@ export function OrganisationsTable({ organisations }: OrganisationsTableProps) {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="suspended">Suspended</SelectItem>
             <SelectItem value="trial">Trial</SelectItem>

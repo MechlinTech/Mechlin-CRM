@@ -3,7 +3,8 @@
 import { supabase } from "@/lib/supabase";
 import { 
   ChevronRight, Plus, Pencil, Settings2, Trash2, FolderOpen, 
-  FileUp, Activity, Github, ReceiptText 
+  FileUp, Activity, Github, ReceiptText, 
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,9 +22,11 @@ import React from "react";
 import { ProjectWiki } from "@/components/custom/wiki";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useRBAC } from "@/context/rbac-context"; 
-import { redirect } from "next/navigation";
+import { redirect , useRouter} from "next/navigation";
+
 
 export default function ProjectOverview({ params }: { params: any }) {
+  const router = useRouter(); // Initialize the router here
   const { id } = React.use(params) as any;
   const [project, setProject] = React.useState<any>(null);
   const [organisations, setOrganisations] = React.useState<any[]>([]);
@@ -63,7 +66,20 @@ export default function ProjectOverview({ params }: { params: any }) {
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
       {/* 1. TOP SECTION */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 hover:bg-gray-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Project Management
+          </Button>
+        </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
         <section className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div className="space-y-1">
@@ -90,7 +106,7 @@ export default function ProjectOverview({ params }: { params: any }) {
           <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-slate-100">
             {loading ? (
               <Button variant="secondary" className="h-10 w-32" disabled>
-                <FileUp className="h-4 w-4" /> Upload
+                <FileUp className="h-4 w-4 " /> Upload
               </Button>
             ) : hasPermission('documents.create') ? (
               <ActionButton title="Upload" trigger={
@@ -159,7 +175,7 @@ export default function ProjectOverview({ params }: { params: any }) {
           <div className="grid gap-4">
             {project.phases?.map((phase: any) => (
               <Collapsible key={phase.id} className="group border border-slate-100 rounded-3xl bg-white shadow-sm hover:border-[#006AFF]/30 transition-all overflow-hidden">
-                <div className="flex flex-col md:flex-row items-center justify-between p-1"> 
+                <div className="flex flex-col md:flex-row items-center justify-between p-4"> 
                   <CollapsibleTrigger className="flex items-center gap-3 flex-1 p-2 hover:bg-slate-50 rounded-2xl text-left group w-full">
                     <div className=" cursor-pointer h-8 w-8 bg-slate-100 rounded-xl flex items-center justify-center group-data-[state=open]:rotate-90 transition-transform group-hover:bg-[#006AFF] group-hover:text-white shrink-0"><ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-white" /></div>
                     <span className="font-semibold text-sm tracking-tight text-slate-800 truncate">{phase.name}</span>
@@ -168,7 +184,8 @@ export default function ProjectOverview({ params }: { params: any }) {
                   <div className="flex items-center justify-end gap-3 pr-2 w-full md:w-auto p-2 md:p-0">
                     <div className="flex items-center gap-1.5 p-1 bg-white rounded-md border border-slate-100 shadow-sm">
                       {!loading && hasPermission('documents.create') && (
-                        <ActionButton title="Upload" trigger={<button className="h-8 w-8 flex items-center justify-center rounded-md text-slate-500 hover:text-[#006AFF] transition-all"><FileUp className="h-4 w-4 cursor-pointer" /></button>}><DocumentForm projectId={id} ids={{ phase_id: phase.id }} /></ActionButton>
+                        <ActionButton title="Upload" trigger={<button className="h-8 w-8  flex items-center justify-center rounded-md text-slate-500 hover:text-[#006AFF] transition-all"><FileUp className="h-4 w-4 
+                          cursor-pointer " /></button>}><DocumentForm projectId={id} ids={{ phase_id: phase.id }} /></ActionButton>
                       )}
                       <Link href={`/projects/${id}/documents?phaseId=${phase.id}`} className="h-8 w-8 flex items-center justify-center rounded-md text-slate-500 hover:text-[#006AFF] transition-all"><FolderOpen className="h-4 w-4 " /></Link>
                       <div className="w-[1px] h-4 bg-slate-200 mx-1" />
@@ -225,7 +242,7 @@ export default function ProjectOverview({ params }: { params: any }) {
                       <Link key={m.id} href={`/projects/${id}/phases/${phase.id}/milestones/${m.id}`} className="flex items-center justify-between p-4 sm:p-5 bg-white border border-slate-100 rounded-2xl hover:border-[#006AFF]/20 transition-all group shadow-sm">
                         <span className="font-medium text-slate-700 text-sm">{m.name}</span>
                         <div className="flex items-center gap-5 shrink-0">
-                          <Badge variant="outline" className="text-[8px] font-medium px-3 py-0.5 uppercase border-slate-200 text-slate-400 bg-white">{m.status}</Badge>
+                     
                           <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-[#006AFF] transition-transform group-hover:translate-x-1" />
                         </div>
                       </Link>

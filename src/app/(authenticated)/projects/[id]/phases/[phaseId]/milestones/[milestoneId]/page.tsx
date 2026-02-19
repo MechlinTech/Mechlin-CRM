@@ -3,19 +3,20 @@
 import * as React from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { ChevronRight, Plus, Pencil, Trash2, FileUp, FolderOpen, Activity } from "lucide-react";
+import { ChevronRight, Plus, Pencil, Trash2, FileUp, FolderOpen, Activity, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SprintForm } from "@/components/custom/projects/sprint-form";
 import { MilestoneForm } from "@/components/custom/projects/milestone-form";
 import { deleteMilestoneAction } from "@/actions/hierarchy";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { ActionButton } from "@/components/shared/action-button";
 import { DocumentForm } from "@/components/custom/projects/document-form";
 import { MilestoneThreads } from "@/components/custom/threads/MilestoneThreads";
 import { cn } from "@/lib/utils";
 import { useRBAC } from "@/context/rbac-context"; 
+
 
 export default function MilestonePage({ params }: { params: any }) {
   const router = useRouter();
@@ -32,6 +33,9 @@ export default function MilestonePage({ params }: { params: any }) {
   }, [milestoneId]);
 
   React.useEffect(() => { fetchData(); }, [fetchData]);
+  if(!loading && !hasPermission('milestones.read')) {
+        redirect('/unauthorized');
+  }
 
   if (!m) return null;
 
@@ -41,6 +45,17 @@ export default function MilestonePage({ params }: { params: any }) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
+             <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 hover:bg-gray-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Project
+          </Button>
+        </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <section className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
@@ -110,7 +125,9 @@ export default function MilestonePage({ params }: { params: any }) {
             </Dialog>
           )}
         </div>
-        <div className="grid gap-4">
+       <>
+      {hasPermission('sprints.read') && (
+          <div className="grid gap-4">
           {m.sprints?.map((sprint: any) => (
             <div key={sprint.id} className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-[#006AFF]/30 transition-all group shadow-sm ring-1 ring-slate-50">
                 <Link href={`/projects/${id}/phases/${phaseId}/milestones/${milestoneId}/sprints/${sprint.id}`} className="flex-1 font-medium text-sm text-slate-700 hover:text-[#006AFF] transition-colors cursor-pointer">{sprint.name}</Link>
@@ -118,6 +135,9 @@ export default function MilestonePage({ params }: { params: any }) {
             </div>
           ))}
         </div>
+        )
+        }
+        </>
       </section>
 
       <section className="mt-8 border-t border-slate-100 pt-10"><MilestoneThreads milestoneId={milestoneId} title="Discussions" /></section>

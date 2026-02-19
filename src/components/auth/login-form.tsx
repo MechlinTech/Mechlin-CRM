@@ -69,7 +69,7 @@ export function LoginForm({
         // send empty role to get roleNames back, OR send a dummy role and read roleNames
         body: JSON.stringify({ role: "__list__" }),
         cache: "no-store",
-      })
+      })  
 
       const data: CheckRoleResponse = await res.json().catch(() => ({ hasRole: false }))
 
