@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { DataTable } from "@/components/shared/data-table"
-import { columns } from "../../../app/(authenticated)/(users-management)/users/columns"
+import { getColumns } from "../../../app/(authenticated)/(users-management)/users/columns"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -14,6 +14,7 @@ import {
 import type { User } from "@/actions/user-management"
 import { useRBAC } from "@/context/rbac-context" // RBAC Integration
 import { useRouter } from "next/navigation"
+import { useAdminWithInternalFalse } from "@/hooks/useAdminWithInternalFalse"
 
 interface UsersTableProps {
   users: User[]
@@ -26,6 +27,7 @@ export function UsersTable({ users }: UsersTableProps) {
   
   // RBAC Hooks
   const { hasPermission, loading } = useRBAC()
+  const { isAdminWithInternalFalse } = useAdminWithInternalFalse()
   const router = useRouter()
 
   // RBAC: Path Restriction Logic
@@ -94,22 +96,24 @@ export function UsersTable({ users }: UsersTableProps) {
             <SelectItem value="suspended">Suspended</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={organisationFilter} onValueChange={setOrganisationFilter}>
-          <SelectTrigger className="w-full sm:w-[200px] border-gray-200/50 focus:border-purple-300 focus:ring-purple-500/20">
-            <SelectValue placeholder="Filter by organization" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Organisations</SelectItem>
-            {uniqueOrganisations.map((org) => (
-              <SelectItem key={org.id} value={org.id}>
-                {org.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {!isAdminWithInternalFalse && (
+          <Select value={organisationFilter} onValueChange={setOrganisationFilter}>
+            <SelectTrigger className="w-full sm:w-[200px] border-gray-200/50 focus:border-purple-300 focus:ring-purple-500/20">
+              <SelectValue placeholder="Filter by organization" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Organisations</SelectItem>
+              {uniqueOrganisations.map((org) => (
+                <SelectItem key={org.id} value={org.id}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
       <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
-        <DataTable columns={columns} data={filteredUsers} />
+        <DataTable columns={getColumns(isAdminWithInternalFalse)} data={filteredUsers} />
       </div>
     </div>
   )

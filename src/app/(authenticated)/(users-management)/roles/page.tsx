@@ -3,13 +3,45 @@ import { getAllRolesAction } from "@/actions/rbac"
 import { RolesTable } from "@/components/custom/roles/roles-table"
 import { getServerUserPermissions } from "@/lib/rbac-middleware"
 import { redirect } from "next/navigation"
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
 
 export default async function RolesPage() {
-    const result = await getAllRolesAction()
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, 
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value
+                },
+                set(name: string, value: string, options: any) {
+                    cookieStore.set({ name, value, ...options })
+                },
+                remove(name: string, options: any) {
+                    cookieStore.set({ name, value: '', ...options })
+                },
+            },
+        }
+    )
+
+    const {
+        data: { user }
+    } = await supabase.auth.getUser()
+
+    // Get user's organization from users table
+    const { data: userData } = await supabase
+        .from("users")
+        .select("organisation_id")
+        .eq("id", user?.id || "")
+        .single()
+
+    const result = await getAllRolesAction(userData?.organisation_id || null)
     
     // RBAC: Fetch permissions on server
     const permissions = await getServerUserPermissions();
-const canRead = permissions.includes('roles.read');
+    const canRead = permissions.includes('roles.read');
     const canCreate = permissions.includes('roles.create');
     const canUpdate = permissions.includes('roles.update');
     const canDelete = permissions.includes('roles.delete');

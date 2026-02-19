@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { getAllOrganisations, createOrganisation, updateOrganisation, deleteOrganisation } from "@/data/organisations"
 import { getAllUsers, createUser, updateUser, deleteUser } from "@/data/users"
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
 
 
 // Organisation type - represents the full organisation record from the database
@@ -93,7 +95,49 @@ export type CreateUserInput = {
 }
 
 export async function getAllUsersAction() {
-    const { data, error } = await getAllUsers()
+    // Get current user and check if they are admin with is_internal === false
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value
+                },
+            },
+        }
+    )
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    let organisationId: string | undefined = undefined
+    
+    if (!authError && user) {
+        // Check if user is admin with is_internal === false
+        const [rolesResult, userDataResult] = await Promise.all([
+            supabase
+                .from("user_roles")
+                .select("roles(name)")
+                .eq("user_id", user.id),
+            supabase
+                .from("users")
+                .select("organisation_id, organisations(is_internal)")
+                .eq("id", user.id)
+                .single()
+        ])
+
+        const roles = rolesResult.data?.map((ur: any) => ur.roles?.name).filter(Boolean) || []
+        const isAdmin = roles.includes("admin")
+        const isInternal = (userDataResult.data as any)?.organisations?.is_internal || false
+
+        // If user is admin with is_internal === false, filter by their organisation_id
+        if (isAdmin && !isInternal && userDataResult.data?.organisation_id) {
+            organisationId = userDataResult.data.organisation_id
+        }
+    }
+
+    const { data, error } = await getAllUsers(organisationId, supabase)
     if (error) {
         return { success: false, error: error.message, code: error.code }
     }

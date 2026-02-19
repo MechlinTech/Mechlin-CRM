@@ -25,6 +25,7 @@ import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createUserAction, updateUserAction, type User, getAllOrganisationsAction } from "@/actions/user-management"
+import { useAdminWithInternalFalse } from "@/hooks/useAdminWithInternalFalse"
 
 // Zod schema matching the database schema
 const userSchema = z.object({
@@ -54,7 +55,9 @@ export function CreateUserForm({ onSuccess, user }: CreateUserFormProps) {
   const [loading, setLoading] = useState(false)
   const [organisations, setOrganisations] = useState<any[]>([])
   const [loadingOrgs, setLoadingOrgs] = useState(true)
+  const [organisationName, setOrganisationName] = useState<string>("")
   const router = useRouter()
+  const { isAdminWithInternalFalse, organisationId: userOrgId, loading: adminCheckLoading } = useAdminWithInternalFalse()
   const isEditMode = !!user
 
   const form = useForm<UserFormValues>({
@@ -67,8 +70,33 @@ export function CreateUserForm({ onSuccess, user }: CreateUserFormProps) {
     },
   })
 
-  // Fetch organisations for the dropdown
+  // For admin+internal false: auto-set org and fetch org name, skip fetching all orgs
   useEffect(() => {
+    if (adminCheckLoading) return
+    if (isAdminWithInternalFalse && userOrgId) {
+      form.setValue("organisation_id", userOrgId)
+      setLoadingOrgs(false)
+      
+      // Fetch organization name for display
+      async function fetchOrganisationName() {
+        try {
+          const { supabase } = await import("@/lib/supabase")
+          const { data, error } = await supabase
+            .from("organisations")
+            .select("name")
+            .eq("id", userOrgId)
+            .single()
+          
+          if (data && !error) {
+            setOrganisationName(data.name)
+          }
+        } catch (error) {
+          console.error("Failed to fetch organisation name:", error)
+        }
+      }
+      fetchOrganisationName()
+      return
+    }
     async function fetchOrganisations() {
       try {
         const result = await getAllOrganisationsAction()
@@ -83,13 +111,13 @@ export function CreateUserForm({ onSuccess, user }: CreateUserFormProps) {
       }
     }
     fetchOrganisations()
-  }, [])
+  }, [adminCheckLoading, isAdminWithInternalFalse, userOrgId, form])
 
   // Pre-fill form when user is provided (edit mode)
   useEffect(() => {
     if (user && !loadingOrgs) {
       form.reset({
-        organisation_id: user.organisation_id,
+        organisation_id: isAdminWithInternalFalse && userOrgId ? userOrgId : user.organisation_id,
         name: user.name,
         email: user.email,
         status: user.status,
@@ -97,22 +125,23 @@ export function CreateUserForm({ onSuccess, user }: CreateUserFormProps) {
     } else if (!user && !loadingOrgs) {
       // Reset to default values when not in edit mode
       form.reset({
-        organisation_id: "",
+        organisation_id: isAdminWithInternalFalse && userOrgId ? userOrgId : "",
         name: "",
         email: "",
         status: "active",
       })
     }
-  }, [user, form, loadingOrgs])
+  }, [user, form, loadingOrgs, isAdminWithInternalFalse, userOrgId])
 
   async function onSubmit(data: UserFormValues) {
     setLoading(true)
     try {
+      const orgId = isAdminWithInternalFalse && userOrgId ? userOrgId : data.organisation_id
       let result
       if (isEditMode && user) {
         // Update existing user
         result = await updateUserAction(user.id, {
-          organisation_id: data.organisation_id,
+          organisation_id: orgId,
           name: data.name,
           email: data.email,
           status: data.status,
@@ -130,7 +159,7 @@ export function CreateUserForm({ onSuccess, user }: CreateUserFormProps) {
       } else {
         // Create new user
         result = await createUserAction({
-          organisation_id: data.organisation_id,
+          organisation_id: orgId,
           name: data.name,
           email: data.email,
           status: data.status,
@@ -167,34 +196,53 @@ export function CreateUserForm({ onSuccess, user }: CreateUserFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full flex flex-col">
-        <FormField
-          control={form.control}
-          name="organisation_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organisation</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value}
-                disabled={loading || loadingOrgs}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an organisation" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {organisations.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {!isAdminWithInternalFalse && (
+          
+          <FormField
+              control={form.control}
+              name="organisation_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Organisation</FormLabel>
+
+                  {isAdminWithInternalFalse ? (
+                    // ✅ Locked org display
+                    <FormControl>
+                      <Input
+                        value={organisationName || "Loading..."}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                    </FormControl>
+                  ) : (
+                    // ✅ Normal dropdown
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={loading || loadingOrgs}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an organisation" />
+                        </SelectTrigger>
+                      </FormControl>
+
+                      <SelectContent>
+                        {organisations.map((org) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+        )}
 
         <FormField
           control={form.control}
@@ -262,7 +310,7 @@ export function CreateUserForm({ onSuccess, user }: CreateUserFormProps) {
           )}
         />
 
-        <Button type="submit" disabled={loading || loadingOrgs} className="ml-auto">
+        <Button type="submit" disabled={loading || loadingOrgs || (isAdminWithInternalFalse && !userOrgId)} className="ml-auto">
           {loading 
             ? (isEditMode ? "Updating..." : "Creating...") 
             : (isEditMode ? "Update User" : "Create User")}

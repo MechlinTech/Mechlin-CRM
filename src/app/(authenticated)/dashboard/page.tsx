@@ -177,19 +177,19 @@ export default  function DashboardPage() {
   if (loading) return null;
 
   return (
-    <div className="min-h-screen">
-      <div className="px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-red">
+      <div className="">
         <div className="custom-container">
           {/* Tab Navigation */}
           <div className="flex justify-end mb-6 sm:mb-8">
-            <div className="grid grid-cols-2 sm:flex items-center p-1 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-md shadow-sm sm:items-center">
+            <div className=" grid grid-cols-2 sm:flex items-center p-1 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-md shadow-sm sm:items-center">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`group relative flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg font-medium  transition-all duration-200 sm:justify-start ${
+                    className={`cursor-pointer group relative flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg font-medium  transition-all duration-200 sm:justify-start ${
                       activeTab === tab.id
                         ? 'bg-[#006AFF] text-white shadow-lg shadow-gray-900/25 scale-[1.02]'
                         : 'hover:text-[#006AFF] hover:bg-gray-100/50'

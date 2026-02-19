@@ -306,6 +306,14 @@ CREATE TABLE IF NOT EXISTS user_invites (
 -- INDEXES FOR PERFORMANCE
 -- ============================================
 
+-- Core Table Indexes
+CREATE INDEX IF NOT EXISTS idx_organisations_status ON organisations(status);
+CREATE INDEX IF NOT EXISTS idx_users_organisation_id ON users(organisation_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_projects_organisation_id ON projects(organisation_id);
+CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
+CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at DESC);
+
 -- Wiki Indexes
 CREATE INDEX IF NOT EXISTS idx_wiki_pages_parent_id ON wiki_pages(parent_id);
 CREATE INDEX IF NOT EXISTS idx_wiki_pages_slug ON wiki_pages(slug);

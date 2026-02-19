@@ -111,7 +111,54 @@ export async function createRole(data: CreateRoleInput) {
     return { data: role, error: null }
 }
 
-export async function updateRole(roleId: string, data: UpdateRoleInput) {
+export async function updateRole(roleId: string, data: UpdateRoleInput, userId?: string) {
+    // Check if it's a system role and if user is admin (not super_admin)
+    if (userId) {
+        const [existingRole, userRoles] = await Promise.all([
+            supabase
+                .from("roles")
+                .select("is_system_role")
+                .eq("id", roleId)
+                .single(),
+            supabase
+                .from("user_roles")
+                .select("roles(name)")
+                .eq("user_id", userId)
+        ])
+
+        const roles = userRoles.data?.map((ur: any) => ur.roles?.name).filter(Boolean) || []
+        const isAdmin = roles.includes("admin")
+        const isSuperAdmin = roles.includes("super_admin")
+        const isAdminOnly = isAdmin && !isSuperAdmin
+
+        if (existingRole.data?.is_system_role && isAdminOnly) {
+            return { 
+                data: null, 
+                error: { 
+                    message: "Admin users cannot update system roles",
+                    code: "ADMIN_SYSTEM_ROLE_UPDATE"
+                } 
+            }
+        }
+    } else {
+        // Fallback: block all system role updates if no user context
+        const { data: existingRole } = await supabase
+            .from("roles")
+            .select("is_system_role")
+            .eq("id", roleId)
+            .single()
+        
+        if (existingRole?.is_system_role) {
+            return { 
+                data: null, 
+                error: { 
+                    message: "Cannot update system roles",
+                    code: "SYSTEM_ROLE_UPDATE"
+                } 
+            }
+        }
+    }
+
     const { permission_ids, ...roleData } = data
     
     // Update role

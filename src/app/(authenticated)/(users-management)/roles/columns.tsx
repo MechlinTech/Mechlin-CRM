@@ -14,6 +14,7 @@ import {
 import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react"
 import type { Role } from "@/types/rbac"
 import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
+import { useIsAdmin } from "@/hooks/useIsAdmin" // Added admin check
 
 export const columns: ColumnDef<any>[] = [
     {
@@ -69,11 +70,16 @@ export const columns: ColumnDef<any>[] = [
             const role = row.original
             const isSystemRole = role.is_system_role
             const { hasPermission, loading } = useRBAC() // Added RBAC Hook
+            const { isAdminOnly, loading: adminLoading } = useIsAdmin() // Added admin check
 
-            if (loading) return <div className="h-8 w-8" />
+            if (loading || adminLoading) return <div className="h-8 w-8" />
 
             const canUpdate = hasPermission('roles.update')
             const canDelete = hasPermission('roles.delete')
+
+            // Admin users cannot edit system roles, but super_admin can
+            const canEditSystemRole = isSystemRole && !isAdminOnly && canUpdate
+            const canEditNonSystemRole = !isSystemRole && canUpdate
 
             return (
                 <DropdownMenu>
@@ -91,8 +97,8 @@ export const columns: ColumnDef<any>[] = [
                             View Details
                         </DropdownMenuItem>
 
-                        {/* RBAC: Edit permission */}
-                        {canUpdate && (
+                        {/* Edit permission - admin users cannot edit system roles */}
+                        {(canEditSystemRole || canEditNonSystemRole) && (
                             <DropdownMenuItem
                                 onClick={() => (table.options.meta as any)?.onEdit?.(role)}
                             >

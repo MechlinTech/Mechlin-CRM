@@ -1,8 +1,10 @@
 import { supabase } from "@/lib/supabase"
 import type { CreateUserInput } from "@/actions/user-management"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
-export async function getAllUsers() {
-    const result = await supabase
+export async function getAllUsers(organisationId?: string, client?: SupabaseClient<any, "public", any>) {
+    const db = client || supabase
+    let query = db
         .from("users")
         .select(`
             *,
@@ -35,7 +37,13 @@ export async function getAllUsers() {
                 )
             )
         `)
-        .order("created_at", { ascending: false })
+    
+    // Filter by organisation_id if provided
+    if (organisationId) {
+        query = query.eq("organisation_id", organisationId)
+    }
+    
+    const result = await query.order("created_at", { ascending: false })
     
     // Filter out empty arrays for cleaner response
     if (result.data) {
