@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { updateRoleAction, getAllPermissionsAction } from "@/actions/rbac"
 import type { UpdateRoleInput, Permission } from "@/types/rbac"
+import { useIsAdmin } from "@/hooks/useIsAdmin"
+import { useAuth } from "@/hooks/useAuth"
 
 interface EditRoleFormProps {
     role: any
@@ -21,6 +23,8 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
     const [permissions, setPermissions] = useState<Permission[]>([])
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
     const [permissionsByModule, setPermissionsByModule] = useState<Record<string, Permission[]>>({})
+    const { isAdminOnly, loading: adminLoading } = useIsAdmin()
+    const { user } = useAuth()
 
     const {
         register,
@@ -33,16 +37,6 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
             is_active: role.is_active,
         }
     })
-
-    useEffect(() => {
-        loadPermissions()
-        
-        // Set initial selected permissions
-        if (role.role_permissions) {
-            const permIds = role.role_permissions.map((rp: any) => rp.permission_id)
-            setSelectedPermissions(permIds)
-        }
-    }, [role])
 
     const loadPermissions = async () => {
         const result = await getAllPermissionsAction()
@@ -61,6 +55,16 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
             setPermissionsByModule(grouped)
         }
     }
+
+    useEffect(() => {
+        loadPermissions()
+        
+        // Set initial selected permissions
+        if (role.role_permissions) {
+            const permIds = role.role_permissions.map((rp: any) => rp.permission_id)
+            setSelectedPermissions(permIds)
+        }
+    }, [role])
 
     const togglePermission = (permissionId: string) => {
         setSelectedPermissions(prev =>
@@ -96,7 +100,7 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
                 permission_ids: selectedPermissions,
             }
 
-            const result = await updateRoleAction(role.id, roleData)
+            const result = await updateRoleAction(role.id, roleData, user?.id)
 
             if (result.success) {
                 toast.success("Role updated successfully!")

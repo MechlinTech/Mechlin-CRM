@@ -27,8 +27,17 @@ import { useState } from "react"
 import { formatDate } from "@/lib/utils"
 import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
 
+const organisationColumn: ColumnDef<User> = {
+  accessorKey: "organisations.name",
+  header: "Organisation",
+  cell: ({ row }) => {
+    const user = row.original
+    return <span className="text-xs font-medium text-gray-900">{user.organisations?.name || "N/A"}</span>
+  },
+}
+
 // This is the columns for the users table.
-export const columns: ColumnDef<User>[] = [
+const baseColumns: ColumnDef<User>[] = [
   {
     accessorKey: "name",
     header: "Name",
@@ -36,14 +45,6 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "email",
     header: "Email",
-  },
-  {
-    accessorKey: "organisations.name",
-    header: "Organisation",
-    cell: ({ row }) => {
-      const user = row.original
-      return <span className="text-xs font-medium text-gray-900">{user.organisations?.name || "N/A"}</span>
-    },
   },
   {
     accessorKey: "user_roles",
@@ -179,3 +180,18 @@ export const columns: ColumnDef<User>[] = [
     },
   },
 ]
+
+/** Returns columns, optionally excluding Organisation for admin+internal false */
+export function getColumns(hideOrganisation?: boolean): ColumnDef<User>[] {
+  if (hideOrganisation) {
+    return baseColumns
+  }
+  return [
+    baseColumns[0],
+    baseColumns[1],
+    organisationColumn,
+    ...baseColumns.slice(2),
+  ]
+}
+
+export const columns: ColumnDef<User>[] = getColumns(false)

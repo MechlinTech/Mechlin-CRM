@@ -22,8 +22,15 @@ import React from "react";
 import { ProjectWiki } from "@/components/custom/wiki";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useRBAC } from "@/context/rbac-context"; 
-import { redirect , useRouter} from "next/navigation";
-
+import { redirect,useRouter } from "next/navigation";
+import {
+  ProjectMilestoneProgressChart,
+  ProjectPhaseDistributionChart,
+  ProjectBudgetUtilizationChart,
+  ProjectTeamActivityChart,
+  ProjectTimelineChart
+} from "@/components/custom/project-charts";
+import { BarChart3, TrendingUp, PieChart } from "lucide-react";
 
 export default function ProjectOverview({ params }: { params: any }) {
   const router = useRouter(); // Initialize the router here
@@ -42,11 +49,12 @@ export default function ProjectOverview({ params }: { params: any }) {
   const [isAddPhaseOpen, setIsAddPhaseOpen] = React.useState(false);
   const [activeMilestonePhase, setActiveMilestonePhase] = React.useState<string | null>(null);
   const [editingPhaseId, setEditingPhaseId] = React.useState<string | null>(null);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = React.useState(false);
 
   const loadData = React.useCallback(async () => {
     const { data: p } = await supabase
       .from("projects")
-      .select("*, organisations(*), phases(*, milestones(*)), invoices(*), project_members(user_id, users(id, name))")
+      .select("*, organisations(*), phases(*, milestones(*, sprints(*))), invoices(*), project_members(user_id, users(id, name))")
       .eq("id", id)
       .single();
       
@@ -156,7 +164,9 @@ export default function ProjectOverview({ params }: { params: any }) {
         </section>
       </div>
 
-      {/* 2. ROADMAP SECTION: Check for phases.read  */}
+      
+
+      {/* 3. ROADMAP SECTION: Check for phases.read  */}
       {!loading && hasPermission('phases.read') && (
         <section className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4">
@@ -265,6 +275,108 @@ export default function ProjectOverview({ params }: { params: any }) {
         </div>
         <div className="px-4 sm:px-0"><InvoiceList invoices={project.invoices || []} projectId={id} organisationName={project.organisations?.name} onRefresh={loadData} /></div>
       </section>
+
+      {/* 2. PROJECT ANALYTICS SECTION - COLLAPSIBLE */}
+      <Collapsible open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
+        <div className="flex items-center justify-between px-4">
+          <div className="flex items-center gap-3">
+            <BarChart3 className="h-5 w-5 text-[#006AFF]" />
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Project Analytics</h2>
+          </div>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              {isAnalyticsOpen ? 'Hide Analytics' : 'View Analytics'}
+              <ChevronRight className={`h-4 w-4 transition-transform ${isAnalyticsOpen ? 'rotate-90' : ''}`} />
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+
+        <CollapsibleContent className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Milestone Progress Chart */}
+            <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <PieChart className="h-5 w-5 text-[#006AFF]" />
+                <h3 className="text-lg font-semibold">Milestone Progress</h3>
+              </div>
+              <ProjectMilestoneProgressChart phases={project.phases || []} />
+            </div>
+
+            {/* Phase Distribution Chart */}
+            <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <BarChart3 className="h-5 w-5 text-[#006AFF]" />
+                <h3 className="text-lg font-semibold">Phase Distribution</h3>
+              </div>
+              <ProjectPhaseDistributionChart phases={project.phases || []} />
+            </div>
+
+            {/* Budget Utilization Chart */}
+            {project.budget && (
+              <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <TrendingUp className="h-5 w-5 text-[#006AFF]" />
+                  <h3 className="text-lg font-semibold">Budget Utilization</h3>
+                </div>
+                <ProjectBudgetUtilizationChart project={project} invoices={project.invoices || []} />
+              </div>
+            )}
+
+            {/* Team Activity Chart */}
+            <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <Activity className="h-5 w-5 text-[#006AFF]" />
+                <h3 className="text-lg font-semibold">Team Activity</h3>
+              </div>
+              <ProjectTeamActivityChart phases={project.phases || []} />
+            </div>
+          </div>
+
+          {/* Project Summary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-md p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm">Total Phases</p>
+                  <p className="text-2xl font-bold">{project.phases?.length || 0}</p>
+                </div>
+                <BarChart3 className="h-8 w-8 text-blue-200" />
+              </div>
+            </div>
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-md p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm">Total Milestones</p>
+                  <p className="text-2xl font-bold">{project.phases?.reduce((sum: number, phase: any) => sum + (phase.milestones?.length || 0), 0) || 0}</p>
+                </div>
+                <PieChart className="h-8 w-8 text-green-200" />
+              </div>
+            </div>
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-md p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm">Team Members</p>
+                  <p className="text-2xl font-bold">{project.project_members?.length || 0}</p>
+                </div>
+                <Activity className="h-8 w-8 text-purple-200" />
+              </div>
+            </div>
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-md p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm">Total Invoices</p>
+                  <p className="text-2xl font-bold">{project.invoices?.length || 0}</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-orange-200" />
+              </div>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+
+
       <div className="px-4 sm:px-0"><ProjectWiki projectId={id} title="Wiki" showHeader={true} /></div>
     </div>
   );

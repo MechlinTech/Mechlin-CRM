@@ -52,18 +52,6 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Profile</h1>
-        
-        {/* RBAC: Only show Edit button if user has users.update permission */}
-        {hasPermission('users.update') && (
-          <Button variant="outline" size="sm">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Profile
-          </Button>
-        )}
-      </div>
-
       {/* Profile Card */}
       <Card>
         <CardHeader>

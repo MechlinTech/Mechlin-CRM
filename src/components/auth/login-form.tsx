@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { supabase } from "@/lib/supabase"
+import { isInternalUser } from "@/lib/permissions"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -115,11 +116,22 @@ export function LoginForm({
     // ✅ IMPORTANT: match INTERNAL names from DB
     const isAdmin = roleNames.includes("admin")
     const isSuperAdmin = roleNames.includes("super_admin")
+    
+    // ✅ Check if user is internal (Mechlin member)
+    const isInternal = await isInternalUser()
+    console.log("isInternal value:", isInternal) // Debug log for testing
 
     setLoading(false)
 
-    if (isAdmin || isSuperAdmin) {
+    // Route internal admins and super admins to dashboard
+    if (isInternal && (isAdmin || isSuperAdmin)) {
       router.replace("/dashboard")
+      return
+    }
+    
+    // Route external admins to admin-dashboard
+    if (isAdmin) {
+      router.replace("/admin-dashboard")
       return
     }
 

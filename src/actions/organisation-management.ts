@@ -63,3 +63,28 @@ export async function getOrganisationsWithProjectCounts() {
 
   return orgsWithCounts
 }
+
+export async function getUserWithOrganisation(userId: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .select(`
+      organisation_id,
+      organisations(
+        id,
+        name,
+        status,
+        is_internal,
+        created_at,
+        updated_at
+      )
+    `)
+    .eq('id', userId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching user organisation:', error)
+    return null
+  }
+
+  return data
+}

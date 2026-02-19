@@ -90,8 +90,8 @@ export async function createRoleAction(roleData: CreateRoleInput) {
     return { success: true, role: data }
 }
 
-export async function updateRoleAction(roleId: string, roleData: UpdateRoleInput) {
-    const { data, error } = await updateRole(roleId, roleData)
+export async function updateRoleAction(roleId: string, roleData: UpdateRoleInput, userId?: string) {
+    const { data, error } = await updateRole(roleId, roleData, userId)
     if (error) {
         return { success: false, error: error.message, code: error.code }
     }
