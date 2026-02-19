@@ -5,12 +5,18 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { getAllUsersAction } from "@/actions/user-management"
 import { UserPermissionsTable } from "@/components/custom/user-permissions/user-permissions-table"
-import { Building, Users, User, Settings, BarChart3, Building2 } from 'lucide-react'
-import { getAllOrganisationsWithProjectCounts } from "@/data/organisations"
+import { Building, Users, User, Settings, BarChart3, Building2, TrendingUp, PieChart, BarChart3 as BarChartIcon, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useRBAC } from "@/context/rbac-context"
 import { redirect } from 'next/navigation'
 import { isAdmin,isSuperAdmin } from '@/lib/permissions'
+import {
+  UserDistributionChart,
+  OrganisationStatusChart,
+  ProjectBudgetChart,
+  ProjectStatusChart,
+  OrganisationGrowthChart
+} from '@/components/custom/dashboard-charts'
 type CheckRoleResponse = {
   hasRole: boolean
   roleNames?: string[]
@@ -26,6 +32,7 @@ export default  function DashboardPage() {
   const [otherUsers, setOtherUsers] = React.useState<any[]>([])
   const [organisations, setOrganisations] = React.useState<any[]>([])
   const [activeTab, setActiveTab] = React.useState<'projects' | 'users' | 'organisations' | 'etc'>('organisations')
+  const [isLoading, setIsLoading] = React.useState(true)
 
   // RBAC Hook
   const { hasPermission, loading } = useRBAC();
@@ -108,33 +115,48 @@ export default  function DashboardPage() {
   }
 
   async function fetchOrganisations() {
-    const { data: organisations, error: orgError } = await getAllOrganisationsWithProjectCounts()
+    // Use a single optimized query with left joins to include all organisations
+    const { data: organisations, error: orgError } = await supabase
+      .from('organisations')
+      .select(`
+        *,
+        projects (
+          id
+        ),
+        users (
+          id
+        )
+      `)
+      .order('created_at', { ascending: false })
+    
     if (orgError) {
       console.error('Error fetching organisations:', orgError)
       return
     }
     
     if (organisations) {
-      const organisationsWithCounts = await Promise.all(
-        organisations.map(async (org) => {
-          const { count, error: countError } = await supabase
-            .from('users')
-            .select('*', { count: 'exact', head: true })
-            .eq('organisation_id', org.id)
-          return {
-            ...org,
-            user_count: countError ? 0 : count || 0
-          }
-        })
-      )
+      // Transform the data to extract counts from the joined data
+      const organisationsWithCounts = organisations.map(org => ({
+        ...org,
+        project_count: org.projects?.length || 0,
+        user_count: org.users?.length || 0
+      }))
+      
       setOrganisations(organisationsWithCounts)
     }
   }
 
   React.useEffect(() => {
-    fetchProjects()
-    fetchUsers()
-    fetchOrganisations()
+    async function fetchData() {
+      setIsLoading(true)
+      await Promise.all([
+        fetchProjects(),
+        fetchUsers(),
+        fetchOrganisations()
+      ])
+      setIsLoading(false)
+    }
+    fetchData()
   }, [])
 
   // RBAC: Filter tabs based on user permissions
@@ -367,7 +389,12 @@ export default  function DashboardPage() {
                     <Badge variant="outline" className="bg-[#006AFF]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">{organisations.length}</Badge>
                   </div>
                 </div>
-                {organisations.length > 0 ? (
+                {isLoading ? (
+                  <div className="text-center py-20">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#006AFF] mx-auto mb-4"></div>
+                    <p className="text-sm text-gray-600">Loading organization details...</p>
+                  </div>
+                ) : organisations.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {organisations.map((org) => (
                       <Link 
@@ -449,8 +476,95 @@ export default  function DashboardPage() {
                       <Settings className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-lg">More Features</h2>
-                      <p className="text-sm text-[#4C5C96]/60">Additional tools and settings</p>
+                      <h2 className="text-lg">Analytics Dashboard</h2>
+                      <p className="text-sm text-[#4C5C96]/60">Insights and analytics from your data</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* User Distribution Chart */}
+                  <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm force-white-bg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <PieChart className="h-5 w-5 text-[#006AFF]" />
+                      <h3 className="text-lg font-semibold">User Distribution</h3>
+                    </div>
+                    <UserDistributionChart mechlinUsers={mechlinUsers.length} otherUsers={otherUsers.length} />
+                  </div>
+
+                  {/* Organisation Status Chart */}
+                  <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm force-white-bg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <BarChartIcon className="h-5 w-5 text-[#006AFF]" />
+                      <h3 className="text-lg font-semibold">Organisations by Status</h3>
+                    </div>
+                    <OrganisationStatusChart organisations={organisations} />
+                  </div>
+
+                  {/* Project Budget Chart */}
+                  <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm force-white-bg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <TrendingUp className="h-5 w-5 text-[#006AFF]" />
+                      <h3 className="text-lg font-semibold">Top Projects by Budget</h3>
+                    </div>
+                    <ProjectBudgetChart projects={projects} />
+                  </div>
+
+                  {/* Project Status Chart */}
+                  <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm force-white-bg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <BarChart3 className="h-5 w-5 text-[#006AFF]" />
+                      <h3 className="text-lg font-semibold">Projects by Status</h3>
+                    </div>
+                    <ProjectStatusChart projects={projects} />
+                  </div>
+                </div>
+
+                {/* Organisation Growth Chart - Full Width */}
+                <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm force-white-bg">
+                  <div className="flex items-center gap-3 mb-4">
+                    <TrendingUp className="h-5 w-5 text-[#006AFF]" />
+                    <h3 className="text-lg font-semibold">Organisation Growth Over Time</h3>
+                  </div>
+                  <OrganisationGrowthChart organisations={organisations} />
+                </div>
+
+                {/* Summary Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-md p-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm">Total Users</p>
+                        <p className="text-2xl font-bold">{users.length}</p>
+                      </div>
+                      <Users className="h-8 w-8 text-blue-200" />
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-md p-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-sm">Total Projects</p>
+                        <p className="text-2xl font-bold">{projects.length}</p>
+                      </div>
+                      <Building className="h-8 w-8 text-green-200" />
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-md p-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 text-sm">Total Orgs</p>
+                        <p className="text-2xl font-bold">{organisations.length}</p>
+                      </div>
+                      <Building2 className="h-8 w-8 text-purple-200" />
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-md p-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-orange-100 text-sm">Active Projects</p>
+                        <p className="text-2xl font-bold">{projects.filter(p => p.status === 'Active').length}</p>
+                      </div>
+                      <BarChart3 className="h-8 w-8 text-orange-200" />
                     </div>
                   </div>
                 </div>

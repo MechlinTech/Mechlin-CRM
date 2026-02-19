@@ -26,10 +26,9 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<Omit<UpdateRoleInput, "permission_ids">>({
+    } = useForm<Omit<UpdateRoleInput, "permission_ids" | "name">>({
         defaultValues: {
             display_name: role.display_name,
-            name: role.name,
             description: role.description || "",
             is_active: role.is_active,
         }
@@ -83,7 +82,7 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
         }
     }
 
-    const onSubmit = async (data: Omit<UpdateRoleInput, "permission_ids">) => {
+    const onSubmit = async (data: Omit<UpdateRoleInput, "permission_ids" | "name">) => {
         if (selectedPermissions.length === 0) {
             toast.error("Please select at least one permission")
             return
@@ -93,6 +92,7 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
         try {
             const roleData: UpdateRoleInput = {
                 ...data,
+                name: role.name, // Keep original name
                 permission_ids: selectedPermissions,
             }
 
@@ -127,29 +127,6 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
                     )}
                 </div>
 
-                <div>
-                    <Label htmlFor="name">Internal Name</Label>
-                    <Input
-                        id="name"
-                        {...register("name", { 
-                            required: "Internal name is required",
-                            pattern: {
-                                value: /^[a-z_]+$/,
-                                message: "Use lowercase letters and underscores only"
-                            }
-                        })}
-                        placeholder="e.g., project_manager"
-                        disabled={role.is_system_role}
-                    />
-                    {errors.name && (
-                        <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
-                    )}
-                    {role.is_system_role && (
-                        <p className="text-xs text-amber-600 mt-1">
-                            System role name cannot be changed
-                        </p>
-                    )}
-                </div>
 
                 <div>
                     <Label htmlFor="description">Description</Label>
