@@ -3,7 +3,8 @@
 import { supabase } from "@/lib/supabase";
 import { 
   ChevronRight, Plus, Pencil, Settings2, Trash2, FolderOpen, 
-  FileUp, Activity, Github, ReceiptText 
+  FileUp, Activity, Github, ReceiptText, 
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,9 +22,11 @@ import React from "react";
 import { ProjectWiki } from "@/components/custom/wiki";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useRBAC } from "@/context/rbac-context"; 
-import { redirect } from "next/navigation";
+import { redirect , useRouter} from "next/navigation";
+
 
 export default function ProjectOverview({ params }: { params: any }) {
+  const router = useRouter(); // Initialize the router here
   const { id } = React.use(params) as any;
   const [project, setProject] = React.useState<any>(null);
   const [organisations, setOrganisations] = React.useState<any[]>([]);
@@ -63,7 +66,20 @@ export default function ProjectOverview({ params }: { params: any }) {
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
       {/* 1. TOP SECTION */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 hover:bg-gray-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Project Management
+          </Button>
+        </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
         <section className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div className="space-y-1">

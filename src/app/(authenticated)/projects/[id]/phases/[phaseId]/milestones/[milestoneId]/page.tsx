@@ -3,7 +3,7 @@
 import * as React from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { ChevronRight, Plus, Pencil, Trash2, FileUp, FolderOpen, Activity } from "lucide-react";
+import { ChevronRight, Plus, Pencil, Trash2, FileUp, FolderOpen, Activity, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SprintForm } from "@/components/custom/projects/sprint-form";
@@ -16,6 +16,7 @@ import { DocumentForm } from "@/components/custom/projects/document-form";
 import { MilestoneThreads } from "@/components/custom/threads/MilestoneThreads";
 import { cn } from "@/lib/utils";
 import { useRBAC } from "@/context/rbac-context"; 
+
 
 export default function MilestonePage({ params }: { params: any }) {
   const router = useRouter();
@@ -44,6 +45,17 @@ export default function MilestonePage({ params }: { params: any }) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
+             <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 hover:bg-gray-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Project
+          </Button>
+        </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <section className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
