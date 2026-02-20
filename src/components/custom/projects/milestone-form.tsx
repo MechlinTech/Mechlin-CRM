@@ -2,19 +2,39 @@
 
 import * as React from "react"
 import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
 import { Button } from "@/components/ui/button"
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form"
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createMilestoneAction, updateMilestoneAction } from "@/actions/hierarchy"
 import { toast } from "sonner"
 
+// 1. Define the Validation Schema based on your SQL constraints
+const milestoneSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+  deliverables: z.string().optional(),
+  start_date: z.string().min(1, "Start date is required"),
+  end_date: z.string().min(1, "End date is required"),
+  demo_date: z.string().optional().or(z.literal("")),
+  // Coerce string input from forms into numbers for the DB
+  hours: z.coerce.number().min(0, "Hours must be positive").optional(),
+  budget: z.coerce.number().min(0, "Budget must be positive").optional(),
+  status: z.enum(['Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done'], {
+    required_error: "Please select a status",
+  }),
+})
+
+type MilestoneFormValues = z.infer<typeof milestoneSchema>
+
 export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any) {
   const isEdit = !!milestone
-  const [loading, setLoading] = React.useState(false);
-
-  const form = useForm({
+  
+  // 2. Initialize form with Zod resolver
+  const form = useForm<MilestoneFormValues>({
+    resolver: zodResolver(milestoneSchema),
     defaultValues: {
       name: milestone?.name || "",
       deliverables: milestone?.deliverables || "",
@@ -27,29 +47,25 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
     }
   })
 
- async function onSubmit(values: any) {
-  setLoading(true);
-  try {
-    let res;
-    if (isEdit) {
-      // FIX: Only passing 3 arguments now: ID, ProjectID, and the Data object
-      res = await updateMilestoneAction(milestone.id, projectId, values);
-    } else {
-      res = await createMilestoneAction(phaseId, projectId, values);
-    }
+  async function onSubmit(values: MilestoneFormValues) {
+    try {
+      let res;
+      if (isEdit) {
+        res = await updateMilestoneAction(milestone.id, projectId, values);
+      } else {
+        res = await createMilestoneAction(phaseId, projectId, values);
+      }
 
-    if (res.success) {
-      toast.success(isEdit ? "Milestone Updated" : "Milestone Created");
-      onSuccess?.(); // This triggers fetchData() in your page
-    } else {
-      toast.error(res.error || "Failed to save milestone");
+      if (res.success) {
+        toast.success(isEdit ? "Milestone Updated" : "Milestone Created");
+        onSuccess?.();
+      } else {
+        toast.error(res.error || "Failed to save milestone");
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred");
     }
-  } catch (err) {
-    toast.error("An unexpected error occurred");
-  } finally {
-    setLoading(false);
   }
-}
 
   return (
     <Form {...form}>
@@ -59,8 +75,9 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
           <FormItem>
             <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Name</FormLabel>
             <FormControl>
-              <Input {...field} required className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" />
+              <Input {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" />
             </FormControl>
+            <FormMessage className="text-[10px]" /> {/* Added Message */}
           </FormItem>
         )} />
         
@@ -70,6 +87,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
             <FormControl>
               <Textarea {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[80px] resize-none" />
             </FormControl>
+            <FormMessage className="text-[10px]" />
           </FormItem>
         )} />
 
@@ -80,6 +98,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
               <FormControl>
                 <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" />
               </FormControl>
+              <FormMessage className="text-[10px]" />
             </FormItem>
           )} />
           <FormField control={form.control} name="end_date" render={({ field }) => (
@@ -88,6 +107,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
               <FormControl>
                 <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" />
               </FormControl>
+              <FormMessage className="text-[10px]" />
             </FormItem>
           )} />
           <FormField control={form.control} name="demo_date" render={({ field }) => (
@@ -96,6 +116,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
               <FormControl>
                 <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" />
               </FormControl>
+              <FormMessage className="text-[10px]" />
             </FormItem>
           )} />
         </div>
@@ -107,6 +128,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
               <FormControl>
                 <Input type="number" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" />
               </FormControl>
+              <FormMessage className="text-[10px]" />
             </FormItem>
           )} />
           <FormField control={form.control} name="budget" render={({ field }) => (
@@ -115,6 +137,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
               <FormControl>
                 <Input type="number" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" />
               </FormControl>
+              <FormMessage className="text-[10px]" />
             </FormItem>
           )} />
         </div>
@@ -122,7 +145,6 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
         <FormField control={form.control} name="status" render={({ field }) => (
           <FormItem>
             <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Status</FormLabel>
-            {/* FIXED: value and onValueChange linked strictly to field */}
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer">
@@ -135,15 +157,16 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
                 ))}
               </SelectContent>
             </Select>
+            <FormMessage className="text-[10px]" />
           </FormItem>
         )} />
 
         <Button 
           type="submit" 
-          disabled={loading} 
-          className="w-full bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#99C4FF] transition-all active:scale-95 cursor-pointer mt-2"
+          disabled={form.formState.isSubmitting} 
+          className="w-full bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#1a7bff] transition-all active:scale-95 cursor-pointer mt-2"
         >
-          {loading ? 'Processing...' : isEdit ? 'Update Milestone' : 'Save Milestone'}
+          {form.formState.isSubmitting ? 'Processing...' : isEdit ? 'Update Milestone' : 'Save Milestone'}
         </Button>
       </form>
     </Form>
