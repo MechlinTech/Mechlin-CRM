@@ -21,9 +21,25 @@ import {
     checkUserRole,
     getUserDirectPermissions,
     assignUserPermission,
-    removeUserPermission
+    removeUserPermission,
+    getUserOrganisation
 } from "@/data/rbac"
+import { createSupabaseServerClient } from "@/lib/rbac"
 import type { CreateRoleInput, UpdateRoleInput, AssignRoleInput } from "@/types/rbac"
+
+// ============================================
+// USER ORGANIZATION ACTIONS
+// ============================================
+
+export async function getUserOrganisationAction(userId: string) {
+    const { data, error } = await getUserOrganisation(userId)
+    
+    if (error) {
+        return { success: false, error: error.message, code: error.code }
+    }
+    
+    return { success: true, organisationId: data?.organisation_id }
+}
 
 // ============================================
 // PERMISSIONS ACTIONS
@@ -54,6 +70,7 @@ export async function getAllRolesAction(organisationId?: string | null) {
     if (error) {
         return { success: false, error: error.message, code: error.code }
     }
+    
     return { success: true, roles: data }
 }
 
@@ -82,7 +99,11 @@ export async function getOrganisationRolesAction(organisationId: string) {
 }
 
 export async function createRoleAction(roleData: CreateRoleInput) {
-    const { data, error } = await createRole(roleData)
+    // Get current user to pass their organization
+    const supabase = await createSupabaseServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    const { data, error } = await createRole(roleData, user?.id)
     if (error) {
         return { success: false, error: error.message, code: error.code }
     }

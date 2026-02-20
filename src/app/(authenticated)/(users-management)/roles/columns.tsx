@@ -58,7 +58,7 @@ export const columns: ColumnDef<any>[] = [
         cell: ({ row }) => {
             const isActive = row.getValue("is_active")
             return (
-                <Badge variant={isActive ? "default" : "secondary"}>
+                <Badge className={"border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-white"}>
                     {isActive ? "Active" : "Inactive"}
                 </Badge>
             )

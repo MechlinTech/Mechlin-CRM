@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { getAllUsersAction } from "@/actions/user-management"
 import { UserPermissionsTable } from "@/components/custom/user-permissions/user-permissions-table"
-import { Building, Users, User, Settings, BarChart3, Building2, TrendingUp, PieChart, BarChart3 as BarChartIcon, Loader2 } from 'lucide-react'
+import { Building, Users, User, Settings, BarChart3, Building2, TrendingUp, PieChart, BarChart3 as BarChartIcon, Loader2, FolderKanban } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useRBAC } from "@/context/rbac-context"
 import { redirect } from 'next/navigation'
@@ -162,9 +162,9 @@ export default  function DashboardPage() {
   // RBAC: Filter tabs based on user permissions
   const tabs = [
     { id: 'organisations' as const, label: 'Organisations', icon: Building2, count: organisations.length, permission: 'organisations.read' },
-    { id: 'projects' as const, label: 'Projects', icon: Building, count: projects.length, permission: 'projects.read' },
+    { id: 'projects' as const, label: 'Projects', icon: FolderKanban, count: projects.length, permission: 'projects.read' },
     { id: 'users' as const, label: 'Users', icon: Users, count: users.length, permission: 'users.read' },
-    { id: 'etc' as const, label: 'More', icon: Settings, count: null, permission: null }
+    { id: 'etc' as const, label: 'Analytics', icon: BarChartIcon, count: null, permission: null }
   ].filter(tab => !tab.permission || hasPermission(tab.permission));
 
   // Handle initial tab selection if 'organisations' is not allowed
@@ -177,7 +177,7 @@ export default  function DashboardPage() {
   if (loading) return null;
 
   return (
-    <div className="min-h-screen bg-red">
+    <div className="min-h-screen">
       <div className="">
         <div className="custom-container">
           {/* Tab Navigation */}
@@ -215,7 +215,7 @@ export default  function DashboardPage() {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-[#006AFF] rounded shadow-lg">
-                      <Building className="h-5 w-5 text-white" />
+                      <FolderKanban className="h-5 w-5 text-white" />
                     </div>
                     <div>
                       <h2 className="text-lg font-semibold ">All Projects</h2>
@@ -473,7 +473,7 @@ export default  function DashboardPage() {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-[#006AFF] rounded-md shadow-lg">
-                      <Settings className="h-5 w-5 text-white" />
+                      <BarChart3 className="h-5 w-5 text-white" />
                     </div>
                     <div>
                       <h2 className="text-lg">Analytics Dashboard</h2>

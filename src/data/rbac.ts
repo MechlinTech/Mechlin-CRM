@@ -2,6 +2,18 @@ import { supabase } from "@/lib/supabase"
 import type { CreateRoleInput, UpdateRoleInput, AssignRoleInput } from "@/types/rbac"
 
 // ============================================
+// USER ORGANIZATION
+// ============================================
+
+export async function getUserOrganisation(userId: string) {
+    return await supabase
+        .from("users")
+        .select("organisation_id")
+        .eq("id", userId)
+        .single()
+}
+
+// ============================================
 // PERMISSIONS
 // ============================================
 
@@ -37,10 +49,15 @@ export async function getAllRoles(organisationId?: string | null) {
         `)
         .order("created_at", { ascending: false })
     
-    // Filter by organisation: show system roles (NULL org_id) and org-specific roles
-    if (organisationId !== undefined) {
+    // Filter by organisation: show system roles (NULL org_id) and org-specific roles for the current org only
+    if (organisationId !== undefined && organisationId !== null) {
+        // Show system roles (organisation_id IS NULL) AND roles for this specific organisation
         query = query.or(`organisation_id.is.null,organisation_id.eq.${organisationId}`)
+    } else if (organisationId === null) {
+        // If organisationId is explicitly null, only show system roles
+        query = query.is("organisation_id", null)
     }
+    // If organisationId is undefined, don't filter (show all - for super admins only)
     
     return await query
 }
@@ -78,14 +95,40 @@ export async function getOrganisationRoles(organisationId: string) {
         .order("display_name", { ascending: true })
 }
 
-export async function createRole(data: CreateRoleInput) {
+export async function createRole(data: CreateRoleInput, userId?: string) {
     const { permission_ids, ...roleData } = data
+    
+    // Get user's organization if organisation_id is not provided
+    let finalRoleData = { ...roleData }
+    
+    if (!finalRoleData.organisation_id && userId) {
+        const { data: userData } = await supabase
+            .from("users")
+            .select("organisation_id")
+            .eq("id", userId)
+            .single()
+        
+        if (userData?.organisation_id) {
+            finalRoleData.organisation_id = userData.organisation_id
+        }
+    }
+    
+    // Ensure organisation_id is set for non-system roles
+    if (!finalRoleData.organisation_id) {
+        return { 
+            data: null, 
+            error: { 
+                message: "Organization ID is required for creating custom roles",
+                code: "ORGANIZATION_REQUIRED"
+            } 
+        }
+    }
     
     // Insert role
     const { data: role, error: roleError } = await supabase
         .from("roles")
         .insert({
-            ...roleData,
+            ...finalRoleData,
             is_system_role: false,
             is_active: true
         })

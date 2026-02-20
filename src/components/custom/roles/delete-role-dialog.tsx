@@ -57,7 +57,7 @@ export function DeleteRoleDialog({ role, open, onOpenChange }: DeleteRoleDialogP
                     <Button
                         onClick={handleDelete}
                         disabled={loading}
-                        className="bg-red-600 hover:bg-red-700 text-white"
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                         {loading ? "Deleting..." : "Delete"}
                     </Button>
