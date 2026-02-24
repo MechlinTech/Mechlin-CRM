@@ -19,12 +19,10 @@ const milestoneSchema = z.object({
   start_date: z.string().min(1, "Start date is required"),
   end_date: z.string().min(1, "End date is required"),
   demo_date: z.string().optional().or(z.literal("")),
-  // Coerce string input from forms into numbers for the DB
-  hours: z.coerce.number().min(0, "Hours must be positive").optional(),
-  budget: z.coerce.number().min(0, "Budget must be positive").optional(),
-  status: z.enum(['Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done'], {
-    required_error: "Please select a status",
-  }),
+  // Use string fields for form input, convert to numbers in submit
+  hours: z.string().optional(),
+  budget: z.string().optional(),
+  status: z.enum(['Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done']),
 })
 
 type MilestoneFormValues = z.infer<typeof milestoneSchema>
@@ -41,19 +39,26 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
       demo_date: milestone?.demo_date || "",
       start_date: milestone?.start_date || "",
       end_date: milestone?.end_date || "",
-      hours: milestone?.hours || 0,
-      budget: milestone?.budget || 0,
+      hours: milestone?.hours?.toString() || "",
+      budget: milestone?.budget?.toString() || "",
       status: milestone?.status || "Backlog"
     }
   })
 
   async function onSubmit(values: MilestoneFormValues) {
     try {
+      // Convert string values to numbers for the API
+      const submissionData = {
+        ...values,
+        hours: values.hours ? Number(values.hours) : undefined,
+        budget: values.budget ? Number(values.budget) : undefined,
+      };
+      
       let res;
       if (isEdit) {
-        res = await updateMilestoneAction(milestone.id, projectId, values);
+        res = await updateMilestoneAction(milestone.id, projectId, submissionData);
       } else {
-        res = await createMilestoneAction(phaseId, projectId, values);
+        res = await createMilestoneAction(phaseId, projectId, submissionData);
       }
 
       if (res.success) {
