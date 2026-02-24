@@ -57,13 +57,13 @@ function TaskItem({ task, ids, onRefresh }: { task: any, ids: any, onRefresh: ()
               <DialogTrigger asChild>
                   <button className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-400 hover:text-[#006AFF] bg-white active:scale-95 transition-all cursor-pointer"><Eye className="h-3.5 w-3.5" /></button>
               </DialogTrigger>
-              <DialogContent className="max-w-[95vw] md:min-w-[80vw] bg-white text-slate-900 border-none shadow-2xl p-0 overflow-hidden rounded-[24px] flex flex-col min-h-[70vh]">
+              <DialogContent className="max-w-[95vw] md:min-w-[80vw] bg-white text-slate-900 border-none shadow-2xl p-0 overflow-hidden rounded-lg flex flex-col min-h-[70vh]">
                   <DialogHeader className="p-6 bg-slate-50 border-b border-slate-100 shrink-0">
                       <DialogTitle className="font-semibold text-sm uppercase tracking-tight flex items-center justify-between pr-8">
                           <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-[#006AFF]" /> Task Details</div>
                       </DialogTitle>
                   </DialogHeader>
-                  <div className="p-8 flex-1 overflow-y-auto">
+                  <div className="p-8 flex-1 overflow-y-auto custom-scrollbar">
                       <h2 className="text-xl font-semibold mb-6 text-[#0F172A]">{task.title}</h2>
                       <div className="prose prose-slate prose-sm max-w-none font-normal text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: task.description || "No description provided." }} />
                   </div>
@@ -76,9 +76,9 @@ function TaskItem({ task, ids, onRefresh }: { task: any, ids: any, onRefresh: ()
             <DialogTrigger asChild>
               <button className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-400 hover:text-[#006AFF] bg-white active:scale-95 transition-all cursor-pointer"><Pencil className="h-3.5 w-3.5" /></button>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] sm:max-w-[50vw] w-full max-h-[90vh] bg-white flex flex-col border-none shadow-2xl overflow-hidden rounded-[24px]">
+            <DialogContent className="max-w-[95vw] sm:max-w-[50vw] w-full max-h-[90vh] bg-white flex flex-col border-none shadow-2xl overflow-hidden rounded-lg">
               <DialogHeader className="p-6 border-b"><DialogTitle className="text-lg font-semibold tracking-tight">Edit Task</DialogTitle></DialogHeader>
-              <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 scrollbar-hide">
                 <TaskForm task={task} ids={ids} onSuccess={handleSuccess} />
               </div>
             </DialogContent>
@@ -148,9 +148,9 @@ export default function SprintPage({ params }: { params: any }) {
                   <DialogTrigger asChild>
                     <button className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:text-[#006AFF] transition-all active:scale-95 bg-white cursor-pointer"><Pencil className="h-4 w-4" /></button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-[95vw] sm:max-w-[50vw] w-full max-h-[90vh] bg-white border-none shadow-2xl overflow-hidden rounded-[24px]">
+                  <DialogContent className="max-w-[90vw] sm:max-w-[60vw] w-full max-h-[90vh] min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col rounded-lg">
                     <DialogHeader className="p-6 border-b"><DialogTitle className="text-lg font-semibold">Edit Sprint</DialogTitle></DialogHeader>
-                    <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 scrollbar-hide">
                       <SprintForm projectId={id} milestoneId={milestoneId} sprint={sprint} onSuccess={() => { setIsEditOpen(false); fetchData(); }} />
                     </div>
                   </DialogContent>
@@ -211,9 +211,9 @@ export default function SprintPage({ params }: { params: any }) {
             {!loading && hasPermission('tasks.create') && (
               <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
                 <DialogTrigger asChild><Button className="cursor-pointer"><Plus className="h-4 w-4" /> New Task</Button></DialogTrigger>
-                <DialogContent className="max-w-[95vw] sm:max-w-[50vw] w-full max-h-[90vh] bg-white flex flex-col border-none shadow-2xl overflow-hidden rounded-[24px]">
+                <DialogContent className="max-w-[95vw] sm:max-w-[50vw] w-full max-h-[90vh] bg-white flex flex-col border-none shadow-2xl overflow-hidden rounded-lg">
                   <DialogHeader className="p-6 border-b"><DialogTitle className="text-lg font-semibold">Create Task</DialogTitle></DialogHeader>
-                  <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+                  <div className="flex-1 overflow-y-auto custom-scrollbar p-6 scrollbar-hide">
                       <TaskForm ids={{ project_id: id, phase_id: phaseId, milestone_id: milestoneId, sprint_id: sprintId }} onSuccess={() => { setIsAddTaskOpen(false); fetchData(); }} />
                   </div>
                 </DialogContent>

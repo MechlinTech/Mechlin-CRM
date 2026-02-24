@@ -1,33 +1,79 @@
-import { AddUserButton } from "@/components/custom/users/add-user-button";
-import { getAllUsersAction } from "@/actions/user-management";
-import { UsersTable } from "@/components/custom/users/users-table";
-import { getServerUserPermissions } from "@/lib/rbac-middleware";
-import { redirect } from "next/navigation";
+"use client"
 
-export default async function Page() {
-    const users = await getAllUsersAction()
+import React from 'react'
+import { AddUserButton } from "@/components/custom/users/add-user-button"
+import { getAllUsersAction } from "@/actions/user-management"
+import { UsersTable } from "@/components/custom/users/users-table"
+import { useRBAC } from "@/context/rbac-context"
+import { redirect } from "next/navigation"
+import { isAdmin, isSuperAdmin } from '@/lib/permissions'
+
+export default function Page() {
+    const [users, setUsers] = React.useState<any[]>([])
+    const [isLoading, setIsLoading] = React.useState(true)
+    const [error, setError] = React.useState<string | null>(null)
     
-    // RBAC: Fetch permissions on server
-    const permissions = await getServerUserPermissions();
-   const canRead = permissions.includes('users.read');
-    const canCreate = permissions.includes('users.create');
-    const canUpdate = permissions.includes('users.update');
-    const canDelete = permissions.includes('users.delete');
+    const { hasPermission, loading: rbacLoading } = useRBAC()
 
-    // FIX: Only redirect if the user has NO user-related permissions at all
-    if (!canRead && !canCreate && !canUpdate && !canDelete) {
-        redirect('/unauthorized');
+    // Check if user has admin or super admin role
+    if (!isAdmin() && !isSuperAdmin()) {
+        redirect('/unauthorized')
     }
-    
-    // Show error if exists
-    if (!users.success) {
+
+    React.useEffect(() => {
+        async function fetchData() {
+            // Check permissions
+            const canRead = hasPermission('users.read')
+            const canCreate = hasPermission('users.create')
+            const canUpdate = hasPermission('users.update')
+            const canDelete = hasPermission('users.delete')
+
+            // FIX: Only redirect if the user has NO user-related permissions at all
+            if (!canRead && !canCreate && !canUpdate && !canDelete) {
+                redirect('/unauthorized')
+                return
+            }
+
+            try {
+                const result = await getAllUsersAction()
+                if (result.success) {
+                    setUsers(result.users || [])
+                } else {
+                    setError(result.error || 'Failed to load users')
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error)
+                setError('Failed to load users')
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        if (!rbacLoading) {
+            fetchData()
+        }
+    }, [rbacLoading, hasPermission])
+
+    const canCreate = hasPermission('users.create')
+
+    if (rbacLoading || isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#006AFF] mx-auto mb-4"></div>
+                    <p className="text-sm text-gray-600">Loading users...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
         return (
             <div className="min-h-screen p-8">
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-red-50 border border-red-200 rounded-lg p-6">
                         <h2 className="text-red-800 font-semibold mb-2">Error Loading Users</h2>
-                        <p className="text-red-700">{users.error}</p>
-                        <p className="text-sm text-red-600 mt-2">Error Code: {users.code}</p>
+                        <p className="text-red-700">{error}</p>
                     </div>
                 </div>
             </div>
@@ -51,7 +97,7 @@ export default async function Page() {
                                 <p className="text-xs text-[#6C7F93]">Manage your team members and collaborators</p>
                             </div>
                             <div className="bg-[#006AFF]/10 text-heading-primary border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
-                                {users.users?.length || 0}
+                                {users?.length || 0}
                             </div>
                         </div>
                         
@@ -61,7 +107,7 @@ export default async function Page() {
 
                     {/* Enhanced Table Section */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <UsersTable users={users.users || []} />
+                        <UsersTable users={users || []} />
                     </div>
                 </div>
             </div>

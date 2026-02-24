@@ -28,6 +28,46 @@ import { createSupabaseServerClient } from "@/lib/rbac"
 import type { CreateRoleInput, UpdateRoleInput, AssignRoleInput } from "@/types/rbac"
 
 // ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Helper function to check if current user is admin with is_internal === false
+ * Used to filter out super admin roles for external admins
+ */
+async function shouldFilterSuperAdminForUser() {
+    const supabase = await createSupabaseServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) return false
+    
+    try {
+        // Check if user is admin with is_internal === false
+        const [rolesResult, userDataResult] = await Promise.all([
+            supabase
+                .from("user_roles")
+                .select("roles(name)")
+                .eq("user_id", user.id),
+            supabase
+                .from("users")
+                .select("organisation_id, organisations(is_internal)")
+                .eq("id", user.id)
+                .single()
+        ])
+
+        const roles = rolesResult.data?.map((ur: any) => ur.roles?.name).filter(Boolean) || []
+        const isAdmin = roles.includes("admin")
+        const isInternal = (userDataResult.data as any)?.organisations?.is_internal || false
+
+        // Return true if user is admin with is_internal === false
+        return isAdmin && !isInternal
+    } catch (error) {
+        console.error("Error checking user admin/internal status:", error)
+        return false
+    }
+}
+
+// ============================================
 // USER ORGANIZATION ACTIONS
 // ============================================
 
@@ -66,12 +106,20 @@ export async function getPermissionsByModuleAction(module: string) {
 // ============================================
 
 export async function getAllRolesAction(organisationId?: string | null) {
+    // Check if we should filter super admin roles for this user
+    const filterSuperAdmin = await shouldFilterSuperAdminForUser()
+
     const { data, error } = await getAllRoles(organisationId)
     if (error) {
         return { success: false, error: error.message, code: error.code }
     }
     
-    return { success: true, roles: data }
+    // Filter out super admin roles if needed
+    const filteredData = filterSuperAdmin 
+        ? data?.filter(role => role.name !== "super_admin") 
+        : data
+    
+    return { success: true, roles: filteredData }
 }
 
 export async function getRoleByIdAction(roleId: string) {
@@ -83,19 +131,37 @@ export async function getRoleByIdAction(roleId: string) {
 }
 
 export async function getSystemRolesAction() {
+    // Check if we should filter super admin roles for this user
+    const filterSuperAdmin = await shouldFilterSuperAdminForUser()
+
     const { data, error } = await getSystemRoles()
     if (error) {
         return { success: false, error: error.message, code: error.code }
     }
-    return { success: true, roles: data }
+    
+    // Filter out super admin roles if needed
+    const filteredData = filterSuperAdmin 
+        ? data?.filter(role => role.name !== "super_admin") 
+        : data
+    
+    return { success: true, roles: filteredData }
 }
 
 export async function getOrganisationRolesAction(organisationId: string) {
+    // Check if we should filter super admin roles for this user
+    const filterSuperAdmin = await shouldFilterSuperAdminForUser()
+
     const { data, error } = await getOrganisationRoles(organisationId)
     if (error) {
         return { success: false, error: error.message, code: error.code }
     }
-    return { success: true, roles: data }
+    
+    // Filter out super admin roles if needed
+    const filteredData = filterSuperAdmin 
+        ? data?.filter(role => role.name !== "super_admin") 
+        : data
+    
+    return { success: true, roles: filteredData }
 }
 
 export async function createRoleAction(roleData: CreateRoleInput) {

@@ -45,6 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [projects, setProjects] = React.useState<any[]>([])
   const [hierarchyLoading, setHierarchyLoading] = React.useState(true)
   const [dashboardUrl, setDashboardUrl] = React.useState("")
+  const [isInternal, setIsInternal] = React.useState<boolean | null>(null)
   const [isAdminWithInternalFalse, setIsAdminWithInternalFalse] = React.useState(false)
   
   const { hasPermission, loading: rbacLoading } = useRBAC()
@@ -129,6 +130,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           isInternalUser()
         ])
 
+        setIsInternal(isInternal)
+
         const isSuperAdmin = roles.includes("super_admin")
         const isAdmin = roles.includes("admin")
 
@@ -172,7 +175,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   }
 
-  if (rbacLoading || !mounted) {
+  if (rbacLoading || !mounted){
     return (
       <Sidebar {...props} className="pt-10 overflow-y-hidden">
         <SidebarContent />
@@ -306,15 +309,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {SIDEBAR_NAVIGATION.map((item) => {
             // DASHBOARD Visibility (Checks any Organisation CRUD) [cite: 1]
             const canManageOrgs = hasPermission('organisations.read') || hasPermission('organisations.create') || hasPermission('organisations.update') || hasPermission('organisations.delete');
-
             // ORGANIZATION MANAGEMENT Visibility (Checks any Organisation CRUD) [cite: 1]
             // Hide for admin users with is_internal === false
             if (item.title === "Organization Management") {
-              if (isAdminWithInternalFalse) {
-                return null;
-              }
-              
               if (!canManageOrgs) return null;
+
+              if (isInternal === false) return null;
 
               return (
                 <Collapsible key={item.title} defaultOpen className="group/collapsible">
@@ -348,12 +348,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             // PROJECT MANAGEMENT Visibility (Requires reading projects) [cite: 1]
             // Hide for admin users with is_internal === false
             if (item.title === "Project Management") {
-              if (isAdminWithInternalFalse) {
-                return null;
-              }
-              
               const canManageProjects = hasPermission('projects.create') || hasPermission('projects.update') || hasPermission('projects.delete') || hasPermission('projects.manage_members');
-              
+              if (isInternal === false) return null;
               if (!canManageProjects) {
                 return null;
               }

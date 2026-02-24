@@ -482,6 +482,46 @@ export default  function DashboardPage() {
                   </div>
                 </div>
 
+                {/* Summary Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-md p-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm">Total Users</p>
+                        <p className="text-2xl font-bold">{users.length}</p>
+                      </div>
+                      <Users className="h-8 w-8 text-blue-200" />
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-md p-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-sm">Total Projects</p>
+                        <p className="text-2xl font-bold">{projects.length}</p>
+                      </div>
+                      <FolderKanban className="h-8 w-8 text-green-200" />
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-md p-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 text-sm">Total Orgs</p>
+                        <p className="text-2xl font-bold">{organisations.length}</p>
+                      </div>
+                      <Building2 className="h-8 w-8 text-purple-200" />
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-md p-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-orange-100 text-sm">Active Projects</p>
+                        <p className="text-2xl font-bold">{projects.filter(p => p.status === 'Active').length}</p>
+                      </div>
+                      <BarChart3 className="h-8 w-8 text-orange-200" />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* User Distribution Chart */}
                   <div className="bg-white rounded-md border border-gray-200/50 p-6 shadow-sm force-white-bg">
@@ -529,46 +569,7 @@ export default  function DashboardPage() {
                   <OrganisationGrowthChart organisations={organisations} />
                 </div>
 
-                {/* Summary Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-md p-4 text-white">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-blue-100 text-sm">Total Users</p>
-                        <p className="text-2xl font-bold">{users.length}</p>
-                      </div>
-                      <Users className="h-8 w-8 text-blue-200" />
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-md p-4 text-white">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-green-100 text-sm">Total Projects</p>
-                        <p className="text-2xl font-bold">{projects.length}</p>
-                      </div>
-                      <Building className="h-8 w-8 text-green-200" />
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-md p-4 text-white">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-purple-100 text-sm">Total Orgs</p>
-                        <p className="text-2xl font-bold">{organisations.length}</p>
-                      </div>
-                      <Building2 className="h-8 w-8 text-purple-200" />
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-md p-4 text-white">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-orange-100 text-sm">Active Projects</p>
-                        <p className="text-2xl font-bold">{projects.filter(p => p.status === 'Active').length}</p>
-                      </div>
-                      <BarChart3 className="h-8 w-8 text-orange-200" />
-                    </div>
-                  </div>
                 </div>
-              </div>
             )}
           </div>
         </div>

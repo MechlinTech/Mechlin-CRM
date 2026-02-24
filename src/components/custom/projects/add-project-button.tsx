@@ -34,7 +34,7 @@ export function AddProjectButton({ organisations, users }: { organisations: any[
             <DialogTrigger asChild>
                 <Button variant="default" className="cursor-pointer active:scale-95 transition-all">Add Project</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] sm:max-w-2xl bg-white text-[#0F172A] max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[24px]">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl bg-white text-[#0F172A] max-h-[90vh] overflow-y-auto custom-scrollbar border-none shadow-2xl rounded-lg">
                 <DialogHeader className="p-2">
                     <DialogTitle className="text-xl font-semibold tracking-tight text-[#0F172A]">Add New Project</DialogTitle>
                     <DialogDescription className="text-slate-500 font-normal">

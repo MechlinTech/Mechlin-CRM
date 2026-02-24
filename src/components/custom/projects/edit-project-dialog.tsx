@@ -15,7 +15,7 @@ export function EditProjectDialog({ project, organisations, users }: { project: 
         </div>
       </DialogTrigger>
       {/* Added max-h and scrolling to content */}
-      <DialogContent className="max-w-2xl bg-white text-black border-none shadow-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl bg-white text-black border-none shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold cursor-pointer">Edit Project: {project.name}</DialogTitle>
         </DialogHeader>

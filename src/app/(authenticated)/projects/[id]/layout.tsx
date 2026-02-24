@@ -79,7 +79,7 @@ const loadData = React.useCallback(async () => {
         </button>
       )}
 
-      <div className="flex-1 p-4 md:p-8 overflow-y-auto border-r border-slate-100 transition-all duration-300">
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar border-r border-slate-100 transition-all duration-300">
         {children}
       </div>
 
@@ -93,7 +93,7 @@ const loadData = React.useCallback(async () => {
           <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 bg-white text-slate-500 rounded-lg hover:text-[#006AFF] border border-slate-200 cursor-pointer"><PanelRightClose className="h-4 w-4" /></button>
         </section>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4">
           <Collapsible defaultOpen>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-2 bg-slate-50 rounded-xl group">
               <span className="text-sm font-medium uppercase text-slate-400 flex items-center gap-2"><ShieldCheck className="h-3 w-3 text-[#006AFF]" /> Mechlin Team</span>
@@ -135,7 +135,7 @@ const loadData = React.useCallback(async () => {
             )}
           </div>
           
-          <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-1">
             {!loading && hasPermission('pmupdates.read') ? (
               pmNotices.map((log: any) => (
                 <div key={log.id} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-3 relative group hover:border-[#006AFF]/30 transition-all">

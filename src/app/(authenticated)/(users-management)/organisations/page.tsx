@@ -1,25 +1,82 @@
-import { AddOrganisationButton } from "@/components/custom/organisations/add-organisation-button";
-import { getAllOrganisationsAction } from "@/actions/user-management";
-import { OrganisationsTable } from "../../../../components/custom/organisations/organisations-table";
-import { getServerUserPermissions } from "@/lib/rbac-middleware";
-import { redirect } from "next/navigation";
+"use client"
 
-export default async function Page() {
-    const organisations = await getAllOrganisationsAction()
+import React from 'react'
+import { AddOrganisationButton } from "@/components/custom/organisations/add-organisation-button"
+import { getAllOrganisationsAction } from "@/actions/user-management"
+import { OrganisationsTable } from "../../../../components/custom/organisations/organisations-table"
+import { useRBAC } from "@/context/rbac-context"
+import { redirect } from "next/navigation"
+import { isAdmin, isSuperAdmin } from '@/lib/permissions'
+
+export default function Page() {
+    const [organisations, setOrganisations] = React.useState<any[]>([])
+    const [isLoading, setIsLoading] = React.useState(true)
+    const [error, setError] = React.useState<string | null>(null)
     
-    // RBAC: Fetch permissions on server
-    const permissions = await getServerUserPermissions();
-    console.log("Current User Permissions:", permissions);
-const canCreate = permissions.includes('organisations.create');
-    const canRead = permissions.includes('organisations.read');
-    const canUpdate = permissions.includes('organisations.update');
-    const canDelete = permissions.includes('organisations.delete');
+    const { hasPermission, loading: rbacLoading } = useRBAC()
 
-    // FIX: User has 'organisations.read', so this condition will now be FALSE.
-    // They will NOT be redirected.
-    if (!canRead && !canCreate && !canUpdate && !canDelete) {
-        redirect('/unauthorized');
+    // Check if user has admin or super admin role
+    if (!isAdmin() && !isSuperAdmin()) {
+        redirect('/unauthorized')
     }
+
+    React.useEffect(() => {
+        async function fetchData() {
+            // Check permissions
+            const canRead = hasPermission('organisations.read')
+            const isInternal = hasPermission('organisations.read') // Simple check for internal user
+            
+            if (!isInternal || !canRead) {
+                redirect('/unauthorized')
+                return
+            }
+
+            try {
+                const result = await getAllOrganisationsAction()
+                if (result.success) {
+                    setOrganisations(result.organisations || [])
+                } else {
+                    setError(result.error || 'Failed to load organisations')
+                }
+            } catch (error) {
+                console.error('Error fetching organisations:', error)
+                setError('Failed to load organisations')
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        if (!rbacLoading) {
+            fetchData()
+        }
+    }, [rbacLoading, hasPermission])
+
+    const canCreate = hasPermission('organisations.create')
+
+    if (rbacLoading || isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#006AFF] mx-auto mb-4"></div>
+                    <p className="text-sm text-gray-600">Loading organisations...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen p-8">
+                <div className="max-w-4xl mx-auto">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <h2 className="text-red-800 font-semibold mb-2">Error Loading Organisations</h2>
+                        <p className="text-red-700">{error}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="min-h-screen ">
             <div className="px-4 sm:px-6 lg:px-8 ">
@@ -37,7 +94,7 @@ const canCreate = permissions.includes('organisations.create');
                                 <p className="text-xs text-[#0F172A]/60">Manage your organization portfolios</p>
                             </div>
                             <div className="bg-[#006AFF]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
-                                {organisations.organisations?.length || 0}
+                                {organisations?.length || 0}
                             </div>
                         </div>
                         
@@ -47,7 +104,7 @@ const canCreate = permissions.includes('organisations.create');
 
                     {/* Enhanced Table Section */}
                     <div className="bg-white rounded-2xl   overflow-hidden p-2 ">
-                        <OrganisationsTable organisations={organisations.organisations || []} />
+                        <OrganisationsTable organisations={organisations || []} />
                     </div>
                 </div>
             </div>

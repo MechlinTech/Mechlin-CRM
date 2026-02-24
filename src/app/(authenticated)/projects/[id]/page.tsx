@@ -176,7 +176,7 @@ export default function ProjectOverview({ params }: { params: any }) {
                 <DialogTrigger asChild><Button><Plus className="h-4 w-4" /> Add Phase</Button></DialogTrigger>
                 <DialogContent className="bg-white min-w-[5vw] sm:max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
                   <DialogHeader className="p-6 border-b"><DialogTitle className="text-lg font-semibold">Create New Phase</DialogTitle></DialogHeader>
-                  <div className="flex-1 overflow-y-auto p-4"><PhaseForm projectId={id} onSuccess={() => { setIsAddPhaseOpen(false); loadData(); }} /></div>
+                  <div className="flex-1 overflow-y-auto custom-scrollbar p-4"><PhaseForm projectId={id} onSuccess={() => { setIsAddPhaseOpen(false); loadData(); }} /></div>
                 </DialogContent>
               </Dialog>
             )}
@@ -209,7 +209,7 @@ export default function ProjectOverview({ params }: { params: any }) {
                           </DialogTrigger>
                           <DialogContent className="bg-white max-w-[95vw] sm:max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
                             <DialogHeader className="p-6 border-b"><DialogTitle className="text-lg font-semibold">Edit Phase</DialogTitle></DialogHeader>
-                            <div className="flex-1 overflow-y-auto p-4">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
                               <PhaseForm 
                                 projectId={id} 
                                 phase={phase} 

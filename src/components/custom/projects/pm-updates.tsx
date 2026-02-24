@@ -56,7 +56,7 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       
-      <DialogContent className="max-w-[90vw] sm:max-w-[60vw] w-full max-h-[90vh] min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col rounded-[24px]">
+      <DialogContent className="max-w-[90vw] sm:max-w-[60vw] w-full max-h-[90vh] min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col rounded-lg">
 
         <DialogHeader className="p-6 pb-2 shrink-0 border-b border-slate-50">
           <DialogTitle className="font-semibold text-sm tracking-tight text-[#0F172A]">

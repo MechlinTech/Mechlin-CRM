@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { Building, Calendar, DollarSign } from 'lucide-react'
@@ -52,19 +52,19 @@ export default function ClientDashboardPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto pt-10">
+      <div className="px-3 sm:px-4 lg:px-6">
+        <div className="max-w-7xl mx-auto pt-6">
           
           <div className="space-y-6">
-            {/* Header Section - Exactly matched to Organisation Detail UI */}
+            {/* Header Section - Compact Modern Design */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-[#006AFF] rounded-xl shadow-lg">
-                  <Building className="h-5 w-5 text-white" />
+                  <Building className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-[#0F172A]">My Projects</h2>
-                  <p className="text-sm text-[#0F172A]/60">Projects assigned to you</p>
+                  <h2 className="text-lg font-semibold text-[#0F172A] tracking-tight">My Projects</h2>
+                  <p className="text-xs text-[#0F172A]/60 mt-0.5">Projects assigned to you</p>
                 </div>
                 <Badge variant="outline" className="bg-[#006AFF]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
                   {hasPermission('projects.read') ? projects.length : 0}
@@ -72,23 +72,23 @@ export default function ClientDashboardPage() {
               </div>
             </div>
 
-            {/* Project Grid - Exactly matched to Organisation Detail UI */}
+            {/* Project Grid - Compact Modern Cards */}
             {hasPermission('projects.read') && projects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {projects.map((project) => (
                   <Link 
                     key={project.id} 
                     href={`/projects/${project.id}`}
-                    className="group block p-6 bg-white/80 backdrop-blur-sm rounded-md border border-[#0F172A]/10 hover:border-[#006AFF] transition-all duration-300"
+                    className="group block p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-[#0F172A]/10 hover:border-[#006AFF]/20 transition-all duration-300 hover:shadow-lg"
                   >
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-lg tracking-tight group-hover:text-[#006AFF] line-clamp-2 text-[#0F172A]">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="text-base font-semibold text-[#0F172A] group-hover:text-[#006AFF] transition-colors line-clamp-2 tracking-tight">
                           {project.name}
                         </h3>
                         <Badge
                           variant="outline"
-                          className={`text-xs font-semibold px-2 py-1 rounded-md ${
+                          className={`flex-shrink-0 text-xs font-medium px-2 py-1 rounded-full ${
                             project.status === 'Active'
                               ? 'border-green-500/30 text-green-600 bg-green-50'
                               : project.status === 'Pending'
@@ -102,29 +102,37 @@ export default function ClientDashboardPage() {
                         </Badge>
                       </div>
 
-                      <div className="space-y-1 text-xs text-[#0F172A]">
-                        {/* Organization Name Row - Consistent with Organisation Detail metadata list */}
-                        <div className="flex items-center gap-2 mb-1">
-                          <Building className="h-3.5 w-3.5 text-[#006AFF]" />
-                          <span className="truncate">{project.organisations?.name || 'No Organization'}</span>
+                      <div className="space-y-2">
+                        {/* Organization Name Row */}
+                        <div className="flex items-center gap-2">
+                          <div className="p-1 bg-[#006AFF]/10 rounded-lg">
+                            <Building className="h-3 w-3 text-[#006AFF]" />
+                          </div>
+                          <span className="text-xs text-[#0F172A]/70 truncate">{project.organisations?.name || 'No Organization'}</span>
                         </div>
 
                         {project.budget && (
-                          <div className="flex items-center gap-2"> 
-                            <DollarSign className="h-3.5 w-3.5 text-[#006AFF]" />
-                            <p className="truncate">{project.currency || 'USD'}: {project.budget.toLocaleString()}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="p-1 bg-[#006AFF]/10 rounded-lg">
+                              <DollarSign className="h-3 w-3 text-[#006AFF]" />
+                            </div>
+                            <span className="text-xs font-medium text-[#0F172A] truncate">{project.currency || 'USD'}: {project.budget.toLocaleString()}</span>
                           </div>
                         )}
                         {project.start_date && (
                           <div className="flex items-center gap-2">
-                            <Calendar className="h-3.5 w-3.5 text-[#006AFF]" />
-                            <span className="tracking-wider">Start: {project.start_date}</span>
+                            <div className="p-1 bg-[#006AFF]/10 rounded-lg">
+                              <Calendar className="h-3 w-3 text-[#006AFF]" />
+                            </div>
+                            <span className="text-xs text-[#0F172A]/70">Start: {project.start_date}</span>
                           </div>
                         )}
                         {project.expected_end_date && (
                           <div className="flex items-center gap-2">
-                            <Calendar className="h-3.5 w-3.5 text-[#006AFF]" />
-                            <span className="tracking-wider">End: {project.expected_end_date}</span>
+                            <div className="p-1 bg-[#006AFF]/10 rounded-lg">
+                              <Calendar className="h-3 w-3 text-[#006AFF]" />
+                            </div>
+                            <span className="text-xs text-[#0F172A]/70">End: {project.expected_end_date}</span>
                           </div>
                         )}
                       </div>
@@ -133,15 +141,15 @@ export default function ClientDashboardPage() {
                 ))}
               </div>
             ) : (
-              /* Empty State - Exactly matched to Organisation Detail UI */
-              <div className="text-center py-20">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center shadow-lg mb-6">
-                  <Building className="h-10 w-10 text-white" />
+              /* Empty State - Compact Modern Design */
+              <div className="text-center py-12">
+                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg mb-4">
+                  <Building className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-lg font-bold tracking-tight mb-3 text-gray-900">
+                <h3 className="text-lg font-semibold text-[#0F172A] mb-2 tracking-tight">
                   {hasPermission('projects.read') ? "No Projects Yet" : "Access Restricted"}
                 </h3>
-                <p className="text-xs text-gray-600 max-w-md mx-auto">
+                <p className="text-xs text-[#0F172A]/60 max-w-md mx-auto">
                   {hasPermission('projects.read') 
                     ? "You haven't been assigned to any projects yet." 
                     : "You do not have the required permissions to view projects."}

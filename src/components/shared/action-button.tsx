@@ -37,7 +37,7 @@ export function ActionButton({ title, trigger, children }: ActionButtonProps) {
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="bg-white text-black max-w-xl border-none shadow-2xl overflow-y-auto max-h-[90vh]">
+      <DialogContent className="bg-white text-black max-w-xl border-none shadow-2xl overflow-y-auto custom-scrollbar max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="font-black text-xl tracking-tighter uppercase">{title}</DialogTitle>
         </DialogHeader>
