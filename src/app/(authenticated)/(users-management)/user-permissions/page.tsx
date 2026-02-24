@@ -14,11 +14,6 @@ export default function UserPermissionsPage() {
     
     const { hasPermission, loading: rbacLoading } = useRBAC()
 
-    // Check if user has admin or super admin role
-    if (!isAdmin() && !isSuperAdmin()) {
-        redirect('/unauthorized')
-    }
-
     React.useEffect(() => {
         async function fetchData() {
             // Check permissions

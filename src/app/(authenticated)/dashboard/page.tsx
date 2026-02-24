@@ -38,18 +38,7 @@ export default  function DashboardPage() {
   const { hasPermission, loading } = useRBAC();
 
 
-  if (!isAdmin() && !isSuperAdmin()) {
-  redirect('/unauthorized')
-}
-
-    
-    // Check if user has permission to read user information
-  
   async function fetchProjects() {
-    const roles=await getMyRoleNames();
-   if(!roles.includes('admin') && !roles.includes('super_admin')){
-    redirect('/unauthorized')
-   }
     const { data, error } = await supabase
       .from('projects')
       .select('*, organisations(*)')
