@@ -1,7 +1,7 @@
 "use client"
-
+ 
 import * as React from "react"
-import { useForm } from "react-hook-form"
+import { useForm, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createMilestoneAction, updateMilestoneAction } from "@/actions/hierarchy"
 import { toast } from "sonner"
-
+ 
 // 1. Define the Validation Schema based on your SQL constraints
 const milestoneSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -19,48 +19,43 @@ const milestoneSchema = z.object({
   start_date: z.string().min(1, "Start date is required"),
   end_date: z.string().min(1, "End date is required"),
   demo_date: z.string().optional().or(z.literal("")),
-  // Use string fields for form input, convert to numbers in submit
-  hours: z.string().optional(),
-  budget: z.string().optional(),
-  status: z.enum(['Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done']),
+  // Coerce string input from forms into numbers for the DB
+  hours: z.union([z.coerce.number().min(0, "Hours must be positive"), z.undefined()]),
+  budget: z.union([z.coerce.number().min(0, "Budget must be positive"), z.undefined()]),
+  status: z.enum(['Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done'], {
+    message: "Please select a status",
+  }),
 })
-
+ 
 type MilestoneFormValues = z.infer<typeof milestoneSchema>
-
+ 
 export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any) {
   const isEdit = !!milestone
-  
+ 
   // 2. Initialize form with Zod resolver
   const form = useForm<MilestoneFormValues>({
-    resolver: zodResolver(milestoneSchema),
+    resolver: zodResolver(milestoneSchema) as Resolver<MilestoneFormValues>,
     defaultValues: {
       name: milestone?.name || "",
       deliverables: milestone?.deliverables || "",
       demo_date: milestone?.demo_date || "",
       start_date: milestone?.start_date || "",
       end_date: milestone?.end_date || "",
-      hours: milestone?.hours?.toString() || "",
-      budget: milestone?.budget?.toString() || "",
+      hours: milestone?.hours || 0,
+      budget: milestone?.budget || 0,
       status: milestone?.status || "Backlog"
     }
   })
-
+ 
   async function onSubmit(values: MilestoneFormValues) {
     try {
-      // Convert string values to numbers for the API
-      const submissionData = {
-        ...values,
-        hours: values.hours ? Number(values.hours) : undefined,
-        budget: values.budget ? Number(values.budget) : undefined,
-      };
-      
       let res;
       if (isEdit) {
-        res = await updateMilestoneAction(milestone.id, projectId, submissionData);
+        res = await updateMilestoneAction(milestone.id, projectId, values);
       } else {
-        res = await createMilestoneAction(phaseId, projectId, submissionData);
+        res = await createMilestoneAction(phaseId, projectId, values);
       }
-
+ 
       if (res.success) {
         toast.success(isEdit ? "Milestone Updated" : "Milestone Created");
         onSuccess?.();
@@ -71,11 +66,11 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
       toast.error("An unexpected error occurred");
     }
   }
-
+ 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans text-[#0F172A]">
-        
+       
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem>
             <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Name</FormLabel>
@@ -85,7 +80,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
             <FormMessage className="text-[10px]" /> {/* Added Message */}
           </FormItem>
         )} />
-        
+       
         <FormField control={form.control} name="deliverables" render={({ field }) => (
           <FormItem>
             <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Deliverables</FormLabel>
@@ -95,7 +90,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
             <FormMessage className="text-[10px]" />
           </FormItem>
         )} />
-
+ 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField control={form.control} name="start_date" render={({ field }) => (
             <FormItem>
@@ -125,7 +120,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
             </FormItem>
           )} />
         </div>
-
+ 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField control={form.control} name="hours" render={({ field }) => (
             <FormItem>
@@ -146,7 +141,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
             </FormItem>
           )} />
         </div>
-
+ 
         <FormField control={form.control} name="status" render={({ field }) => (
           <FormItem>
             <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Status</FormLabel>
@@ -165,10 +160,10 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
             <FormMessage className="text-[10px]" />
           </FormItem>
         )} />
-
-        <Button 
-          type="submit" 
-          disabled={form.formState.isSubmitting} 
+ 
+        <Button
+          type="submit"
+          disabled={form.formState.isSubmitting}
           className="w-full bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#1a7bff] transition-all active:scale-95 cursor-pointer mt-2"
         >
           {form.formState.isSubmitting ? 'Processing...' : isEdit ? 'Update Milestone' : 'Save Milestone'}
