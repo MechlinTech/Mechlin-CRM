@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { WysiwygEditor } from '@/components/shared/wysiwyg-editor'
 import { Paperclip, Send } from 'lucide-react'
 import { createMessageAction } from '@/actions/threads'
 import { useRBAC } from '@/context/rbac-context'
+import { cn } from '@/lib/utils'
 
 interface MessageComposerProps {
     threadId: string
@@ -18,12 +18,12 @@ export function MessageComposer({
     threadId, 
     userId, 
     onMessageSent,
-    placeholder = "Write your message..." 
+    placeholder = "Type a message..." 
 }: MessageComposerProps) {
     const [content, setContent] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
-    const [editorKey, setEditorKey] = useState(0) // Force editor re-render
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
     const { hasPermission, loading: rbacLoading } = useRBAC()
 
     const handleSubmit = async () => {
@@ -45,11 +45,13 @@ export function MessageComposer({
             })
 
             if (result.success && result.message) {
-                // Clear the content immediately
+                // Clear content immediately
                 setContent('')
                 
-                // Force editor to re-render with empty content
-                setEditorKey(prev => prev + 1)
+                // Reset textarea height
+                if (textareaRef.current) {
+                    textareaRef.current.style.height = 'auto'
+                }
                 
                 // Clear file input if it exists
                 const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
@@ -57,7 +59,7 @@ export function MessageComposer({
                     fileInput.value = ''
                 }
                 
-                // Pass the new message to parent for optimistic update
+                // Pass new message to parent for optimistic update
                 onMessageSent?.(result.message)
             } else {
                 console.error('Failed to send message:', result.error)
@@ -84,12 +86,30 @@ export function MessageComposer({
         }
     }
 
-    const handleKeyDown = (event: KeyboardEvent | React.KeyboardEvent) => {
-        if (event.key === 'Enter' && ((event as KeyboardEvent).metaKey || (event as KeyboardEvent).ctrlKey)) {
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault()
             handleSubmit()
         }
     }
+
+    // Auto-resize textarea
+    const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setContent(event.target.value)
+        
+        // Auto-resize
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto'
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+        }
+    }
+
+    // Focus textarea on mount
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.focus()
+        }
+    }, [])
 
     // While permissions are loading, return null to avoid layout shift
     if (rbacLoading) return null;
@@ -97,62 +117,80 @@ export function MessageComposer({
     // RBAC: Hide entire composer if user lacks update permissions 
     if (!hasPermission('threads.update')) {
         return (
-            <div className="h-full flex items-center justify-center p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                You do not have permission to reply to this thread.
+            <div className="h-full flex items-center justify-center p-6 text-center">
+                <div className="space-y-4">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
+                        <Paperclip className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <div className="space-y-2">
+                        <p className="text-sm font-medium text-slate-700">
+                            Permission Required
+                        </p>
+                        <p className="text-xs text-slate-500">
+                            You do not have permission to reply to this thread.
+                        </p>
+                    </div>
+                </div>
             </div>
         )
     }
 
     return (
-        <div className="h-full flex flex-col min-h-0 rounded-lg border border-gray-200 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-300">
-            {/* WYSIWYG Editor */}
-            <div className="flex-1 min-h-0 overflow-y-auto">
-                <WysiwygEditor
-                    key={editorKey} // Force re-render when key changes
-                    content={content}
-                    onChange={setContent}
+        <div className="flex items-end gap-2 p-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
+            {/* File Upload Button */}
+            <label className="cursor-pointer">
+                <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={isUploading || isSubmitting}
+                    multiple
+                />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={isUploading || isSubmitting}
+                    className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full h-10 w-10 p-0 transition-all duration-200"
+                >
+                    <Paperclip className="h-5 w-5" />
+                </Button>
+            </label>
+
+            {/* Simple Textarea - WhatsApp Style */}
+            <div className="flex-1 relative">
+                <textarea
+                    ref={textareaRef}
+                    value={content}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
                     placeholder={placeholder}
-                    editable={!isSubmitting}
-                    autoFocus={true}
-                    onKeyDown={(e) => handleKeyDown(e)}
-                    className="border-0 focus:outline-none text-sm h-full p-3"
+                    disabled={isSubmitting || isUploading}
+                    rows={1}
+                    className="w-full resize-none border-0 bg-transparent placeholder:text-slate-400 text-slate-900 text-sm focus:outline-none focus:ring-0 max-h-32 overflow-y-auto py-2 px-0"
+                    style={{
+                        minHeight: '24px',
+                        height: 'auto'
+                    }}
                 />
             </div>
 
-            {/* Action Bar - Always Visible at Bottom */}
-            <div className="mt-auto flex-shrink-0 flex items-center justify-between gap-2 px-3 py-2 bg-white border-t border-gray-200 sticky bottom-0">
-                <div className="flex items-center gap-2">
-                    {/* File Upload */}
-                    <label className="cursor-pointer">
-                        <input
-                            type="file"
-                            className="hidden"
-                            onChange={handleFileUpload}
-                            disabled={isUploading || isSubmitting}
-                            multiple
-                        />
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={isUploading || isSubmitting}
-                            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                        >
-                            <Paperclip className="h-4 w-4" />
-                        </Button>
-                    </label>
-                </div>
-
-                {/* Send Button - Always Visible */}
-                <Button
-                    onClick={handleSubmit}
-                    disabled={!content.trim() || isSubmitting || isUploading}
-                    size="sm"
-                    className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4"
-                >
-                    <Send className="h-4 w-4 mr-2" />
-                    {isSubmitting ? 'Sending...' : 'Send'}
-                </Button>
-            </div>
+            {/* Send Button - Always visible */}
+            <Button
+                onClick={handleSubmit}
+                disabled={!content.trim() || isSubmitting || isUploading}
+                size="sm"
+                className={cn(
+                    "rounded-full h-10 w-10 p-0 transition-all duration-200",
+                    content.trim() && !isSubmitting && !isUploading
+                        ? "bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg transform hover:scale-105"
+                        : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                )}
+            >
+                <Send className={cn(
+                    "h-5 w-5 transition-transform duration-200",
+                    isSubmitting && "animate-pulse"
+                )} />
+            </Button>
         </div>
     )
 }

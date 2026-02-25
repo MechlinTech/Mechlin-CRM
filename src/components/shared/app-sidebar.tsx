@@ -44,7 +44,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [mounted, setMounted] = React.useState(false)
   const [projects, setProjects] = React.useState<any[]>([])
   const [hierarchyLoading, setHierarchyLoading] = React.useState(true)
-  const [dashboardUrl, setDashboardUrl] = React.useState("/dashboard")
+  const [dashboardUrl, setDashboardUrl] = React.useState("")
+  const [isInternal, setIsInternal] = React.useState<boolean | null>(null)
   const [isAdminWithInternalFalse, setIsAdminWithInternalFalse] = React.useState(false)
   
   const { hasPermission, loading: rbacLoading } = useRBAC()
@@ -129,6 +130,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           isInternalUser()
         ])
 
+        setIsInternal(isInternal)
+
         const isSuperAdmin = roles.includes("super_admin")
         const isAdmin = roles.includes("admin")
 
@@ -143,7 +146,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           setDashboardUrl("/admin-dashboard")
         } else {
           // Default to /dashboard for other cases
-          setDashboardUrl("/dashboard")
+          setDashboardUrl("/users-dashboard")
         }
       } catch (error) {
         console.error("Error determining dashboard URL:", error)
@@ -172,7 +175,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   }
 
-  if (rbacLoading || !mounted) {
+  if (rbacLoading || !mounted){
     return (
       <Sidebar {...props} className="pt-10 overflow-y-hidden">
         <SidebarContent />
@@ -184,24 +187,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     // Show Dashboard text for normal users on ALL pages
     // Check if user is NOT an admin (doesn't have org management permissions)
     const canManageOrgs = hasPermission('organisations.read') || hasPermission('organisations.create') || hasPermission('organisations.update') || hasPermission('organisations.delete');
-    const isNormalUser = !canManageOrgs;
-
-    if (isNormalUser) {
-      return (
-        <SidebarGroup>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/users-dashboard'} className="font-medium py-3">
-                <Link href="/users-dashboard">
-                  <LayoutGrid className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-      )
-    }
 
     // Project Pages - Show current project hierarchy for admins (no Dashboard text needed since they have it from main nav)
     if (isProjectsPage) {
@@ -324,19 +309,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {SIDEBAR_NAVIGATION.map((item) => {
             // DASHBOARD Visibility (Checks any Organisation CRUD) [cite: 1]
             const canManageOrgs = hasPermission('organisations.read') || hasPermission('organisations.create') || hasPermission('organisations.update') || hasPermission('organisations.delete');
-            
-            if (item.title === "Dashboard" && !canManageOrgs) {
-              return null;
-            }
-
             // ORGANIZATION MANAGEMENT Visibility (Checks any Organisation CRUD) [cite: 1]
             // Hide for admin users with is_internal === false
             if (item.title === "Organization Management") {
-              if (isAdminWithInternalFalse) {
-                return null;
-              }
-              
               if (!canManageOrgs) return null;
+
+              if (isInternal === false) return null;
 
               return (
                 <Collapsible key={item.title} defaultOpen className="group/collapsible">
@@ -370,12 +348,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             // PROJECT MANAGEMENT Visibility (Requires reading projects) [cite: 1]
             // Hide for admin users with is_internal === false
             if (item.title === "Project Management") {
-              if (isAdminWithInternalFalse) {
-                return null;
-              }
-              
               const canManageProjects = hasPermission('projects.create') || hasPermission('projects.update') || hasPermission('projects.delete') || hasPermission('projects.manage_members');
-              
+              if (isInternal === false) return null;
               if (!canManageProjects) {
                 return null;
               }
@@ -474,14 +448,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className="cursor-pointer">
                     <Link href="/profile" className="flex items-center">
                       <User className="mr-2 h-4 w-4" />
                       Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="flex items-center text-red-600" onClick={handleSignOut}>
+                  <DropdownMenuItem className="flex items-center text-red-600 cursor-pointer" onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign out
                   </DropdownMenuItem>

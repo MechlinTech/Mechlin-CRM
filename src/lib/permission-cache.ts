@@ -11,7 +11,7 @@ interface CachedPermission {
 
 class PermissionCache {
   private cache = new Map<string, CachedPermission>()
-  private readonly DEFAULT_TTL = 5 * 60 * 1000 // 5 minutes
+  private readonly DEFAULT_TTL = 5 * 60 * 1000 
 
   set(key: string, value: boolean, ttl: number = this.DEFAULT_TTL) {
     this.cache.set(key, {

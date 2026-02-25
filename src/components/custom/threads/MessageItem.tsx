@@ -2,6 +2,7 @@
 
 import { formatDistanceToNow } from 'date-fns'
 import { Message } from '@/data/threads'
+import { cn } from '@/lib/utils'
 
 interface MessageItemProps {
     message: Message & {
@@ -24,31 +25,60 @@ export function MessageItem({ message, isOwnMessage = false }: MessageItemProps)
         .map(part => part.charAt(0).toUpperCase())
         .slice(0, 2)
         .join('')
-    const avatarColor = isOwnMessage ? 'bg-blue-500 text-white' : 'bg-gray-400 text-white'
+    
+    const avatarColor = isOwnMessage 
+        ? 'bg-blue-500 text-white' 
+        : 'bg-slate-400 text-white'
 
     return (
-        <div className={`flex ${isOwnMessage ? 'justify-start' : 'justify-end'}`}>
-            <div className={`flex max-w-[85%] gap-3 ${isOwnMessage ? 'flex-row' : 'flex-row-reverse'}`}>
-                {/* Avatar - Local initials */}
-                <div className={`h-8 w-8 flex-shrink-0 rounded-full flex items-center justify-center text-xs font-medium ${avatarColor}`}>
-                    {initials}
+        <div className={cn(
+            "flex gap-3",
+            isOwnMessage ? "flex-row-reverse" : "flex-row"
+        )}>
+            {/* Avatar */}
+            <div className={cn(
+                "h-8 w-8 flex-shrink-0 rounded-full flex items-center justify-center text-xs font-medium",
+                avatarColor
+            )}>
+                {initials}
+            </div>
+
+            {/* Message Content */}
+            <div className={cn(
+                "flex flex-col gap-1 max-w-[70%]",
+                isOwnMessage ? "items-end" : "items-start"
+            )}>
+                {/* User Info and Timestamp */}
+                <div className={cn(
+                    "flex items-center gap-2 text-xs",
+                    isOwnMessage ? "flex-row-reverse" : "flex-row"
+                )}>
+                    <span className="font-medium text-slate-700">
+                        {isOwnMessage ? 'You' : userName}
+                    </span>
+                    <span className="text-slate-500">
+                        {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                    </span>
                 </div>
 
-                {/* Message Bubble */}
-                <div className={`rounded-lg border px-3 py-2 ${isOwnMessage ? 'bg-blue-50 border-blue-100' : 'bg-white border-gray-200'}`}>
-                    <div className={`flex items-center gap-2 text-xs ${isOwnMessage ? 'justify-start' : 'justify-end'}`}>
-                        <span className="font-medium text-gray-900">
-                            {isOwnMessage ? 'You' : userName}
-                        </span>
-                        <span className="text-gray-500">
-                            {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                        </span>
-                    </div>
-
-                    <div className="mt-1 text-xs text-gray-900 leading-relaxed">
+                {/* Message Content - Simple Box */}
+                <div className={cn(
+                    "rounded-lg px-3 py-2 text-sm",
+                    isOwnMessage 
+                        ? "bg-blue-50 text-blue-900 border border-blue-100" 
+                        : "bg-slate-50 text-slate-900 border border-slate-200"
+                )}>
+                    <div className="leading-relaxed break-words">
                         <div dangerouslySetInnerHTML={{ __html: message.content }} />
                     </div>
                 </div>
+
+                {/* Message Status Indicator for own messages */}
+                {isOwnMessage && (
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                        <span>Sent</span>
+                    </div>
+                )}
             </div>
         </div>
     )

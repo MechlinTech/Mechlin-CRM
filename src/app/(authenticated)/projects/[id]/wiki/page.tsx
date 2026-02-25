@@ -326,7 +326,7 @@ export default function WikiPageView() {
         </div>
 
         <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-          <DialogContent className="!max-w-[900px] !w-[900px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="!max-w-[900px] !w-[900px] max-h-[90vh] overflow-y-auto custom-scrollbar rounded-lg">
             <DialogHeader>
               <DialogTitle>Page History</DialogTitle>
               <DialogDescription>View and restore previous versions of this wiki page</DialogDescription>
@@ -363,7 +363,7 @@ export default function WikiPageView() {
                     <div className="bg-gray-50 rounded-lg p-4">
                       <p className="text-xs text-gray-500 mb-3">Content Preview:</p>
                       <div 
-                        className="text-sm prose prose-sm max-w-none overflow-auto max-h-96"
+                        className="text-sm prose prose-sm max-w-none overflow-auto custom-scrollbar max-h-96"
                         dangerouslySetInnerHTML={{ __html: version.content || '<p class="text-gray-400">No content</p>' }}
                       />
                     </div>

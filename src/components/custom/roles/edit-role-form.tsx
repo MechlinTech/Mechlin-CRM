@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { toast } from "sonner"
 import { updateRoleAction, getAllPermissionsAction } from "@/actions/rbac"
 import type { UpdateRoleInput, Permission } from "@/types/rbac"
@@ -23,6 +30,7 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
     const [permissions, setPermissions] = useState<Permission[]>([])
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
     const [permissionsByModule, setPermissionsByModule] = useState<Record<string, Permission[]>>({})
+    const [status, setStatus] = useState<string>(role.is_active ? "active" : "inactive")
     const { isAdminOnly, loading: adminLoading } = useIsAdmin()
     const { user } = useAuth()
 
@@ -30,11 +38,10 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<Omit<UpdateRoleInput, "permission_ids" | "name">>({
+    } = useForm<Omit<UpdateRoleInput, "permission_ids" | "name" | "is_active">>({
         defaultValues: {
             display_name: role.display_name,
             description: role.description || "",
-            is_active: role.is_active,
         }
     })
 
@@ -86,7 +93,7 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
         }
     }
 
-    const onSubmit = async (data: Omit<UpdateRoleInput, "permission_ids" | "name">) => {
+    const onSubmit = async (data: Omit<UpdateRoleInput, "permission_ids" | "name" | "is_active">) => {
         if (selectedPermissions.length === 0) {
             toast.error("Please select at least one permission")
             return
@@ -98,6 +105,7 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
                 ...data,
                 name: role.name, // Keep original name
                 permission_ids: selectedPermissions,
+                is_active: status === "active",
             }
 
             const result = await updateRoleAction(role.id, roleData, user?.id)
@@ -142,15 +150,17 @@ export function EditRoleForm({ role, onSuccess }: EditRoleFormProps) {
                     />
                 </div>
 
-                <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="is_active"
-                        {...register("is_active")}
-                        defaultChecked={role.is_active}
-                    />
-                    <Label htmlFor="is_active" className="cursor-pointer">
-                        Active (users with this role can access the system)
-                    </Label>
+                <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={status} onValueChange={setStatus}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 

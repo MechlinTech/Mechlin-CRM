@@ -24,6 +24,9 @@ export async function getAuthUser() {
 
     const { data: { user }, error } = await supabase.auth.getUser()
     
+    console.log("getAuthUser: Error:", error)
+    console.log("getAuthUser: User:", user)
+    
     if (error || !user) {
         return null
     }
@@ -230,4 +233,51 @@ export async function getServerUserPermissions(): Promise<string[]> {
     })
     
     return Array.from(permissions)
+}
+
+/**
+ * Check if user is internal (Mechlin member) for server-side use
+ */
+export async function getServerIsInternalUser(): Promise<boolean> {
+    const user = await getAuthUser()
+    
+    if (!user) {
+        console.log("getServerIsInternalUser: No user found")
+        return false
+    }
+    
+    console.log("getServerIsInternalUser: User ID:", user.id)
+    
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value
+                },
+            },
+        }
+    )
+
+    const { data, error } = await supabase
+        .from("users")
+        .select(`
+            organisations(is_internal)
+        `)
+        .eq("id", user.id)
+        .single()
+    
+    console.log("getServerIsInternalUser: Query error:", error)
+    console.log("getServerIsInternalUser: Query data:", data)
+    
+    if (error) {
+        console.log("getServerIsInternalUser: Returning false due to error")
+        return false
+    }
+    
+    const isInternal = (data as any)?.organisations?.is_internal || false
+    console.log("getServerIsInternalUser: Final is_internal value:", isInternal)
+    return isInternal
 }

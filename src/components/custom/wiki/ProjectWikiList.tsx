@@ -214,7 +214,7 @@ export function ProjectWikiList({
                 New Page
               </Button>
             </DialogTrigger>
-            <DialogContent className="!w-[calc(100vw-16rem)] !max-w-none !sm:max-w-none max-h-[90vh] overflow-y-auto">
+            <DialogContent className="!w-[calc(100vw-16rem)] !max-w-none !sm:max-w-none max-h-[90vh] overflow-y-auto custom-scrollbar rounded-lg">
               <DialogHeader>
                 <DialogTitle>Create New Wiki Page</DialogTitle>
                 <DialogDescription>

@@ -69,7 +69,7 @@ export function ViewRoleDialog({ role, open, onOpenChange }: ViewRoleDialogProps
               <div className="flex gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Status</p>
-                  <Badge variant={role?.is_active ? "default" : "secondary"}>
+                  <Badge className="border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 cursor-default">
                     {role?.is_active ? "Active" : "Inactive"}
                   </Badge>
                 </div>

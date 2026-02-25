@@ -21,7 +21,7 @@ export function StatusHistory({ logs }: { logs: any[] }) {
           <History className="h-3 w-3" /> Status History
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:w-[540px] bg-white text-[#0F172A] overflow-y-auto border-l-0 shadow-2xl">
+      <SheetContent className="w-full sm:w-[540px] bg-white text-[#0F172A] overflow-y-auto custom-scrollbar border-l-0 shadow-2xl">
         <SheetHeader className="border-b pb-6">
           <SheetTitle className="text-2xl font-semibold tracking-tight uppercase">Audit Trail</SheetTitle>
           <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">History of all project transitions.</p>

@@ -22,10 +22,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { getAllOrganisationsAction } from "@/actions/user-management"
 import { useAdminWithInternalFalse } from "@/hooks/useAdminWithInternalFalse"
+import { useOrganisationData } from "@/hooks/useOrganisationData"
 
 const inviteSchema = z.object({
   email: z
@@ -45,11 +45,8 @@ interface InviteUserFormProps {
 
 export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
   const [loading, setLoading] = useState(false)
-  const [organisations, setOrganisations] = useState<any[]>([])
-  const [loadingOrgs, setLoadingOrgs] = useState(true)
-  const [organisationName, setOrganisationName] = useState<string>("")
   const router = useRouter()
-  const { isAdminWithInternalFalse, organisationId: userOrgId, loading: adminCheckLoading } = useAdminWithInternalFalse()
+  const { isAdminWithInternalFalse, organisationId: userOrgId } = useAdminWithInternalFalse()
 
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
@@ -59,48 +56,10 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
     },
   })
 
-  // For admin+internal false: auto-set org and fetch org name, skip fetching all orgs
-  useEffect(() => {
-    if (adminCheckLoading) return
-    if (isAdminWithInternalFalse && userOrgId) {
-      form.setValue("organisationId", userOrgId)
-      setLoadingOrgs(false)
-      
-      // Fetch organization name for display
-      async function fetchOrganisationName() {
-        try {
-          const { supabase } = await import("@/lib/supabase")
-          const { data, error } = await supabase
-            .from("organisations")
-            .select("name")
-            .eq("id", userOrgId)
-            .single()
-          
-          if (data && !error) {
-            setOrganisationName(data.name)
-          }
-        } catch (error) {
-          console.error("Failed to fetch organisation name:", error)
-        }
-      }
-      fetchOrganisationName()
-      return
-    }
-    async function fetchOrganisations() {
-      try {
-        const result = await getAllOrganisationsAction()
-        if (result.success && result.organisations) {
-          setOrganisations(result.organisations)
-        }
-      } catch (error) {
-        console.error("Failed to fetch organisations:", error)
-        toast.error("Failed to load organisations")
-      } finally {
-        setLoadingOrgs(false)
-      }
-    }
-    fetchOrganisations()
-  }, [adminCheckLoading, isAdminWithInternalFalse, userOrgId, form])
+  const { organisations, loadingOrgs, organisationName } = useOrganisationData({
+    form,
+    organisationField: "organisationId"
+  })
 
   async function onSubmit(data: InviteFormValues) {
     setLoading(true)

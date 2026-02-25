@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { MessageItem } from './MessageItem'
 import { MessageComposer } from './MessageComposer'
 import { Thread, Message } from '@/data/threads'
 import { getMessagesByThreadAction, getParticipantsByThreadAction } from '@/actions/threads'
-import { supabase } from '@/lib/supabase'
-import { useRBAC } from '@/context/rbac-context' // RBAC Integration
+import { useRBAC } from '@/context/rbac-context'
 import { useRouter } from 'next/navigation'
+import { Users, Calendar } from 'lucide-react'
 
 interface ThreadViewProps {
     thread: Thread
@@ -18,39 +18,33 @@ interface ThreadViewProps {
 }
 
 export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewProps) {
-    const [messages, setMessages] = useState<(Message & {
-        user?: {
-            id: string
-            name?: string
-            email?: string
-            avatar_url?: string
-        }
-    })[]>([])
+    const [messages, setMessages] = useState<Message[]>([])
     const [participants, setParticipants] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const messagesEndRef = useRef<HTMLDivElement | null>(null)
-    
-    // RBAC Integration
+
     const { hasPermission, loading: rbacLoading } = useRBAC()
     const router = useRouter()
 
     useEffect(() => {
-        // RBAC: Redirect if user cannot read threads 
         if (!rbacLoading && !hasPermission('threads.read')) {
             router.push('/unauthorized')
             return
         }
-
-        if (thread.id) {
-            loadThreadData()
-        }
+        if (thread.id) loadThreadData()
     }, [thread.id, rbacLoading, hasPermission, router])
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, [messages.length])
+    const scrollToBottom = (smooth = true) => {
+        setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant' })
+        }, 50)
+    }
 
-    // Group messages by day for date separators
+    useEffect(() => {
+        if (messages.length === 0) return
+        scrollToBottom(!loading)
+    }, [messages.length, loading])
+
     const messagesWithSeparators = useMemo(() => {
         const result: Array<{ type: 'message' | 'separator'; data?: any; label?: string }> = []
         let lastDate: string | null = null
@@ -69,61 +63,30 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
 
         for (const message of messages) {
             const msgDateStr = formatDate(new Date(message.created_at))
-
             if (msgDateStr !== lastDate) {
                 let label = ''
-                if (msgDateStr === todayStr) {
-                    label = 'Today'
-                } else if (msgDateStr === yesterdayStr) {
-                    label = 'Yesterday'
-                } else {
-                    label = new Date(message.created_at).toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                        year: new Date(message.created_at).getFullYear() !== today.getFullYear() ? 'numeric' : undefined
-                    })
-                }
+                if (msgDateStr === todayStr) label = 'Today'
+                else if (msgDateStr === yesterdayStr) label = 'Yesterday'
+                else label = new Date(message.created_at).toLocaleDateString('en-US', {
+                    weekday: 'short', month: 'short', day: 'numeric',
+                    year: new Date(message.created_at).getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+                })
                 result.push({ type: 'separator', label })
                 lastDate = msgDateStr
             }
-
             result.push({ type: 'message', data: message })
         }
-
         return result
     }, [messages])
 
     const loadThreadData = async () => {
         setLoading(true)
         try {
-            // Load messages
             const messagesResult = await getMessagesByThreadAction(thread.id)
-            if (messagesResult.success && messagesResult.messages) {
-                // Load user data for each message
-                const messagesWithUsers = await Promise.all(
-                    messagesResult.messages.map(async (message) => {
-                        // Get user data for message creator
-                        const { data: userData } = await supabase.auth.admin.getUserById(message.created_by)
-                        return {
-                            ...message,
-                            user: userData.user ? {
-                                id: userData.user.id,
-                                name: userData.user.user_metadata?.name || userData.user.email,
-                                email: userData.user.email,
-                                avatar_url: userData.user.user_metadata?.avatar_url
-                            } : null
-                        }
-                    })
-                )
-                setMessages(messagesWithUsers)
-            }
+            if (messagesResult.success && messagesResult.messages) setMessages(messagesResult.messages)
 
-            // Load participants
             const participantsResult = await getParticipantsByThreadAction(thread.id)
-            if (participantsResult.success && participantsResult.participants) {
-                setParticipants(participantsResult.participants)
-            }
+            if (participantsResult.success && participantsResult.participants) setParticipants(participantsResult.participants)
         } catch (error) {
             console.error('Error loading thread data:', error)
         } finally {
@@ -133,89 +96,111 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
 
     const handleMessageSent = (newMessage?: any) => {
         if (newMessage) {
-            // Optimistically add the new message to the UI immediately
-            const messageWithUser = {
+            setMessages(prev => [...prev, {
                 ...newMessage,
-                user: {
-                    id: currentUserId,
-                    name: 'You', // This should be replaced with actual user data
-                    email: '',
-                    avatar_url: ''
-                }
-            }
-            setMessages(prev => [...prev, messageWithUser])
+                user: { id: currentUserId, name: 'You', email: '', avatar_url: '' }
+            }])
         }
-        
-        // Also call parent callback if provided
         onMessageSent?.(newMessage)
     }
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'open': return 'bg-green-100 text-green-800'
-            case 'in_progress': return 'bg-blue-100 text-blue-800'
-            case 'closed': return 'bg-gray-100 text-gray-800'
-            default: return 'bg-gray-100 text-gray-800'
+            case 'open': return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            case 'in_progress': return 'bg-blue-50 text-blue-700 border-blue-200'
+            case 'closed': return 'bg-slate-50 text-slate-700 border-slate-200'
+            default: return 'bg-slate-50 text-slate-700 border-slate-200'
         }
     }
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
-            case 'low': return 'bg-gray-100 text-gray-800'
-            case 'medium': return 'bg-yellow-100 text-yellow-800'
-            case 'high': return 'bg-orange-100 text-orange-800'
-            case 'urgent': return 'bg-red-100 text-red-800'
-            default: return 'bg-gray-100 text-gray-800'
+            case 'low': return 'bg-gray-50 text-gray-700 border-gray-200'
+            case 'medium': return 'bg-amber-50 text-amber-700 border-amber-200'
+            case 'high': return 'bg-orange-50 text-orange-700 border-orange-200'
+            case 'urgent': return 'bg-red-50 text-red-700 border-red-200'
+            default: return 'bg-gray-50 text-gray-700 border-gray-200'
         }
     }
 
     if (loading || rbacLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="space-y-2">
-                    <h1 className="text-lg font-bold">{thread.title}</h1>
-                    <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 text-xs rounded ${getStatusColor(thread.status)}`}>
-                            {thread.status}
-                        </span>
-                        <span className={`px-2 py-1 text-xs rounded ${getPriorityColor(thread.priority)}`}>
-                            {thread.priority}
-                        </span>
-                        <span className="px-2 py-1 text-xs rounded bg-gray-100 text-gray-800">
-                            {thread.context_type}
-                        </span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-xs text-gray-600">
-                        <span>Created by Unknown User</span>
-                        <span>•</span>
-                        <span>{new Date(thread.created_at).toLocaleDateString()}</span>
-                    </div>
+            <div className="rounded-2xl border border-slate-100 bg-white overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100">
+                    <Skeleton className="h-5 w-48" />
+                </div>
+                <div className="p-6 space-y-4">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex gap-3">
+                            <Skeleton className="h-9 w-9 rounded-full flex-shrink-0" />
+                            <div className="space-y-2 flex-1">
+                                <Skeleton className="h-3 w-28" />
+                                <Skeleton className="h-14 w-full rounded-lg" />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         )
     }
 
-    // RBAC check for replying 
-    const canReply = hasPermission('threads.update');
+    const canReply = hasPermission('threads.update')
 
     return (
-        <div className="h-[70vh] flex flex-col">
-            {/* Messages and Input Side by Side */}
-            <div className="flex-1 flex overflow-hidden">
-                {/* Messages Section - Takes 2/3 space */}
-                <div className="flex-1 bg-white overflow-hidden flex flex-col border border-gray-200 rounded-lg">
-                    <div className="shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
-                        <h3 className="text-xs font-medium text-gray-700">Messages</h3>
+        // Normal block element — fits naturally in the page
+        // The message list has a fixed max-height and scrolls internally
+        <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+
+            {/* Header */}
+            <div className="bg-white border-b border-slate-100 px-6 py-4">
+                <div className="flex items-center gap-6 text-sm text-slate-500">
+                    <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-slate-400" />
+                        <span>Created by {thread.user?.name || 'Unknown User'}</span>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-6">
-                        <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-slate-400" />
+                        <span>{new Date(thread.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
+                    {participants.length > 0 && (
+                        <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-slate-400" />
+                            <span>{participants.length} participant{participants.length !== 1 ? 's' : ''}</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Body: sidebar + chat side by side */}
+            <div className="flex">
+
+                {/* Chat column */}
+                <div className="flex-1 flex flex-col min-w-0">
+
+                    {/*  THIS is the only thing that scrolls.
+                        Fixed height — messages pile up inside, old ones scroll up. */}
+                    <div
+                        className="h-[500px] overflow-y-auto p-6 bg-slate-50/30 custom-scrollbar"
+                        style={{ scrollBehavior: 'smooth' }}
+                    >
+                        <div className="space-y-6">
+                            {messages.length === 0 && (
+                                <div className="flex flex-col items-center justify-center h-full py-16 text-center">
+                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                        <Users className="h-8 w-8 text-slate-300" />
+                                    </div>
+                                    <p className="text-sm font-medium text-slate-500">No messages yet</p>
+                                    <p className="text-xs text-slate-400 mt-1">Start the conversation</p>
+                                </div>
+                            )}
+
                             {messagesWithSeparators.map((item, idx) => {
                                 if (item.type === 'separator') {
                                     return (
-                                        <div key={`sep-${idx}`} className="flex items-center justify-center my-4">
-                                            <div className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                                                {item.label}
-                                            </div>
+                                        <div key={`sep-${idx}`} className="flex items-center gap-3 my-4">
+                                            <div className="flex-1 border-t border-slate-200" />
+                                            <span className="text-xs text-slate-400 font-medium px-2">{item.label}</span>
+                                            <div className="flex-1 border-t border-slate-200" />
                                         </div>
                                     )
                                 }
@@ -227,38 +212,94 @@ export function ThreadView({ thread, currentUserId, onMessageSent }: ThreadViewP
                                     />
                                 )
                             })}
-                            
-                            {messages.length === 0 && (
-                                <div className="text-center text-gray-600 py-8 text-xs">
-                                    No messages yet. Start the conversation!
-                                </div>
-                            )}
 
                             <div ref={messagesEndRef} />
                         </div>
                     </div>
-                </div>
 
-                {/* Input Section - Takes 1/3 space */}
-                <div className="w-1/3 bg-gray-50 border-l border-gray-200 flex flex-col sticky top-0 self-start h-full">
-                    <div className="shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
-                        <h3 className="text-xs font-medium text-gray-700">Reply to Thread</h3>
-                    </div>
-                    <div className="flex-1 overflow-hidden p-4">
+                    {/* Composer — sits right below the message box, never scrolls */}
+                    <div className="border-t border-slate-100 bg-white p-4">
                         {canReply ? (
-                            <MessageComposer
-                                threadId={thread.id}
-                                userId={currentUserId}
-                                onMessageSent={handleMessageSent}
-                                placeholder="Type your message here..."
-                            />
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                <MessageComposer
+                                    threadId={thread.id}
+                                    userId={currentUserId}
+                                    onMessageSent={handleMessageSent}
+                                    placeholder="Type your message here..."
+                                />
+                            </div>
                         ) : (
-                            <div className="h-full flex items-center justify-center text-center p-6 bg-slate-100 rounded-lg border border-dashed border-slate-300">
-                                <p className="text-xs text-slate-500 font-medium italic">
-                                    You do not have permission to reply to this discussion.
-                                </p>
+                            <div className="bg-slate-50 rounded-xl border border-slate-200 p-6 text-center">
+                                <p className="text-sm text-slate-500">You do not have permission to reply to this discussion.</p>
                             </div>
                         )}
+                    </div>
+                </div>
+
+                {/* Right Sidebar */}
+                <div className="w-72 flex-none border-l border-slate-100 flex flex-col bg-white">
+                    <div className="p-5 border-b border-slate-100">
+                        <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-3">Thread Details</h3>
+                        <div className="space-y-2.5">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-slate-400">Status</span>
+                                <Badge className={`px-2 py-0.5 text-[10px] font-medium border ${getStatusColor(thread.status)}`}>
+                                    {thread.status?.replace('_', ' ').toUpperCase()}
+                                </Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-slate-400">Priority</span>
+                                <Badge className={`px-2 py-0.5 text-[10px] font-medium border ${getPriorityColor(thread.priority)}`}>
+                                    {thread.priority?.toUpperCase()}
+                                </Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-slate-400">Type</span>
+                                <Badge variant="outline" className="px-2 py-0.5 text-[10px] font-medium">
+                                    {thread.context_type?.replace('_', ' ').toUpperCase()}
+                                </Badge>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-5 border-b border-slate-100">
+                        <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-3">Participants</h3>
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2.5">
+                                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                                    {thread.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-xs font-medium text-slate-800 truncate">{thread.user?.name || 'Unknown'}</p>
+                                    <p className="text-[10px] text-slate-400">Creator</p>
+                                </div>
+                            </div>
+                            {participants.map((participant, idx) => (
+                                <div key={idx} className="flex items-center gap-2.5">
+                                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-slate-400 to-slate-500 text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                                        {participant.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-slate-800 truncate">{participant.user?.name || 'Unknown'}</p>
+                                        <p className="text-[10px] text-slate-400">Participant</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="p-5">
+                        <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-3">Activity</h3>
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                                <Calendar className="h-3 w-3" />
+                                <span>Created {new Date(thread.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                                <Users className="h-3 w-3" />
+                                <span>{messages.length} message{messages.length !== 1 ? 's' : ''}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

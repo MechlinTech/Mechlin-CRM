@@ -1,32 +1,79 @@
+"use client"
+
+import React from 'react'
 import { supabase } from "@/lib/supabase"
 import { ProjectsTable } from "@/components/custom/projects/projects-table"
 import { AddProjectButton } from "@/components/custom/projects/add-project-button"
 import { redirect } from "next/navigation";
-import { getServerUserPermissions } from "@/lib/rbac-middleware";
+import { useRBAC } from "@/context/rbac-context"
+import { isAdmin, isSuperAdmin } from '@/lib/permissions'
+import { Loader2, FolderKanban } from 'lucide-react'
 
-export default async function ProjectsPage() {
-      const permissions = await getServerUserPermissions();
-        
-        // Check if user has permission to read user information
-        if (!permissions.includes('projects.create')) {
-            redirect('/unauthorized');
+export default function ProjectsPage() {
+    const [projects, setProjects] = React.useState<any[]>([])
+    const [organisations, setOrganisations] = React.useState<any[]>([])
+    const [users, setUsers] = React.useState<any[]>([])
+    const [isLoading, setIsLoading] = React.useState(true)
+    
+    const { hasPermission, loading: rbacLoading } = useRBAC()
+
+    React.useEffect(() => {
+        async function fetchData() {
+            // Check permissions
+            const canRead = hasPermission('projects.read')
+            const isInternal = hasPermission('organisations.read') // Simple check for internal user
+            
+            if (!isInternal || !canRead) {
+                redirect('/unauthorized')
+                return
+            }
+
+            try {
+                // Fetch projects
+                const { data: projectsData } = await supabase
+                    .from("projects")
+                    .select(`*, organisations(name), project_members(user_id)`)
+                    .order('created_at', { ascending: false })
+
+                // Fetch organisations
+                const { data: organisationsData } = await supabase
+                    .from("organisations")
+                    .select("id, name")
+
+                // Fetch users where the organization name is 'Mechlin'
+                const { data: usersData } = await supabase
+                    .from("users")
+                    .select(`id, name, organisations!inner(name)`)
+                    .eq('organisations.name', 'Mechlin')
+                    .eq('status', 'active')
+
+                setProjects(projectsData || [])
+                setOrganisations(organisationsData || [])
+                setUsers(usersData || [])
+            } catch (error) {
+                console.error('Error fetching data:', error)
+            } finally {
+                setIsLoading(false)
+            }
         }
-    const { data: projects } = await supabase
-        .from("projects")
-        .select(`*, organisations(name), project_members(user_id)`)
-        .order('created_at', { ascending: false });
 
-    const { data: organisations } = await supabase
-        .from("organisations")
-        .select("id, name");
+        if (!rbacLoading) {
+            fetchData()
+        }
+    }, [rbacLoading, hasPermission])
 
-    // Fetch users where the organization name is 'Mechlin'
-    // This removes the need for a hardcoded UUID [cite: 9]
-    const { data: users } = await supabase
-        .from("users")
-        .select(`id, name, organisations!inner(name)`)
-        .eq('organisations.name', 'Mechlin')
-        .eq('status', 'active');
+    const canCreate = hasPermission('projects.create')
+
+    if (rbacLoading || isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#006AFF] mx-auto mb-4"></div>
+                    <p className="text-sm text-gray-600">Loading projects...</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="p-0">
@@ -48,10 +95,11 @@ export default async function ProjectsPage() {
                                 {projects?.length || 0}
                             </div>
                         </div>
-                        <AddProjectButton 
+                        {/* RBAC: Only show Add button if user has projects.create permission */}
+                        {canCreate && <AddProjectButton 
                             organisations={organisations || []} 
                             users={users || []} 
-                        />
+                        />}
                     </div>
 
                     {/* Enhanced Table Section */}

@@ -191,9 +191,6 @@ export function EnquiryThread({
                         <h2 className="text-lg font-semibold text-gray-900 truncate">
                             {selectedThread.title}
                         </h2>
-                        <div className="text-xs text-gray-600 mt-1">
-                            Created by Unknown User • {new Date(selectedThread.created_at).toLocaleDateString()}
-                        </div>
                     </div>
 
                     {showThreadList && (
@@ -364,55 +361,55 @@ export function EnquiryThread({
                         {searchTerm ? 'No threads found matching your search.' : 'No threads yet. Create the first one!'}
                     </div>
                 ) : (
-                filteredThreads.map((thread) => (
-                    <div 
-                        key={thread.id} 
-                        className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
-                    >
-                        <div className="flex items-start justify-between">
-                            <div 
-                                className="flex-1 cursor-pointer"
-                                onClick={() => handleSelectThread(thread)}
-                            >
-                                <div className="space-y-2">
-                                    <h3 className="font-semibold text-lg text-gray-900">{thread.title}</h3>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(thread.status)}`}>
-                                                {thread.status.replace('_', ' ')}
-                                            </span>
-                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(thread.priority)}`}>
-                                                {thread.priority}
-                                            </span>
-                                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
-                                                {thread.context_type}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center space-x-2 text-xs text-gray-500">
-                                            <span>Created by Unknown User</span>
-                                            <span>•</span>
-                                            <span>{new Date(thread.created_at).toLocaleDateString()}</span>
+                    filteredThreads.map((thread) => (
+                        <div 
+                            key={thread.id} 
+                            className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                        >
+                            <div className="flex items-start justify-between">
+                                <div 
+                                    className="flex-1 cursor-pointer"
+                                    onClick={() => handleSelectThread(thread)}
+                                >
+                                    <div className="space-y-2">
+                                        <h3 className="font-semibold text-lg text-gray-900">{thread.title}</h3>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2">
+                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(thread.status)}`}>
+                                                    {thread.status.replace('_', ' ')}
+                                                </span>
+                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(thread.priority)}`}>
+                                                    {thread.priority}
+                                                </span>
+                                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                                                    {thread.context_type}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center space-x-2 text-xs text-gray-500">
+                                                <span>Created by {thread.user?.name || 'Unknown User'}</span>
+                                                <span>•</span>
+                                                <span>{new Date(thread.created_at).toLocaleDateString()}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                {hasPermission('threads.delete') && thread.created_by === currentUserId && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleDeleteThread(thread.id)
+                                        }}
+                                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                    >
+                                        <Trash className="h-4 w-4" />
+                                    </Button>
+                                )}
                             </div>
-                            
-                            {hasPermission('threads.delete') && thread.created_by === currentUserId && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleDeleteThread(thread.id)
-                                    }}
-                                    className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                                >
-                                    <Trash className="h-4 w-4" />
-                                </Button>
-                            )}
                         </div>
-                    </div>
-                ))
+                    ))
                 )}
             </div>
         </div>

@@ -1,54 +1,85 @@
+"use client"
+
+import React from 'react'
 import { AddRoleButton } from "@/components/custom/roles/add-role-button"
-import { getAllRolesAction } from "@/actions/rbac"
+import { getAllRolesAction, getUserOrganisationAction } from "@/actions/rbac"
 import { RolesTable } from "@/components/custom/roles/roles-table"
-import { getServerUserPermissions } from "@/lib/rbac-middleware"
+import { useRBAC } from "@/context/rbac-context"
 import { redirect } from "next/navigation"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { supabase } from "@/lib/supabase"
+import { useAuth } from "@/hooks/useAuth"
+import { isAdmin, isSuperAdmin } from '@/lib/permissions'
 
-export default async function RolesPage() {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!, 
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, 
-        {
-            cookies: {
-                get(name: string) {
-                    return cookieStore.get(name)?.value
-                },
-                set(name: string, value: string, options: any) {
-                    cookieStore.set({ name, value, ...options })
-                },
-                remove(name: string, options: any) {
-                    cookieStore.set({ name, value: '', ...options })
-                },
-            },
-        }
-    )
-
-    const {
-        data: { user }
-    } = await supabase.auth.getUser()
-
-    // Get user's organization from users table
-    const { data: userData } = await supabase
-        .from("users")
-        .select("organisation_id")
-        .eq("id", user?.id || "")
-        .single()
-
-    const result = await getAllRolesAction(userData?.organisation_id || null)
+export default function RolesPage() {
+    const [roles, setRoles] = React.useState<any[]>([])
+    const [isLoading, setIsLoading] = React.useState(true)
+    const [error, setError] = React.useState<string | null>(null)
     
-    // RBAC: Fetch permissions on server
-    const permissions = await getServerUserPermissions();
-    const canRead = permissions.includes('roles.read');
-    const canCreate = permissions.includes('roles.create');
-    const canUpdate = permissions.includes('roles.update');
-    const canDelete = permissions.includes('roles.delete');
+    const { hasPermission, loading: rbacLoading } = useRBAC()
+    const { user } = useAuth()
 
-    // FIX: Only redirect if the user has NO role-related permissions at all
-    if (!canRead && !canCreate && !canUpdate && !canDelete) {
-        redirect('/unauthorized');
+    React.useEffect(() => {
+        async function fetchData() {
+            // Check permissions
+            const canRead = hasPermission('roles.read')
+            const canCreate = hasPermission('roles.create')
+            const canUpdate = hasPermission('roles.update')
+            const canDelete = hasPermission('roles.delete')
+
+            // FIX: Only redirect if the user has NO role-related permissions at all
+            if (!canRead && !canCreate && !canUpdate && !canDelete) {
+                redirect('/unauthorized')
+                return
+            }
+
+            try {
+                // Get user's organization using action
+                const orgResult = await getUserOrganisationAction(user?.id || "")
+                const organisationId = orgResult.success ? orgResult.organisationId : null
+
+                const result = await getAllRolesAction(organisationId)
+                if (result.success) {
+                    setRoles(result.roles || [])
+                } else {
+                    setError(result.error || 'Failed to load roles')
+                }
+            } catch (error) {
+                console.error('Error fetching roles:', error)
+                setError('Failed to load roles')
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        if (!rbacLoading && user) {
+            fetchData()
+        }
+    }, [rbacLoading, hasPermission, user])
+
+    const canCreate = hasPermission('roles.create')
+
+    if (rbacLoading || isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#006AFF] mx-auto mb-4"></div>
+                    <p className="text-sm text-gray-600">Loading roles...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen p-8">
+                <div className="max-w-4xl mx-auto">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <h2 className="text-red-800 font-semibold mb-2">Error Loading Roles</h2>
+                        <p className="text-red-700">{error}</p>
+                    </div>
+                </div>
+            </div>
+        )
     }
     
     return (
@@ -68,7 +99,7 @@ export default async function RolesPage() {
                                 <p className="text-xs text-[#0F172A]/60">Manage roles and access control</p>
                             </div>
                             <div className="bg-[#006AFF]/10 text-[#006AFF] border-[#006AFF]/20 font-semibold px-3 py-1 rounded-full text-xs">
-                                {result.roles?.length || 0}
+                                {roles?.length || 0}
                             </div>
                         </div>
                         
@@ -78,7 +109,7 @@ export default async function RolesPage() {
 
                     {/* Table Section */}
                     <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
-                        <RolesTable roles={result.roles || []} />
+                        <RolesTable roles={roles || []} />
                     </div>
                 </div>
             </div>
