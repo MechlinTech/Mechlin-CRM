@@ -33,6 +33,15 @@ export async function getPermissionsByModule(module: string) {
         .order("action", { ascending: true })
 }
 
+export async function updatePermission(permissionId: string, updates: { is_internal?: boolean }) {
+    return await supabase
+        .from("permissions")
+        .update(updates)
+        .eq("id", permissionId)
+        .select()
+        .single()
+}
+
 // ============================================
 // ROLES
 // ============================================

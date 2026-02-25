@@ -26,7 +26,51 @@ export async function getAllActiveUsersWithOrgsAction() {
     }
 }
 
-// ..
+export async function getActiveMechlinUsersAction() {
+    try {
+        const { data, error } = await supabase
+            .from("users")
+            .select(`id, name, organisations!inner(name)`)
+            .eq('organisations.name', 'Mechlin')
+            .eq('status', 'active');
+
+        if (error) throw error;
+        return { success: true, data: data || [] };
+    } catch (error: any) {
+        console.error("Fetch Mechlin Users Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function getAllProjectsAction() {
+    try {
+        const { data, error } = await supabase
+            .from("projects")
+            .select(`*, organisations(name), project_members(user_id)`)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return { success: true, data: data || [] };
+    } catch (error: any) {
+        console.error("Fetch Projects Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function getAllOrganisationsAction() {
+    try {
+        const { data, error } = await supabase
+            .from("organisations")
+            .select("id, name");
+
+        if (error) throw error;
+        return { success: true, data: data || [] };
+    } catch (error: any) {
+        console.error("Fetch Organisations Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+
 export async function createProjectAction(data: any) {
     const { members, ...projectData } = data;
     const { data: result, error } = await supabase

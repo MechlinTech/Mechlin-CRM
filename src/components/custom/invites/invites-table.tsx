@@ -27,6 +27,7 @@ interface Invite {
         name: string
         email: string
     }
+    invited_by: string
 }
 
 export function InvitesTable() {
@@ -51,6 +52,7 @@ export function InvitesTable() {
             const data = await response.json()
 
             if (data.success) {
+                // Server now filters invites by current user's organization
                 setInvites(data.invites)
             } else {
                 toast.error('Failed to load invitations')
@@ -106,38 +108,39 @@ export function InvitesTable() {
     }
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Organisation</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Invited By</TableHead>
-                    <TableHead>Sent</TableHead>
-                    <TableHead>Expires</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {invites.map((invite) => (
-                    <TableRow key={invite.id}>
-                        <TableCell className="font-medium">{invite.email}</TableCell>
-                        <TableCell>{invite.organisation?.name || 'N/A'}</TableCell>
-                        <TableCell>{getStatusBadge(invite.status)}</TableCell>
-                        <TableCell>
-                            <div className="flex flex-col">
-                                <span className="text-sm">{invite.inviter?.name || 'N/A'}</span>
-                                <span className="text-xs text-gray-500">{invite.inviter?.email}</span>
-                            </div>
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-500">
-                            {formatDistanceToNow(new Date(invite.invited_at), { addSuffix: true })}
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-500">
-                            {formatDistanceToNow(new Date(invite.expires_at), { addSuffix: true })}
-                        </TableCell>
+        <div className="bg-white rounded-md border border-gray-200/50 shadow-sm overflow-hidden">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="bg-gray-100">Email</TableHead>
+                        <TableHead className="bg-gray-100">Organisation</TableHead>
+                        <TableHead className="bg-gray-100">Status</TableHead>
+                        <TableHead className="bg-gray-100">Invited By</TableHead>
+                        <TableHead className="bg-gray-100">Sent</TableHead>
+                        <TableHead className="bg-gray-100">Expires</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {invites.map((invite) => (
+                        <TableRow key={invite.id}>
+                            <TableCell className="font-medium">{invite.email}</TableCell>
+                            <TableCell>{invite.organisation?.name || 'N/A'}</TableCell>
+                            <TableCell>{getStatusBadge(invite.status)}</TableCell>
+                            <TableCell>
+                                <div className="flex flex-col">
+                                    <span className="text-sm">{invite.inviter?.name || 'Administrator'}</span>
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-500">
+                                {formatDistanceToNow(new Date(invite.invited_at), { addSuffix: true })}
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-500">
+                                {formatDistanceToNow(new Date(invite.expires_at), { addSuffix: true })}
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
     )
 }

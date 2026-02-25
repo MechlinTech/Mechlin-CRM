@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
-import { adminAuthClient, supabaseAdmin } from '@/lib/supabase-admin'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getAuthenticatedUser } from '@/lib/rbac'
+import { sendInvitationEmail } from '@/lib/email-service'
 
 interface InviteUserBody {
     email: string
@@ -8,8 +9,6 @@ interface InviteUserBody {
 }
 
 export async function POST(request: NextRequest) {
-    console.log('\n🎯 /api/users/invite endpoint called 🎯')
-    
     try {
         // Check if user is authenticated
         const authStatus = await getAuthenticatedUser()
@@ -61,18 +60,8 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Send invite via Supabase Auth
-        const { data: inviteData, error: inviteError } = await adminAuthClient.inviteUserByEmail(email, {
-            redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
-        })
-
-        if (inviteError) {
-            console.error('❌ Error sending invite:', inviteError)
-            return Response.json(
-                { error: `Failed to send invite: ${inviteError.message}` },
-                { status: 500 }
-            )
-        }
+        // Generate a simple invitation URL without Azure AD
+        const inviteRedeemUrl = 'https://devcrm.mechlintech.com/'
 
         // Store invite in database
         const { data: inviteRecord, error: dbError } = await supabaseAdmin
@@ -84,33 +73,52 @@ export async function POST(request: NextRequest) {
                 status: 'pending',
                 expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
             })
-            .select()
+            .select(`
+                *,
+                organisation:organisations(name)
+            `)
             .single()
 
         if (dbError) {
-            console.error('❌ Error storing invite:', dbError)
             return Response.json(
                 { error: 'Failed to store invite record' },
                 { status: 500 }
             )
         }
 
-        console.log('✅ Invite sent successfully to:', email)
+        // Fetch inviter details separately
+        const { data: inviter } = await supabaseAdmin
+            .from('users')
+            .select('name, email')
+            .eq('id', userId)
+            .single()
+
+        // Send custom email invitation
+        try {
+            await sendInvitationEmail({
+                to: email,
+                inviterName: inviter?.name || 'Administrator',
+                organisationName: inviteRecord.organisation?.name || 'MechlinTech',
+                inviteRedeemUrl: inviteRedeemUrl,
+                expiresAt: inviteRecord.expires_at,
+            })
+        } catch (emailError) {
+        }
 
         return Response.json({
             success: true,
-            message: 'Invitation sent successfully',
+            message: 'Invitation sent successfully via custom email',
             invite: {
                 id: inviteRecord.id,
                 email: inviteRecord.email,
                 status: inviteRecord.status,
                 invitedAt: inviteRecord.invited_at,
                 expiresAt: inviteRecord.expires_at,
+                inviteRedeemUrl: inviteRedeemUrl,
             }
         })
 
     } catch (error) {
-        console.error('❌ Error in /api/users/invite:', error)
         return Response.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -120,8 +128,6 @@ export async function POST(request: NextRequest) {
 
 // GET endpoint to fetch all pending invites
 export async function GET() {
-    console.log('\n🎯 /api/users/invite GET endpoint called 🎯')
-    
     try {
         // Check if user is authenticated
         const authStatus = await getAuthenticatedUser()
@@ -133,31 +139,60 @@ export async function GET() {
             )
         }
 
-        // Fetch all pending invites
+        const userId = authStatus.user.id
+
+        // Get current user's organization
+        const { data: currentUser } = await supabaseAdmin
+            .from('users')
+            .select('organisation_id')
+            .eq('id', userId)
+            .single()
+
+        if (!currentUser) {
+            return Response.json(
+                { error: 'User not found' },
+                { status: 404 }
+            )
+        }
+
+        // Fetch invites from the same organization as current user
         const { data: invites, error } = await supabaseAdmin
             .from('user_invites')
             .select(`
                 *,
-                organisation:organisations(name),
-                inviter:users!user_invites_invited_by_fkey(name, email)
+                organisation:organisations(name)
             `)
+            .eq('organisation_id', currentUser.organisation_id)
             .order('invited_at', { ascending: false })
 
         if (error) {
-            console.error('❌ Error fetching invites:', error)
             return Response.json(
                 { error: 'Failed to fetch invites' },
                 { status: 500 }
             )
         }
 
+        // Fetch inviter details for each invite
+        const invitesWithInviters = await Promise.all(
+            invites.map(async (invite) => {
+                const { data: inviter } = await supabaseAdmin
+                    .from('users')
+                    .select('name, email')
+                    .eq('id', invite.invited_by)
+                    .single()
+                
+                return {
+                    ...invite,
+                    inviter: inviter || { name: 'Administrator', email: null }
+                }
+            })
+        )
         return Response.json({
             success: true,
-            invites
+            invites: invitesWithInviters
         })
 
     } catch (error) {
-        console.error('❌ Error in /api/users/invite GET:', error)
         return Response.json(
             { error: 'Internal server error' },
             { status: 500 }

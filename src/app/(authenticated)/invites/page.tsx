@@ -1,20 +1,20 @@
+import { InviteUsersButton } from "@/components/custom/users/invite-users-button"
 import { InvitesTable } from "@/components/custom/invites/invites-table"
-import { getServerUserPermissions } from "@/lib/rbac-middleware" // RBAC Server Utility
+import { getServerUserPermissions } from "@/lib/rbac-middleware"
 import { redirect } from "next/navigation"
 
 export default async function InvitesPage() {
-    // 1. RBAC CHECK: Verify permission on the server side
+    // RBAC CHECK: Verify permission on the server side
     const permissions = await getServerUserPermissions();
     
     // Track and manage invitations requires the ability to create/manage users
     const canManageInvites = permissions.includes('users.create');
 
-    // 2. RESTRICTION: If user lacks permission, prevent access
+    // RESTRICTION: If user lacks permission, prevent access
     if (!canManageInvites) {
         redirect('/unauthorized');
     }
 
-    // 3. UI: Remains 100% exactly as you setup
     return (
         <div className="p-0">
             <div className="px-4 sm:px-6 lg:px-8">
@@ -29,9 +29,10 @@ export default async function InvitesPage() {
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold text-heading-primary">User Invitations</h1>
-                                <p className="text-xs text-[#6C7F93]">Track and manage pending user invitations</p>
+                                <p className="text-xs text-[#6C7F93">Send and manage user invitations</p>
                             </div>
                         </div>
+                        <InviteUsersButton />
                     </div>
 
                     {/* Table Section */}

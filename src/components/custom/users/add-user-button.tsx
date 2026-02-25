@@ -48,9 +48,9 @@ export function AddUserButton({ onSuccess }: AddUserButtonProps) {
                 </DialogHeader>
                 
                 <Tabs defaultValue="invite" className="w-full">
-                    <TabsList className="grid w-full grid-cols-1">
+                    <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="invite">Send Invitation</TabsTrigger>
-                        {/* <TabsTrigger value="create">Create Directly</TabsTrigger> */}
+                        <TabsTrigger value="create">Create Directly</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="invite" className="mt-6">
