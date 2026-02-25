@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import {
     getAllPermissions,
     getPermissionsByModule,
+    updatePermission,
     getAllRoles,
     getRoleById,
     getSystemRoles,
@@ -99,6 +100,15 @@ export async function getPermissionsByModuleAction(module: string) {
         return { success: false, error: error.message, code: error.code }
     }
     return { success: true, permissions: data }
+}
+
+export async function updatePermissionAction(permissionId: string, updates: { is_internal?: boolean }) {
+    const { data, error } = await updatePermission(permissionId, updates)
+    if (error) {
+        return { success: false, error: error.message, code: error.code }
+    }
+    revalidatePath("/permissions-management")
+    return { success: true, permission: data }
 }
 
 // ============================================

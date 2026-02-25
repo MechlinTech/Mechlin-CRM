@@ -251,6 +251,7 @@ CREATE TABLE permissions (
     description TEXT,
     module VARCHAR(50) NOT NULL,
     action VARCHAR(50) NOT NULL,
+    is_internal BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -348,6 +349,7 @@ CREATE INDEX IF NOT EXISTS idx_user_permissions_user_id ON user_permissions(user
 CREATE INDEX IF NOT EXISTS idx_user_permissions_permission_id ON user_permissions(permission_id);
 CREATE INDEX IF NOT EXISTS idx_permissions_module ON permissions(module);
 CREATE INDEX IF NOT EXISTS idx_permissions_action ON permissions(action);
+CREATE INDEX IF NOT EXISTS idx_permissions_is_internal ON permissions(is_internal);
 CREATE INDEX IF NOT EXISTS idx_roles_organisation_id ON roles(organisation_id);
 CREATE INDEX IF NOT EXISTS idx_roles_is_system_role ON roles(is_system_role);
 

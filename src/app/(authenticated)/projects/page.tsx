@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { useRBAC } from "@/context/rbac-context"
 import { isAdmin, isSuperAdmin } from '@/lib/permissions'
 import { Loader2, FolderKanban } from 'lucide-react'
+import { getActiveMechlinUsersAction, getAllProjectsAction, getAllOrganisationsAction } from "@/actions/projects"
 
 export default function ProjectsPage() {
     const [projects, setProjects] = React.useState<any[]>([])
@@ -30,22 +31,16 @@ export default function ProjectsPage() {
 
             try {
                 // Fetch projects
-                const { data: projectsData } = await supabase
-                    .from("projects")
-                    .select(`*, organisations(name), project_members(user_id)`)
-                    .order('created_at', { ascending: false })
+                const projectsResult = await getAllProjectsAction()
+                const projectsData = projectsResult.success ? projectsResult.data : []
 
                 // Fetch organisations
-                const { data: organisationsData } = await supabase
-                    .from("organisations")
-                    .select("id, name")
+                const organisationsResult = await getAllOrganisationsAction()
+                const organisationsData = organisationsResult.success ? organisationsResult.data : []
 
                 // Fetch users where the organization name is 'Mechlin'
-                const { data: usersData } = await supabase
-                    .from("users")
-                    .select(`id, name, organisations!inner(name)`)
-                    .eq('organisations.name', 'Mechlin')
-                    .eq('status', 'active')
+                const usersResult = await getActiveMechlinUsersAction()
+                const usersData = usersResult.success ? usersResult.data : []
 
                 setProjects(projectsData || [])
                 setOrganisations(organisationsData || [])
