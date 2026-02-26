@@ -1,6 +1,6 @@
 "use client"
 import * as React from "react"
-import { User, Mail, Phone, Calendar, MapPin, Edit } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, Edit, Building } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -8,15 +8,43 @@ import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
 import { useRBAC } from "@/context/rbac-context" // RBAC Integration
+import { getUserOrganisationWithInternalAction } from "@/actions/rbac"
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth()
+  const [organization, setOrganization] = React.useState<any>(null)
+  const [orgLoading, setOrgLoading] = React.useState(true)
   
   // RBAC Hook
   const { hasPermission, loading: rbacLoading } = useRBAC()
 
+  // Combined loading state (excluding orgLoading to avoid circular dependency)
+  const initialLoading = authLoading || rbacLoading
+
+  // Fetch organization data
+  React.useEffect(() => {
+    async function fetchOrganization() {
+      if (!user?.id) return
+      
+      try {
+        const result = await getUserOrganisationWithInternalAction(user.id)
+        if (result.success && result.organisation) {
+          setOrganization(result.organisation)
+        }
+      } catch (error) {
+        console.error("Failed to fetch organization:", error)
+      } finally {
+        setOrgLoading(false)
+      }
+    }
+
+    if (!initialLoading && user) {
+      fetchOrganization()
+    }
+  }, [user, initialLoading])
+
   // Combined loading state
-  const isLoading = authLoading || rbacLoading
+  const isLoading = initialLoading || orgLoading
 
   if (isLoading) {
     return (
@@ -87,6 +115,14 @@ export default function ProfilePage() {
               <div>
                 <Label className="text-xs text-gray-500">Email</Label>
                 <p className="text-sm">{userData.email}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Building className="h-4 w-4 text-gray-500" />
+              <div>
+                <Label className="text-xs text-gray-500">Organization</Label>
+                <p className="text-sm">{organization?.organisations?.name || 'Not specified'}</p>
               </div>
             </div>
             

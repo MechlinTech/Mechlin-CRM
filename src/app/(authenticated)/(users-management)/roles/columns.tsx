@@ -41,6 +41,25 @@ export const columns: ColumnDef<any>[] = [
         },
     },
     {
+        accessorKey: "organisation_name",
+        header: "Organization",
+        cell: ({ row }) => {
+            const role = row.original
+            if (role.is_system_role) {
+                return (
+                    <Badge variant="outline" className="text-xs">
+                        System
+                    </Badge>
+                )
+            }
+            return (
+                <div className="text-sm text-gray-600">
+                    {role.organisation_name || "Unknown Organization"}
+                </div>
+            )
+        },
+    },
+    {
         accessorKey: "role_permissions",
         header: "Permissions",
         cell: ({ row }) => {

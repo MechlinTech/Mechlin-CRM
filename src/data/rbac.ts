@@ -13,6 +13,21 @@ export async function getUserOrganisation(userId: string) {
         .single()
 }
 
+export async function getUserOrganisationWithInternal(userId: string) {
+    return await supabase
+        .from("users")
+        .select(`
+            organisation_id,
+            organisations(
+                id,
+                name,
+                is_internal
+            )
+        `)
+        .eq("id", userId)
+        .single()
+}
+
 // ============================================
 // PERMISSIONS
 // ============================================
@@ -45,6 +60,40 @@ export async function updatePermission(permissionId: string, updates: { is_inter
 // ============================================
 // ROLES
 // ============================================
+
+export async function enrichRolesWithOrganisationNames(roles: any[]) {
+    // Get unique organization IDs from custom roles
+    const orgIds = [...new Set(roles
+        .filter(role => !role.is_system_role && role.organisation_id)
+        .map(role => role.organisation_id)
+    )]
+
+    if (orgIds.length === 0) {
+        return roles
+    }
+
+    // Fetch organization names
+    const { data: organisations } = await supabase
+        .from('organisations')
+        .select('id, name')
+        .in('id', orgIds)
+
+    // Create a map of org ID to name
+    const orgMap = new Map(
+        organisations?.map(org => [org.id, org.name]) || []
+    )
+
+    // Enrich roles with organization names
+    return roles.map(role => {
+        if (!role.is_system_role && role.organisation_id) {
+            return {
+                ...role,
+                organisation_name: orgMap.get(role.organisation_id) || 'Unknown Organization'
+            }
+        }
+        return role
+    })
+}
 
 export async function getAllRoles(organisationId?: string | null) {
     let query = supabase

@@ -117,7 +117,6 @@ export function InvitesTable() {
                         <TableHead className="bg-gray-100">Status</TableHead>
                         <TableHead className="bg-gray-100">Invited By</TableHead>
                         <TableHead className="bg-gray-100">Sent</TableHead>
-                        <TableHead className="bg-gray-100">Expires</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -133,9 +132,6 @@ export function InvitesTable() {
                             </TableCell>
                             <TableCell className="text-sm text-gray-500">
                                 {formatDistanceToNow(new Date(invite.invited_at), { addSuffix: true })}
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-500">
-                                {formatDistanceToNow(new Date(invite.expires_at), { addSuffix: true })}
                             </TableCell>
                         </TableRow>
                     ))}

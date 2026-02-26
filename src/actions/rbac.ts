@@ -23,7 +23,9 @@ import {
     getUserDirectPermissions,
     assignUserPermission,
     removeUserPermission,
-    getUserOrganisation
+    getUserOrganisation,
+    getUserOrganisationWithInternal,
+    enrichRolesWithOrganisationNames
 } from "@/data/rbac"
 import { createSupabaseServerClient } from "@/lib/rbac"
 import type { CreateRoleInput, UpdateRoleInput, AssignRoleInput } from "@/types/rbac"
@@ -82,6 +84,16 @@ export async function getUserOrganisationAction(userId: string) {
     return { success: true, organisationId: data?.organisation_id }
 }
 
+export async function getUserOrganisationWithInternalAction(userId: string) {
+    const { data, error } = await getUserOrganisationWithInternal(userId)
+    
+    if (error) {
+        return { success: false, error: error.message, code: error.code }
+    }
+    
+    return { success: true, organisation: data }
+}
+
 // ============================================
 // PERMISSIONS ACTIONS
 // ============================================
@@ -129,7 +141,10 @@ export async function getAllRolesAction(organisationId?: string | null) {
         ? data?.filter(role => role.name !== "super_admin") 
         : data
     
-    return { success: true, roles: filteredData }
+    // Enrich roles with organization names
+    const enrichedData = await enrichRolesWithOrganisationNames(filteredData || [])
+    
+    return { success: true, roles: enrichedData }
 }
 
 export async function getRoleByIdAction(roleId: string) {

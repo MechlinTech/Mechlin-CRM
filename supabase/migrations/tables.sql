@@ -6,23 +6,23 @@
 -- 2. RBAC System (roles, permissions, user_roles)
 -- 3. User Invites System
 -- ============================================
-
+ 
 -- ============================================
 -- PART 1: CORE TABLES
 -- ============================================
-
+ 
 -- Organisations
 CREATE TABLE IF NOT EXISTS organisations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL UNIQUE,
     slug VARCHAR(100) UNIQUE NOT NULL,
     escalation_contacts JSONB DEFAULT '[]',
-    is_internal BOOLEAN DEFAULT FALSE, 
+    is_internal BOOLEAN DEFAULT FALSE,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'trial')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Users
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Roles
 CREATE TABLE IF NOT EXISTS roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS roles (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(name, organisation_id)
 );
-
+ 
 -- Projects
 CREATE TABLE IF NOT EXISTS projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS projects (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Phases
 CREATE TABLE IF NOT EXISTS phases (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS phases (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Milestones
 CREATE TABLE IF NOT EXISTS milestones (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -82,13 +82,13 @@ CREATE TABLE IF NOT EXISTS milestones (
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     hours NUMERIC,
-    budget NUMERIC, 
+    budget NUMERIC,
     status TEXT CHECK (status IN ('Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done')) DEFAULT 'Backlog',
     demo_date DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );  
-
+ 
 -- Sprints
 CREATE TABLE IF NOT EXISTS sprints (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -101,28 +101,28 @@ CREATE TABLE IF NOT EXISTS sprints (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Status Logs
 CREATE TABLE IF NOT EXISTS status_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     target_id UUID NOT NULL,
-    target_type TEXT CHECK (target_type IN ('project', 'milestone', 'sprint', 'document')), 
+    target_type TEXT CHECK (target_type IN ('project', 'milestone', 'sprint', 'document')),
     action_type TEXT NOT NULL,
     old_value JSONB,
     new_value JSONB,
     changed_by UUID REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Documents
 CREATE TABLE IF NOT EXISTS documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
+ 
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
         phase_id UUID REFERENCES phases(id) ON DELETE SET NULL,
     milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
     sprint_id UUID REFERENCES sprints(id) ON DELETE SET NULL,
-
+ 
     name TEXT NOT NULL,
     file_url TEXT NOT NULL,
     version INTEGER DEFAULT 1,
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS documents (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Invoices
 CREATE TABLE IF NOT EXISTS invoices (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -144,18 +144,18 @@ CREATE TABLE IF NOT EXISTS invoices (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Project Members
 CREATE TABLE IF NOT EXISTS project_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    role_id UUID REFERENCES roles(id), 
+    role_id UUID REFERENCES roles(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(project_id, user_id)
 );
-
+ 
 -- Wiki Pages
 CREATE TABLE IF NOT EXISTS wiki_pages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS wiki_pages (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Wiki Versions
 CREATE TABLE IF NOT EXISTS wiki_versions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS wiki_versions (
     created_by UUID REFERENCES auth.users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Enquiry Threads
 CREATE TABLE IF NOT EXISTS enquiry_threads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS enquiry_threads (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
+ 
 -- Enquiry Messages
 CREATE TABLE IF NOT EXISTS enquiry_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -209,7 +209,7 @@ CREATE TABLE IF NOT EXISTS enquiry_messages (
     created_by UUID NOT NULL REFERENCES auth.users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
+ 
 -- Thread Participants
 CREATE TABLE IF NOT EXISTS thread_participants (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS thread_participants (
     joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(thread_id, user_id)
 );
-
+ 
 -- Thread Attachments
 CREATE TABLE IF NOT EXISTS thread_attachments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -232,17 +232,17 @@ CREATE TABLE IF NOT EXISTS thread_attachments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT attachments_file_size_positive CHECK (file_size > 0)
 );
-
+ 
 -- ============================================
 -- PART 2: RBAC SYSTEM
 -- ============================================
-
+ 
 -- Drop existing RBAC tables if they exist (for clean migration)
 DROP TABLE IF EXISTS user_permissions CASCADE;
 DROP TABLE IF EXISTS role_permissions CASCADE;
 DROP TABLE IF EXISTS user_roles CASCADE;
 DROP TABLE IF EXISTS permissions CASCADE;
-
+ 
 -- Permissions Table
 CREATE TABLE permissions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -255,7 +255,7 @@ CREATE TABLE permissions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Role Permissions Junction Table
 CREATE TABLE role_permissions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -264,7 +264,7 @@ CREATE TABLE role_permissions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(role_id, permission_id)
 );
-
+ 
 -- User Roles Junction Table
 CREATE TABLE user_roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -274,7 +274,7 @@ CREATE TABLE user_roles (
     assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, role_id)
 );
-
+ 
 -- User Permissions Table (for direct permission assignments)
 CREATE TABLE user_permissions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -283,11 +283,11 @@ CREATE TABLE user_permissions (
     assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, permission_id)
 );
-
+ 
 -- ============================================
 -- PART 3: USER INVITES SYSTEM
 -- ============================================
-
+ 
 -- User Invites Table
 CREATE TABLE IF NOT EXISTS user_invites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -302,11 +302,11 @@ CREATE TABLE IF NOT EXISTS user_invites (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- ============================================
 -- INDEXES FOR PERFORMANCE
 -- ============================================
-
+ 
 -- Core Table Indexes
 CREATE INDEX IF NOT EXISTS idx_organisations_status ON organisations(status);
 CREATE INDEX IF NOT EXISTS idx_users_organisation_id ON users(organisation_id);
@@ -314,7 +314,7 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_projects_organisation_id ON projects(organisation_id);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
 CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at DESC);
-
+ 
 -- Wiki Indexes
 CREATE INDEX IF NOT EXISTS idx_wiki_pages_parent_id ON wiki_pages(parent_id);
 CREATE INDEX IF NOT EXISTS idx_wiki_pages_slug ON wiki_pages(slug);
@@ -322,7 +322,7 @@ CREATE INDEX IF NOT EXISTS idx_wiki_pages_status ON wiki_pages(status);
 CREATE INDEX IF NOT EXISTS idx_wiki_pages_project_id ON wiki_pages(project_id);
 CREATE INDEX IF NOT EXISTS idx_wiki_pages_project_status ON wiki_pages(project_id, status);
 CREATE INDEX IF NOT EXISTS idx_wiki_versions_page_id ON wiki_versions(page_id);
-
+ 
 -- Thread Indexes
 CREATE INDEX IF NOT EXISTS idx_threads_status ON enquiry_threads(status);
 CREATE INDEX IF NOT EXISTS idx_threads_context ON enquiry_threads(context_type, context_id);
@@ -339,7 +339,7 @@ CREATE INDEX IF NOT EXISTS idx_participants_thread_id ON thread_participants(thr
 CREATE INDEX IF NOT EXISTS idx_participants_user_id ON thread_participants(user_id);
 CREATE INDEX IF NOT EXISTS idx_attachments_message_id ON thread_attachments(message_id);
 CREATE INDEX IF NOT EXISTS idx_attachments_thread_id ON thread_attachments(thread_id);
-
+ 
 -- RBAC Indexes
 CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON user_roles(role_id);
@@ -352,41 +352,70 @@ CREATE INDEX IF NOT EXISTS idx_permissions_action ON permissions(action);
 CREATE INDEX IF NOT EXISTS idx_permissions_is_internal ON permissions(is_internal);
 CREATE INDEX IF NOT EXISTS idx_roles_organisation_id ON roles(organisation_id);
 CREATE INDEX IF NOT EXISTS idx_roles_is_system_role ON roles(is_system_role);
-
+ 
 -- User Invites Indexes
 CREATE INDEX IF NOT EXISTS idx_user_invites_email ON user_invites(email);
 CREATE INDEX IF NOT EXISTS idx_user_invites_organisation_id ON user_invites(organisation_id);
 CREATE INDEX IF NOT EXISTS idx_user_invites_status ON user_invites(status);
 CREATE INDEX IF NOT EXISTS idx_user_invites_invited_by ON user_invites(invited_by);
-
+ 
 -- ============================================
 -- TRIGGERS & FUNCTIONS
 -- ============================================
-
+ 
 -- Auto-create users from auth.users
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+    invite_org_id UUID;
 BEGIN
-    INSERT INTO public.users (id, email, name, status, created_at, updated_at)
+    -- Check if user was invited and get organisation_id (skip if user_invites table doesn't exist)
+    invite_org_id := NULL;
+    BEGIN
+        SELECT organisation_id INTO invite_org_id
+        FROM public.user_invites
+        WHERE email = NEW.email AND status = 'pending'
+        LIMIT 1;
+    EXCEPTION
+        WHEN undefined_table THEN
+            invite_org_id := NULL;
+    END;
+ 
+    -- Insert user with organisation_id if found, otherwise null
+    INSERT INTO public.users (id, email, name, status, organisation_id, created_at, updated_at)
     VALUES (
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'name', NEW.email),
         'active',
+        invite_org_id,
         NOW(),
         NOW()
     )
     ON CONFLICT (id) DO NOTHING;
+ 
+    -- Update invite status to accepted if user was invited
+    IF invite_org_id IS NOT NULL THEN
+        BEGIN
+            UPDATE public.user_invites
+            SET status = 'accepted', accepted_at = NOW()
+            WHERE email = NEW.email AND status = 'pending';
+        EXCEPTION
+            WHEN undefined_table THEN
+                NULL;
+        END;
+    END IF;
+ 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
+ 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_new_user();
-
+ 
 -- Update user_invites updated_at
 CREATE OR REPLACE FUNCTION update_user_invites_updated_at()
 RETURNS TRIGGER AS $$
@@ -395,13 +424,13 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
+ 
 DROP TRIGGER IF EXISTS trigger_update_user_invites_updated_at ON user_invites;
 CREATE TRIGGER trigger_update_user_invites_updated_at
     BEFORE UPDATE ON user_invites
     FOR EACH ROW
     EXECUTE FUNCTION update_user_invites_updated_at();
-
+ 
 -- Expire old invites function
 CREATE OR REPLACE FUNCTION expire_old_invites()
 RETURNS void AS $$
@@ -412,14 +441,14 @@ BEGIN
     AND expires_at < CURRENT_TIMESTAMP;
 END;
 $$ LANGUAGE plpgsql;
-
+ 
 -- ============================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================
-
+ 
 -- Enable RLS on user_invites
 ALTER TABLE user_invites ENABLE ROW LEVEL SECURITY;
-
+ 
 -- RLS Policy: Users can view invites in their organisation
 CREATE POLICY "Users can view invites in their organisation"
     ON user_invites FOR SELECT
@@ -428,7 +457,7 @@ CREATE POLICY "Users can view invites in their organisation"
             SELECT organisation_id FROM users WHERE id = auth.uid()
         )
     );
-
+ 
 -- RLS Policy: Users with manage_users permission can insert invites
 CREATE POLICY "Users with manage_users permission can insert invites"
     ON user_invites FOR INSERT
@@ -440,7 +469,7 @@ CREATE POLICY "Users with manage_users permission can insert invites"
             WHERE p.name = 'users.create' OR p.name = 'users.assign_roles'
         )
     );
-
+ 
 -- RLS Policy: Users with manage_users permission can update invites
 CREATE POLICY "Users with manage_users permission can update invites"
     ON user_invites FOR UPDATE
@@ -452,7 +481,7 @@ CREATE POLICY "Users with manage_users permission can update invites"
             WHERE p.name = 'users.update' OR p.name = 'users.assign_roles'
         )
     );
-
+ 
 -- ============================================
 -- SEED DATA: System Roles
 -- ============================================
@@ -465,7 +494,7 @@ INSERT INTO roles (id, organisation_id, name, display_name, description, is_syst
     ('00000000-0000-0000-0000-000000000006', NULL, 'bd', 'Business Development', 'Business development team member', true, true),
     ('00000000-0000-0000-0000-000000000007', NULL, 'finance', 'Finance', 'Finance team member', true, true)
 ON CONFLICT (id) DO NOTHING;
-
+ 
 -- ============================================
 -- SEED DATA: Permissions
 -- ============================================
@@ -476,89 +505,89 @@ INSERT INTO permissions (name, display_name, description, module, action) VALUES
     ('projects.update', 'Update Projects', 'Can edit project information', 'projects', 'update'),
     ('projects.delete', 'Delete Projects', 'Can delete projects', 'projects', 'delete'),
     ('projects.manage_members', 'Manage Project Members', 'Can add/remove project members', 'projects', 'manage'),
-    
+   
     -- Users
     ('users.create', 'Create Users', 'Can create new users', 'users', 'create'),
     ('users.read', 'View Users', 'Can view user information', 'users', 'read'),
     ('users.update', 'Update Users', 'Can edit user information', 'users', 'update'),
     ('users.delete', 'Delete Users', 'Can delete users', 'users', 'delete'),
     ('users.assign_roles', 'Assign User Roles', 'Can assign roles to users', 'users', 'manage'),
-    
+   
     -- Organisations
     ('organisations.create', 'Create Organisations', 'Can create new organisations', 'organisations', 'create'),
     ('organisations.read', 'View Organisations', 'Can view organisation details', 'organisations', 'read'),
     ('organisations.update', 'Update Organisations', 'Can edit organisation information', 'organisations', 'update'),
     ('organisations.delete', 'Delete Organisations', 'Can delete organisations', 'organisations', 'delete'),
-    
+   
     -- Roles & Permissions
     ('roles.create', 'Create Roles', 'Can create custom roles', 'roles', 'create'),
     ('roles.read', 'View Roles', 'Can view roles and permissions', 'roles', 'read'),
     ('roles.update', 'Update Roles', 'Can edit role permissions', 'roles', 'update'),
     ('roles.delete', 'Delete Roles', 'Can delete custom roles', 'roles', 'delete'),
-    
+   
     -- Documents
     ('documents.create', 'Upload Documents', 'Can upload project documents', 'documents', 'create'),
     ('documents.read', 'View Documents', 'Can view and download documents', 'documents', 'read'),
     ('documents.update', 'Update Documents', 'Can update document status', 'documents', 'update'),
     ('documents.delete', 'Delete Documents', 'Can delete documents', 'documents', 'delete'),
-    
+   
     -- Invoices
     ('invoices.create', 'Create Invoices', 'Can create invoices', 'invoices', 'create'),
     ('invoices.read', 'View Invoices', 'Can view invoices', 'invoices', 'read'),
     ('invoices.update', 'Update Invoices', 'Can update invoice status', 'invoices', 'update'),
     ('invoices.delete', 'Delete Invoices', 'Can delete invoices', 'invoices', 'delete'),
-    
+   
     -- Wiki
     ('wiki.create', 'Create Wiki Pages', 'Can create wiki pages', 'wiki', 'create'),
     ('wiki.read', 'View Wiki', 'Can view wiki pages', 'wiki', 'read'),
     ('wiki.update', 'Update Wiki', 'Can edit wiki pages', 'wiki', 'update'),
     ('wiki.delete', 'Delete Wiki', 'Can delete wiki pages', 'wiki', 'delete'),
-    
+   
     -- Threads
     ('threads.create', 'Create Threads', 'Can create discussion threads', 'threads', 'create'),
     ('threads.read', 'View Threads', 'Can view discussion threads', 'threads', 'read'),
     ('threads.update', 'Update Threads', 'Can update thread status', 'threads', 'update'),
     ('threads.delete', 'Delete Threads', 'Can delete threads', 'threads', 'delete'),
-    
+   
     -- Phases, Milestones, Sprints
     ('phases.create', 'Create Phases', 'Can create project phases', 'phases', 'create'),
     ('phases.read', 'View Phases', 'Can view project phases', 'phases', 'read'),
     ('phases.update', 'Update Phases', 'Can edit project phases', 'phases', 'update'),
     ('phases.delete', 'Delete Phases', 'Can delete project phases', 'phases', 'delete'),
-    
+   
     ('milestones.create', 'Create Milestones', 'Can create milestones', 'milestones', 'create'),
     ('milestones.read', 'View Milestones', 'Can view milestones', 'milestones', 'read'),
     ('milestones.update', 'Update Milestones', 'Can edit milestones', 'milestones', 'update'),
     ('milestones.delete', 'Delete Milestones', 'Can delete milestones', 'milestones', 'delete'),
-    
+   
     ('sprints.create', 'Create Sprints', 'Can create sprints', 'sprints', 'create'),
     ('sprints.read', 'View Sprints', 'Can view sprints', 'sprints', 'read'),
     ('sprints.update', 'Update Sprints', 'Can edit sprints', 'sprints', 'update'),
     ('sprints.delete', 'Delete Sprints', 'Can delete sprints', 'sprints', 'delete')
 ON CONFLICT (name) DO NOTHING;
-
+ 
 -- ============================================
 -- SEED DATA: Role Permissions Mapping
 -- ============================================
-
+ 
 -- Super Admin: All permissions
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT '00000000-0000-0000-0000-000000000001', id FROM permissions
 ON CONFLICT DO NOTHING;
-
+ 
 -- Admin: All except organisation deletion
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT '00000000-0000-0000-0000-000000000002', id FROM permissions
 WHERE name NOT IN ('organisations.delete')
 ON CONFLICT DO NOTHING;
-
+ 
 -- Project Manager: Project-related permissions
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT '00000000-0000-0000-0000-000000000003', id FROM permissions
 WHERE module IN ('projects', 'documents', 'phases', 'milestones', 'sprints', 'wiki', 'threads')
    OR name IN ('users.read', 'invoices.read', 'invoices.create')
 ON CONFLICT DO NOTHING;
-
+ 
 -- Developer: Development-related permissions
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT '00000000-0000-0000-0000-000000000004', id FROM permissions
@@ -570,7 +599,7 @@ WHERE name IN (
     'threads.read', 'threads.create', 'threads.update'
 )
 ON CONFLICT DO NOTHING;
-
+ 
 -- QA Engineer: Testing-related permissions
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT '00000000-0000-0000-0000-000000000005', id FROM permissions
@@ -582,7 +611,7 @@ WHERE name IN (
     'threads.read', 'threads.create', 'threads.update'
 )
 ON CONFLICT DO NOTHING;
-
+ 
 -- BD: Business development permissions
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT '00000000-0000-0000-0000-000000000006', id FROM permissions
@@ -593,58 +622,58 @@ WHERE name IN (
     'users.read'
 )
 ON CONFLICT DO NOTHING;
-
+ 
 -- Finance: Finance-related permissions
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT '00000000-0000-0000-0000-000000000007', id FROM permissions
 WHERE name IN (
-    'projects.read', 'invoices.create', 'invoices.read', 
+    'projects.read', 'invoices.create', 'invoices.read',
     'invoices.update', 'invoices.delete',
     'organisations.read', 'documents.read'
 )
 ON CONFLICT DO NOTHING;
-
+ 
 -- ============================================
 -- COMMENTS
 -- ============================================
 COMMENT ON TABLE user_invites IS 'Tracks user invitations before they are authenticated';
-
+ 
 -- ============================================
 -- MIGRATION COMPLETE
 -- ============================================
 SELECT '✅ Migration Complete!' as status;
 SELECT 'All tables, RBAC system, and user invites have been set up successfully.' as message;
-
-
-
+ 
+ 
+ 
 -- ADD NEW PERMISSIONS FOR PM UPDATES & TASKS
 -- ============================================
-
+ 
 INSERT INTO permissions (name, display_name, description, module, action) VALUES
     -- PM Updates (Broadcasts)
     ('pmupdates.create', 'Create PM Updates', 'Can post new project broadcasts', 'pmupdates', 'create'),
     ('pmupdates.read', 'View PM Updates', 'Can view project broadcasts', 'pmupdates', 'read'),
     ('pmupdates.update', 'Update PM Updates', 'Can edit project broadcasts', 'pmupdates', 'update'),
     ('pmupdates.delete', 'Delete PM Updates', 'Can delete project broadcasts', 'pmupdates', 'delete'),
-    
+   
     -- Tasks
     ('tasks.create', 'Create Tasks', 'Can create new tasks within sprints', 'tasks', 'create'),
     ('tasks.read', 'View Tasks', 'Can view task details', 'tasks', 'read'),
     ('tasks.update', 'Update Tasks', 'Can edit task information', 'tasks', 'update'),
     ('tasks.delete', 'Delete Tasks', 'Can delete tasks', 'tasks', 'delete')
 ON CONFLICT (name) DO NOTHING;
-
-
-
+ 
+ 
+ 
 CREATE TABLE tasks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    phase_id UUID REFERENCES phases(id) ON DELETE CASCADE,
-    milestone_id UUID REFERENCES milestones(id) ON DELETE CASCADE,
-    sprint_id UUID REFERENCES sprints(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    status TEXT DEFAULT 'Pending',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    phase_id UUID REFERENCES phases(id) ON DELETE CASCADE,
+    milestone_id UUID REFERENCES milestones(id) ON DELETE CASCADE,
+    sprint_id UUID REFERENCES sprints(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'Pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

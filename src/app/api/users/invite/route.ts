@@ -141,10 +141,13 @@ export async function GET() {
 
         const userId = authStatus.user.id
 
-        // Get current user's organization
+        // Get current user's organization with is_internal flag
         const { data: currentUser } = await supabaseAdmin
             .from('users')
-            .select('organisation_id')
+            .select(`
+                organisation_id,
+                organisation:organisations(is_internal)
+            `)
             .eq('id', userId)
             .single()
 
@@ -155,14 +158,22 @@ export async function GET() {
             )
         }
 
-        // Fetch invites from the same organization as current user
-        const { data: invites, error } = await supabaseAdmin
+        const isInternalOrg = (currentUser.organisation as any)?.is_internal || false
+
+        // Fetch invites: all invites for internal orgs, org-specific for non-internal
+        let query = supabaseAdmin
             .from('user_invites')
             .select(`
                 *,
                 organisation:organisations(name)
             `)
-            .eq('organisation_id', currentUser.organisation_id)
+
+        // Apply organization filter only for non-internal organizations
+        if (!isInternalOrg) {
+            query = query.eq('organisation_id', currentUser.organisation_id)
+        }
+
+        const { data: invites, error } = await query
             .order('invited_at', { ascending: false })
 
         if (error) {

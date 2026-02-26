@@ -97,7 +97,7 @@ export default function Page() {
                         </div>
                         
                         {/* RBAC: Only show Add button if user has users.create permission */}
-                        {canCreate && <AddUserButton />}
+                        {/* {canCreate && <AddUserButton />} */}
                     </div>
 
                     {/* Enhanced Table Section */}
@@ -106,6 +106,6 @@ export default function Page() {
                     </div>
                 </div>
             </div>
-        </div>
+    </div>
     );
 }

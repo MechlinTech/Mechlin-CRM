@@ -297,18 +297,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <Sidebar {...props} className="">
         <div className="p-4 border-b border-gray-200">
-          <Image 
-            src="/logo.png" 
-            alt="Mechlin Logo"
-            width={128}
-            height={128}
-            className=" h-10 w-auto"
-          />
+          <div className="flex items-center gap-2">
+            <Image 
+              src="/logo.png" 
+              alt="Mechlin Logo"
+              width={128}
+              height={128}
+              className=" h-10 w-auto"
+            />
+            <div className="flex items-baseline">
+              <span className="text-lg font-bold text-gray-600">Client</span>
+              <span className="text-lg font-bold text-[#006AFF]">Sphere</span>
+            </div>
+          </div>
         </div>
         <SidebarContent className="gap-0">
           {SIDEBAR_NAVIGATION.map((item) => {
             // DASHBOARD Visibility (Checks any Organisation CRUD) [cite: 1]
             const canManageOrgs = hasPermission('organisations.read') || hasPermission('organisations.create') || hasPermission('organisations.update') || hasPermission('organisations.delete');
+
             // ORGANIZATION MANAGEMENT Visibility (Checks any Organisation CRUD) [cite: 1]
             // Hide for admin users with is_internal === false
             if (item.title === "Organization Management") {

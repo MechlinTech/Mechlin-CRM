@@ -133,16 +133,12 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<bo
           
           <p>Hello,</p>
           
-          <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.organisationName}</strong> on MechlinTech CRM.</p>
+          <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.organisationName}</strong> on ClientSphere from Mechlin Technologies.</p>
           
           <p>Click the button below to accept the invitation and set up your account:</p>
           
           <div style="text-align: center;">
-            <a href="${data.inviteRedeemUrl}" class="button">Accept Invitation</a>
-          </div>
-          
-          <div class="expiry">
-            <strong>Important:</strong> This invitation expires on ${new Date(data.expiresAt).toLocaleDateString()}.
+            <a href="${data.inviteRedeemUrl}" class="button" target="_blank" rel="noopener noreferrer">Accept Invitation</a>
           </div>
           
           <p>If you have any questions, please contact your administrator.</p>
@@ -151,7 +147,7 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<bo
           
           <div class="footer">
             <p>This is an automated message. Please do not reply to this email.</p>
-            <p>© 2024 MechlinTech. All rights reserved.</p>
+            <p>© 2026 MechlinTech. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -160,7 +156,7 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<bo
 
     const emailMessage = {
       message: {
-        subject: `You're invited to join ${data.organisationName} on MechlinTech CRM`,
+        subject: `You're invited to join ${data.organisationName} on ClientSphere from Mechlin Technologies`,
         body: {
           contentType: 'html',
           content: htmlContent,
