@@ -2,11 +2,10 @@
 
 import React from 'react'
 import { AddRoleButton } from "@/components/custom/roles/add-role-button"
-import { getAllRolesAction, getUserOrganisationAction } from "@/actions/rbac"
+import { getAllRolesAction, getUserOrganisationWithInternalAction } from "@/actions/rbac"
 import { RolesTable } from "@/components/custom/roles/roles-table"
 import { useRBAC } from "@/context/rbac-context"
 import { redirect } from "next/navigation"
-import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/useAuth"
 import { isAdmin, isSuperAdmin } from '@/lib/permissions'
 
@@ -33,11 +32,26 @@ export default function RolesPage() {
             }
 
             try {
-                // Get user's organization using action
-                const orgResult = await getUserOrganisationAction(user?.id || "")
-                const organisationId = orgResult.success ? orgResult.organisationId : null
+                // Get user's organization with is_internal flag using proper action
+                const orgResult = await getUserOrganisationWithInternalAction(user?.id || "")
+                
+                if (!orgResult.success) {
+                    setError(orgResult.error || 'Failed to load organization information')
+                    return
+                }
 
-                const result = await getAllRolesAction(organisationId)
+                const organisation = orgResult.organisation?.organisations?.[0]
+                const isInternalOrg = organisation?.is_internal || false
+
+                let result
+                if (isInternalOrg) {
+                    // For internal organizations, show all roles (system + custom from all orgs)
+                    result = await getAllRolesAction(undefined) // undefined = no org filter
+                } else {
+                    // For external organizations, show only system roles + their org's custom roles
+                    result = await getAllRolesAction(organisation?.id)
+                }
+
                 if (result.success) {
                     setRoles(result.roles || [])
                 } else {

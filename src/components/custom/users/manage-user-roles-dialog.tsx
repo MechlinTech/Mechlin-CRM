@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { 
-    getSystemRolesAction, 
+    getAllRolesAction, 
     getUserRolesAction, 
     updateUserRolesAction 
 } from "@/actions/rbac"
@@ -39,8 +39,8 @@ export function ManageUserRolesDialog({ user, open, onOpenChange }: ManageUserRo
     }, [open, user])
 
     const loadData = async () => {
-        // Load available roles
-        const rolesResult = await getSystemRolesAction()
+        // Load available roles (both system and organization-specific)
+        const rolesResult = await getAllRolesAction(user?.organisations?.id)
         if (rolesResult.success && rolesResult.roles) {
             setAvailableRoles(rolesResult.roles)
         }
