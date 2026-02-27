@@ -83,11 +83,13 @@ CREATE TABLE IF NOT EXISTS milestones (
     end_date DATE NOT NULL,
     hours NUMERIC,
     budget NUMERIC,
-    status TEXT CHECK (status IN ('Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done')) DEFAULT 'Backlog',
+    -- Defined the column type and the constraint properly here
+    status TEXT NOT NULL DEFAULT 'Inactive' 
+        CHECK (status IN ('Active', 'Closed', 'Inactive', 'Open', 'Payment Pending', 'Payment Done')),
     demo_date DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);  
+);
  
 -- Sprints
 CREATE TABLE IF NOT EXISTS sprints (
@@ -122,7 +124,7 @@ CREATE TABLE IF NOT EXISTS documents (
         phase_id UUID REFERENCES phases(id) ON DELETE SET NULL,
     milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
     sprint_id UUID REFERENCES sprints(id) ON DELETE SET NULL,
- 
+    doc_type TEXT,
     name TEXT NOT NULL,
     file_url TEXT NOT NULL,
     version INTEGER DEFAULT 1,

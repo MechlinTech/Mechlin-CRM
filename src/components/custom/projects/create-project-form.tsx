@@ -172,7 +172,7 @@ status: z.enum(["Active", "Pending", "Suspended"]),
               "bg-white border-slate-200 rounded-xl text-xs font-medium h-10",
               form.formState.errors.organisation_id && "border-red-500"
             )}>
-              <SelectValue placeholder="Select Client" />
+              <SelectValue placeholder="Select Organization" />
             </SelectTrigger>
           </FormControl>
           <SelectContent>

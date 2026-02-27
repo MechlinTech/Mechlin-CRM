@@ -11,6 +11,7 @@ export async function uploadDocumentAction(projectId: string, data: any) {
         sprint_id: data.sprint_id,
         name: data.name,
         file_url: data.file_url,
+        doc_type: data.doc_type,
         status: 'Approved' 
     }]);
 
