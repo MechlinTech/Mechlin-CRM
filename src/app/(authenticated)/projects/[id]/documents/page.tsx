@@ -252,13 +252,18 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
                   <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center text-[#0F172A] mb-4 group-hover:bg-[#006AFF] group-hover:text-white transition-all shadow-sm">
                     <FileText className="h-7 w-7" />
                   </div>
-                  <h3 className="font-semibold text-xs text-[#1F2937] line-clamp-2 mb-1 group-hover:text-[#006AFF] transition-colors tracking-tight uppercase">
+                  <h3 className="font-semibold text-xs text-[#1F2937] line-clamp-2 mb-1 group-hover:text-[#006AFF] transition-colors tracking-tight ">
                     {doc.name}
                   </h3>
                   <div className="flex items-center gap-2 mb-4">
-                    <span className="text-[9px] font-semibold uppercase text-slate-600">
+                    <span className="text-[9px] font-semibold  text-slate-600">
                       {doc.phases?.name || doc.milestones?.name || doc.sprints?.name || "Root"}
                     </span>
+                    {doc.doc_type && (
+    <span className="px-2 py-0.5 text-[9px] font-semibold  text-slate-600">
+      {doc.doc_type}
+    </span>
+  )}
                     <span className="text-[9px] font-medium text-slate-600 flex items-center gap-1 uppercase tracking-tighter">
                       <Calendar className="h-3 w-3" /> {new Date(doc.created_at).toLocaleDateString()}
                     </span>

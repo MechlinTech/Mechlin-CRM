@@ -39,10 +39,11 @@ export default function MilestonePage({ params }: { params: any }) {
 
   if (!m) return null;
 
-  const statusColor = m.status === 'Active' ? 'text-[#006AFF] border-[#006AFF]/20 bg-[#006AFF]/5' : 
-                    m.status === 'Backlog' ? 'text-red-500 border-red-500/20 bg-red-50/50' : 
-                    'text-emerald-600 border-emerald-500/20 bg-emerald-50/50';
-
+const statusColor = m.status === 'Active' || m.status === 'Open' 
+  ? 'text-[#006AFF] border-[#006AFF]/20 bg-[#006AFF]/5' 
+  : m.status === 'Inactive' 
+  ? 'text-slate-500 border-slate-500/20 bg-slate-50/50' 
+  : 'text-emerald-600 border-emerald-500/20 bg-emerald-50/50';
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
              <div className="mb-4">
