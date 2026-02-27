@@ -22,7 +22,7 @@ const milestoneSchema = z.object({
   // Coerce string input from forms into numbers for the DB
   hours: z.union([z.coerce.number().min(0, "Hours must be positive"), z.undefined()]),
   budget: z.union([z.coerce.number().min(0, "Budget must be positive"), z.undefined()]),
-  status: z.enum(['Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done'], {
+status: z.enum(['Active', 'Closed', 'Inactive', 'Open', 'Payment Pending', 'Payment Done'], {
     message: "Please select a status",
   }),
 })
@@ -43,7 +43,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
       end_date: milestone?.end_date || "",
       hours: milestone?.hours || 0,
       budget: milestone?.budget || 0,
-      status: milestone?.status || "Backlog"
+      status: milestone?.status || "Inactive"
     }
   })
  
@@ -69,7 +69,7 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
  
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans text-[#0F172A]">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans text-[#0F172A] ">
        
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem>
@@ -151,8 +151,11 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="bg-white border-slate-200 rounded-xl shadow-2xl">
-                {['Active', 'Closed', 'Backlog', 'Payment Pending', 'Payment Done'].map(s => (
+              <SelectContent 
+              position="popper"
+              sideOffset={5}
+              className="bg-white border-slate-200 rounded-xl shadow-2xl">
+                {['Active', 'Closed', 'Inactive', 'Open', 'Payment Pending', 'Payment Done'].map(s => (
                   <SelectItem key={s} value={s} className="text-xs font-medium cursor-pointer">{s}</SelectItem>
                 ))}
               </SelectContent>

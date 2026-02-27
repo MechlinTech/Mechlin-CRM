@@ -34,6 +34,11 @@ jobs:
             --build-arg NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" `
             --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" `
             --build-arg SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" `
+            --build-arg AZURE_AD_CLIENT_ID="${{ secrets.AZURE_AD_CLIENT_ID }}" `
+            --build-arg AZURE_AD_CLIENT_SECRET="${{ secrets.AZURE_AD_CLIENT_SECRET }}" `
+            --build-arg AZURE_AD_TENANT_ID="${{ secrets.AZURE_AD_TENANT_ID }}" `
+            --build-arg FROM_EMAIL="${{ secrets.FROM_EMAIL }}" `
+            --build-arg NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}" `
             -f docker/Dockerfile `
             -t ${{ secrets.DOCKERHUB_USERNAME }}/login-whitelabel:${{ env.APP_VERSION }} `
             .
@@ -46,6 +51,11 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          AZURE_AD_CLIENT_ID: ${{ secrets.AZURE_AD_CLIENT_ID }}
+          AZURE_AD_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+          AZURE_AD_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
           APP_VERSION: ${{ env.APP_VERSION }}
         run: |
           docker compose -f docker/docker-compose.prod.yml -p prod down
