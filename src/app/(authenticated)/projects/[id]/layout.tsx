@@ -13,6 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRBAC } from "@/context/rbac-context"; 
+import { useOrganization } from "@/hooks/useOrganization";
 
 export default function ProjectLayout({ children, params }: { children: React.ReactNode, params: any }) {
   const { id } = React.use(params) as any;
@@ -20,13 +21,40 @@ export default function ProjectLayout({ children, params }: { children: React.Re
   const [logs, setLogs] = React.useState<any[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const { hasPermission, loading } = useRBAC();
+  const { userOrg, loading: orgLoading, canAccessProject } = useOrganization();
+
+  // Early access check before loading any data
+  if (!orgLoading && userOrg && !canAccessProject(id)) {
+    return (
+      <div className="min-h-screen bg-[#F7F8FA] text-[#0F172A] font-sans">
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar">
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   const loadData = React.useCallback(async () => {
+    // Only load data if user has potential access
+    if (!userOrg) return;
+    
+    // 1. Fetch project details
     const { data: p } = await supabase
       .from("projects")
       .select(`*, organisations(name), project_members(users(id, name, organisations(name, is_internal)))`)
       .eq("id", id)
       .single();
+    
+    // Double-check access after getting project data
+    if (p && userOrg) {
+      const hasAccess = userOrg.organisations?.is_internal || 
+        p.organisation_id === userOrg.organisation_id;
+      
+      if (!hasAccess) {
+        return; // Don't set project data if no access
+      }
+    }
+    
     setProject(p);
 
     const { data: l, error } = await supabase
@@ -56,11 +84,26 @@ export default function ProjectLayout({ children, params }: { children: React.Re
     } else {
       setLogs(l || []);
     }
-  }, [id]);
+  }, [id, userOrg]);
 
-  React.useEffect(() => { loadData(); }, [loadData]);
+  React.useEffect(() => { 
+    // Only load data if we have organization info and potential access
+    if (!orgLoading && userOrg) {
+      loadData(); 
+    }
+  }, [loadData, orgLoading, userOrg]);
 
-  if (!project) return null;
+  // Don't render sidebar if project is not loaded (no access)
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-[#F7F8FA] text-[#0F172A] font-sans">
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar">
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   const pmNotices = logs.filter(l => l.action_type === "PM_UPDATE");
   const members = project.project_members || [];
   const mechlinTeam = members.filter((m: any) => m.users?.organisations?.is_internal === true);

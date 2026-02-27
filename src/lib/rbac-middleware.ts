@@ -281,3 +281,115 @@ export async function getServerIsInternalUser(): Promise<boolean> {
     console.log("getServerIsInternalUser: Final is_internal value:", isInternal)
     return isInternal
 }
+
+/**
+ * Get user's organization info for server-side use
+ */
+export async function getServerUserOrganization() {
+    const user = await getAuthUser()
+    
+    if (!user) {
+        return null
+    }
+    
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value
+                },
+            },
+        }
+    )
+
+    const { data, error } = await supabase
+        .from("users")
+        .select(`
+            organisation_id,
+            organisations(*)
+        `)
+        .eq("id", user.id)
+        .single()
+    
+    if (error) {
+        return null
+    }
+    
+    return data
+}
+
+/**
+ * Check if user can access project (organization-based access control)
+ */
+export async function canAccessProject(projectId: string): Promise<boolean> {
+    const user = await getAuthUser()
+    
+    if (!user) {
+        return false
+    }
+    
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value
+                },
+            },
+        }
+    )
+
+    // Get user's organization and project info in parallel
+    const [userOrgData, projectData] = await Promise.all([
+        supabase
+            .from("users")
+            .select(`
+                organisation_id,
+                organisations(is_internal)
+            `)
+            .eq("id", user.id)
+            .single(),
+        
+        supabase
+            .from("projects")
+            .select("organisation_id")
+            .eq("id", projectId)
+            .single()
+    ])
+    
+    if (userOrgData.error || projectData.error) {
+        return false
+    }
+    
+    const userOrg = userOrgData.data as any
+    const project = projectData.data as any
+    
+    // Internal users can access all projects
+    if (userOrg?.organisations?.is_internal) {
+        return true
+    }
+    
+    // External users can only access projects from their own organization
+    return userOrg?.organisation_id === project?.organisation_id
+}
+
+/**
+ * Require project access - redirect to unauthorized if cannot access
+ */
+export async function requireProjectAccess(
+    projectId: string,
+    redirectTo: string = '/unauthorized'
+) {
+    const canAccess = await canAccessProject(projectId)
+    
+    if (!canAccess) {
+        redirect(redirectTo)
+    }
+    
+    return true
+}

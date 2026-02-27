@@ -30,11 +30,11 @@ export default function PermissionsManagementPage() {
 
     React.useEffect(() => {
         async function fetchData() {
-            // Check permissions - only allow users with roles management permissions
-            const canReadRoles = hasPermission('roles.read')
-            const canUpdateRoles = hasPermission('roles.update')
+            // Check permissions - only allow users with permission management permissions
+            const canViewPermissions = hasPermission('permissions.view')
+            const canUpdatePermissions = hasPermission('permissions.update')
 
-            if (!canReadRoles && !canUpdateRoles) {
+            if (!canViewPermissions && !canUpdatePermissions) {
                 redirect('/unauthorized')
                 return
             }

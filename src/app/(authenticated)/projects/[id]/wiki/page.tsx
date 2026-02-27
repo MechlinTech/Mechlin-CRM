@@ -46,7 +46,6 @@ export default function WikiPageView() {
   const [versions, setVersions] = useState<any[]>([])
   const [creatorName, setCreatorName] = useState<string>('Unknown')
 
-  // RBAC Hook
   const { hasPermission, loading } = useRBAC();
 
   useEffect(() => {
@@ -158,6 +157,22 @@ export default function WikiPageView() {
       <div className="container mx-auto py-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg">Loading wiki page...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // RBAC: Check wiki.read permission
+  if (!loading && !hasPermission('wiki.read')) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don't have permission to view wiki pages.</p>
+          <Button variant="outline" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
         </div>
       </div>
     )

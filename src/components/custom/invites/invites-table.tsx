@@ -10,9 +10,12 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
 import { useRBAC } from "@/context/rbac-context" // RBAC Integration
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Trash2 } from "lucide-react"
 
 interface Invite {
     id: string
@@ -62,6 +65,26 @@ export function InvitesTable() {
             toast.error('Failed to load invitations')
         } finally {
             setLoading(false)
+        }
+    }
+
+    async function deleteInvite(inviteId: string, email: string) {
+        try {
+            const response = await fetch(`/api/users/invite?id=${inviteId}`, {
+                method: 'DELETE',
+            })
+
+            const data = await response.json()
+
+            if (data.success) {
+                toast.success(`Invitation for ${email} deleted successfully`)
+                fetchInvites() // Refresh the list
+            } else {
+                toast.error(data.error || 'Failed to delete invitation')
+            }
+        } catch (error) {
+            console.error('Error deleting invite:', error)
+            toast.error('Failed to delete invitation')
         }
     }
 
@@ -117,6 +140,7 @@ export function InvitesTable() {
                         <TableHead className="bg-gray-100">Status</TableHead>
                         <TableHead className="bg-gray-100">Invited By</TableHead>
                         <TableHead className="bg-gray-100">Sent</TableHead>
+                        {hasPermission('users.delete') && <TableHead className="bg-gray-100">Actions</TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -133,6 +157,40 @@ export function InvitesTable() {
                             <TableCell className="text-sm text-gray-500">
                                 {formatDistanceToNow(new Date(invite.invited_at), { addSuffix: true })}
                             </TableCell>
+                            {hasPermission('users.delete') && (
+                                <TableCell>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                disabled={invite.status !== 'pending'}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Delete Invitation</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Are you sure you want to delete the invitation for {invite.email}? 
+                                                    This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={() => deleteInvite(invite.id, invite.email)}
+                                                    className="bg-red-600 hover:bg-red-700"
+                                                >
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </TableCell>
+                            )}
                         </TableRow>
                     ))}
                 </TableBody>

@@ -566,6 +566,10 @@ INSERT INTO permissions (name, display_name, description, module, action) VALUES
     ('sprints.read', 'View Sprints', 'Can view sprints', 'sprints', 'read'),
     ('sprints.update', 'Update Sprints', 'Can edit sprints', 'sprints', 'update'),
     ('sprints.delete', 'Delete Sprints', 'Can delete sprints', 'sprints', 'delete')
+
+    -- Permissions Management
+    ('permissions.view', 'View Permission', 'Can view permission settings', 'permissions', 'view'),
+    ('permissions.update', 'Update Permission', 'Can update permission settings', 'permissions', 'update')
 ON CONFLICT (name) DO NOTHING;
  
 -- ============================================

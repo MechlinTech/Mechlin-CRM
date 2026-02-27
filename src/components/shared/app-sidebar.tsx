@@ -36,14 +36,13 @@ import { SIDEBAR_NAVIGATION } from "@/config/navigation"
 import { supabase } from "@/lib/supabase"
 import { useRBAC } from "@/context/rbac-context"
 import { useAuth } from "@/hooks/useAuth"
+import { useProjectHierarchy } from "@/hooks/useProjectHierarchy"
 import { toast } from "sonner"
 import { getUserRoles, isInternalUser } from "@/lib/permissions"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const [mounted, setMounted] = React.useState(false)
-  const [projects, setProjects] = React.useState<any[]>([])
-  const [hierarchyLoading, setHierarchyLoading] = React.useState(true)
   const [dashboardUrl, setDashboardUrl] = React.useState("")
   const [isInternal, setIsInternal] = React.useState<boolean | null>(null)
   const [isAdminWithInternalFalse, setIsAdminWithInternalFalse] = React.useState(false)
@@ -51,69 +50,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { hasPermission, loading: rbacLoading } = useRBAC()
   const { user } = useAuth()
   const { state } = useSidebar()
-
-  const isUsersDashboard = pathname === '/users-dashboard'
-  const isProjectsPage = pathname.startsWith('/projects/') && pathname !== '/projects'
-
-  React.useEffect(() => {
-    const fetchUserProjects = async () => {
-      if (!user) return
-      
-      const { data, error } = await supabase
-        .from('project_members')
-        .select(`
-          project_id,
-          projects!inner (
-            *,
-            organisations (*)
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error(error)
-      } else {
-        const projectData = data?.map(item => item.projects) || []
-        setProjects(projectData)
-      }
-      setHierarchyLoading(false)
-    }
-
-    const fetchProjectHierarchy = async () => {
-      const { data, error } = await supabase
-        .from('projects')
-        .select(`
-          *,
-          phases (
-            id,
-            name,
-            milestones (
-              id,
-              name,
-              sprints (
-                id,
-                name,
-                status
-              )
-            )
-          )
-        `)
-      
-      if (error) {
-        console.error(error)
-      } else {
-        setProjects(data || [])
-      }
-      setHierarchyLoading(false)
-    }
-    
-    if (isUsersDashboard) {
-      fetchUserProjects()
-    } else if (isProjectsPage) {
-      fetchProjectHierarchy()
-    }
-  }, [isUsersDashboard, isProjectsPage, user])
+  
+  // Use the new hook for project hierarchy data
+  const { projects, hierarchyLoading, isUsersDashboard, isProjectsPage } = useProjectHierarchy()
 
   React.useEffect(() => {
     setMounted(true)
@@ -297,9 +236,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <Sidebar {...props} className="">
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <Image 
-              src="/logo.png" 
+              src="https://devcrm.mechlintech.com/logo.png" 
               alt="Mechlin Logo"
               width={128}
               height={128}
@@ -367,13 +306,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               const canManageUsers = hasPermission('users.read') || hasPermission('users.create') || hasPermission('users.update') || hasPermission('users.delete');
               const canAssignRoles = hasPermission('users.assign_roles');
               const canManageRoles = hasPermission('roles.read') || hasPermission('roles.create') || hasPermission('roles.update') || hasPermission('roles.delete');
+              const canManagePermissions = hasPermission('permissions.view') || hasPermission('permissions.update');
 
-              if (!canManageUsers && !canAssignRoles && !canManageRoles) return null;
+              if (!canManageUsers && !canAssignRoles && !canManageRoles && !canManagePermissions) return null;
 
               const filteredSubItems = item.items?.filter(sub => {
                 if (sub.title === "Users") return canManageUsers;
                 if (sub.title === "Role Based Permissions") return canManageRoles;
                 if (sub.title === "User Permissions") return canAssignRoles || canManageUsers;
+                if (sub.title === "Permissions Management") return canManagePermissions && isInternal !== false;
                 return true;
               });
 

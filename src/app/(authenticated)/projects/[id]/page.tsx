@@ -22,6 +22,7 @@ import React from "react";
 import { ProjectWiki } from "@/components/custom/wiki";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useRBAC } from "@/context/rbac-context"; 
+import { useOrganization } from "@/hooks/useOrganization"; 
 import { redirect,useRouter } from "next/navigation";
 import {
   ProjectMilestoneProgressChart,
@@ -37,19 +38,44 @@ export default function ProjectOverview({ params }: { params: any }) {
   const { id } = React.use(params) as any;
   const [project, setProject] = React.useState<any>(null);
   const [organisations, setOrganisations] = React.useState<any[]>([]);
-  
+  const [accessChecked, setAccessChecked] = React.useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+  const [isAddPhaseOpen, setIsAddPhaseOpen] = React.useState(false);
+  const [activeMilestonePhase, setActiveMilestonePhase] = React.useState<string | null>(null);
+  const [editingPhaseId, setEditingPhaseId] = React.useState<string | null>(null);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = React.useState(false);
+
   const { hasPermission, loading } = useRBAC();
+  const { userOrg, loading: orgLoading, canAccessProject } = useOrganization();
 
   // TOP LEVEL REDIRECT: Redirect if user cannot read projects 
   if (!loading && !hasPermission('projects.read')) {
     redirect('/unauthorized');
   }
 
-  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
-  const [isAddPhaseOpen, setIsAddPhaseOpen] = React.useState(false);
-  const [activeMilestonePhase, setActiveMilestonePhase] = React.useState<string | null>(null);
-  const [editingPhaseId, setEditingPhaseId] = React.useState<string | null>(null);
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = React.useState(false);
+  // Early access check using canAccessProject before loading any data
+  if (!orgLoading && userOrg && !canAccessProject(id)) {
+    return (
+      <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 hover:bg-gray-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Project Management
+          </Button>
+        </div>
+        <div className="text-center py-20">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don't have permission to view this project.</p>
+          <p className="text-sm text-gray-500">This project belongs to a different organization.</p>
+        </div>
+      </div>
+    );
+  }
 
   const loadData = React.useCallback(async () => {
     const { data: p } = await supabase
@@ -61,9 +87,44 @@ export default function ProjectOverview({ params }: { params: any }) {
     const { data: o } = await supabase.from("organisations").select("*");
     setProject(p);
     setOrganisations(o || []);
+    setAccessChecked(true);
   }, [id]);
 
-  React.useEffect(() => { loadData(); }, [loadData]);
+  React.useEffect(() => { 
+    // Only load data if we have organization info and potential access
+    if (!orgLoading && userOrg) {
+      loadData(); 
+    }
+  }, [loadData, orgLoading, userOrg]);
+
+  // Organization access check (double-check after data loads)
+  if (accessChecked && userOrg && project) {
+    const hasAccess = userOrg.organisations?.is_internal || 
+      project.organisation_id === userOrg.organisation_id;
+    
+    if (!hasAccess) {
+      return (
+        <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
+          <div className="mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="flex items-center gap-2 hover:bg-gray-50"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Project Management
+            </Button>
+          </div>
+          <div className="text-center py-20">
+            <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+            <p className="text-gray-600 mb-4">You don't have permission to view this project.</p>
+            <p className="text-sm text-gray-500">This project belongs to a different organization.</p>
+          </div>
+        </div>
+      );
+    }
+  }
 
   if (!project) return null;
 
@@ -377,7 +438,10 @@ export default function ProjectOverview({ params }: { params: any }) {
 
 
 
-      <div className="px-4 sm:px-0"><ProjectWiki projectId={id} title="Wiki" showHeader={true} /></div>
+      {/* RBAC: Only show wiki section if user has wiki.read permission */}
+      {!loading && hasPermission('wiki.read') && (
+        <div className="px-4 sm:px-0"><ProjectWiki projectId={id} title="Wiki" showHeader={true} /></div>
+      )}
     </div>
   );
 }

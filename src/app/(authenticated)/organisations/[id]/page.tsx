@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/collapsible"
 import { getOrganisationById, getOrganisationProjects } from '@/actions/organisation-management'
 import { useRBAC } from "@/context/rbac-context" // RBAC Integration
+import { useOrganization } from "@/hooks/useOrganization" // Organization access control
 
 export default function OrganisationDetailPage() {
   const params = useParams()
@@ -22,8 +23,9 @@ export default function OrganisationDetailPage() {
   const [loading, setLoading] = React.useState(true)
   const [detailsOpen, setDetailsOpen] = React.useState(false)
 
-  // RBAC Hook
+  // RBAC Hook - must be called before any conditional returns
   const { hasPermission, loading: rbacLoading } = useRBAC();
+  const { userOrg, isInternal } = useOrganization();
 
   async function fetchOrganisationDetails() {
     const data = await getOrganisationById(params.id as string)
@@ -44,6 +46,21 @@ export default function OrganisationDetailPage() {
       fetchOrganisationProjects()
     }
   }, [params.id])
+
+  // RBAC: Check organisations.read permission
+  if (!rbacLoading && !hasPermission('organisations.read')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-lg mb-2">Access Denied</h2>
+          <p className="text-sm text-gray-600 mb-4">You don't have permission to view organization details.</p>
+          <Button onClick={() => router.push('/dashboard')}>
+            Go Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   if (loading || rbacLoading) {
     return (
@@ -68,6 +85,25 @@ export default function OrganisationDetailPage() {
         </div>
       </div>
     )
+  }
+
+  // Organization access control
+  if (userOrg && !isInternal) {
+    // External users can only view their own organization
+    if (userOrg.organisation_id !== organisation.id) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-lg mb-2">Access Denied</h2>
+            <p className="text-sm text-gray-600 mb-4">You don't have permission to view this organization.</p>
+            <p className="text-xs text-gray-500">This organization belongs to a different organization.</p>
+            <Button onClick={() => router.push('/dashboard')} className="mt-4">
+              Go Back to Dashboard
+            </Button>
+          </div>
+        </div>
+      )
+    }
   }
 
   return (
