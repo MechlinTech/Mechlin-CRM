@@ -57,6 +57,31 @@ export async function getAllProjectsAction() {
     }
 }
 
+export async function getProjectByIdAction(id: string) {
+    try {
+        const { data: project, error } = await supabase
+            .from("projects")
+            .select("*, organisations(*), phases(*, milestones(*, sprints(*))), invoices(*), project_members(user_id, users(id, name))")
+            .eq("id", id)
+            .single();
+
+        if (error) throw error;
+
+        const { data: organisations } = await supabase
+            .from("organisations")
+            .select("*");
+
+        return { 
+            success: true, 
+            project: project, 
+            organisations: organisations || [] 
+        };
+    } catch (error: any) {
+        console.error("Fetch Project Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+
 export async function getAllOrganisationsAction() {
     try {
         const { data, error } = await supabase

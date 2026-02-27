@@ -413,27 +413,48 @@ export async function updateUserRoles(userId: string, roleIds: string[], assigne
 // ============================================
 
 export async function getUserPermissions(userId: string) {
-    const { data, error } = await supabase
-        .from("user_roles")
-        .select(`
-            roles(
-                role_permissions(
-                    permissions(*)
+    // Fetch both role-based and direct permissions in parallel
+    const [rolePermsResponse, directPermsResponse] = await Promise.all([
+        // Role-based permissions
+        supabase
+            .from("user_roles")
+            .select(`
+                roles(
+                    role_permissions(
+                        permissions(*)
+                    )
                 )
-            )
-        `)
-        .eq("user_id", userId)
+            `)
+            .eq("user_id", userId),
+        
+        // Direct permissions
+        supabase
+            .from("user_permissions")
+            .select(`
+                permissions(*)
+            `)
+            .eq("user_id", userId)
+    ])
     
-    if (error) return { data: null, error }
+    if (rolePermsResponse.error || directPermsResponse.error) return { data: null, error: rolePermsResponse.error || directPermsResponse.error }
     
-    // Flatten permissions from all roles
+    // Flatten permissions from all roles and direct permissions
     const permissions = new Set<string>()
-    data.forEach((userRole: any) => {
+    
+    // Add role-based permissions
+    rolePermsResponse.data?.forEach((userRole: any) => {
         userRole.roles?.role_permissions?.forEach((rp: any) => {
             if (rp.permissions?.name) {
                 permissions.add(rp.permissions.name)
             }
         })
+    })
+    
+    // Add direct permissions
+    directPermsResponse.data?.forEach((userPerm: any) => {
+        if (userPerm.permissions?.name) {
+            permissions.add(userPerm.permissions.name)
+        }
     })
     
     return { data: Array.from(permissions), error: null }

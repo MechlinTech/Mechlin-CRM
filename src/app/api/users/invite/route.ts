@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
             await sendInvitationEmail({
                 to: email,
                 inviterName: inviter?.name || 'Administrator',
-                organisationName: inviteRecord.organisation?.name || 'MechlinTech',
+                organisationName: inviteRecord.organisation?.name || 'ClientSphere',
                 inviteRedeemUrl: inviteRedeemUrl,
                 expiresAt: inviteRecord.expires_at,
             })
@@ -201,6 +201,96 @@ export async function GET() {
         return Response.json({
             success: true,
             invites: invitesWithInviters
+        })
+
+    } catch (error) {
+        return Response.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        )
+    }
+}
+
+// DELETE endpoint to remove an invitation
+export async function DELETE(request: NextRequest) {
+    try {
+        // Check if user is authenticated
+        const authStatus = await getAuthenticatedUser()
+        
+        if (!authStatus.isAuthenticated || !authStatus.user) {
+            return Response.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            )
+        }
+
+        const userId = authStatus.user.id
+        const { searchParams } = new URL(request.url)
+        const inviteId = searchParams.get('id')
+
+        // Validate input
+        if (!inviteId) {
+            return Response.json(
+                { error: 'Invitation ID is required' },
+                { status: 400 }
+            )
+        }
+
+        // Get current user's organization with is_internal flag
+        const { data: currentUser } = await supabaseAdmin
+            .from('users')
+            .select(`
+                organisation_id,
+                organisation:organisations(is_internal)
+            `)
+            .eq('id', userId)
+            .single()
+
+        if (!currentUser) {
+            return Response.json(
+                { error: 'User not found' },
+                { status: 404 }
+            )
+        }
+
+        const isInternalOrg = (currentUser.organisation as any)?.is_internal || false
+
+        // Fetch the invitation to verify access
+        let query = supabaseAdmin
+            .from('user_invites')
+            .select('*')
+            .eq('id', inviteId)
+
+        // Apply organization filter only for non-internal organizations
+        if (!isInternalOrg) {
+            query = query.eq('organisation_id', currentUser.organisation_id)
+        }
+
+        const { data: invite, error: fetchError } = await query.single()
+
+        if (fetchError || !invite) {
+            return Response.json(
+                { error: 'Invitation not found or access denied' },
+                { status: 404 }
+            )
+        }
+
+        // Delete the invitation
+        const { error: deleteError } = await supabaseAdmin
+            .from('user_invites')
+            .delete()
+            .eq('id', inviteId)
+
+        if (deleteError) {
+            return Response.json(
+                { error: 'Failed to delete invitation' },
+                { status: 500 }
+            )
+        }
+
+        return Response.json({
+            success: true,
+            message: 'Invitation deleted successfully'
         })
 
     } catch (error) {

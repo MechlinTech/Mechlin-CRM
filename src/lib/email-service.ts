@@ -69,7 +69,7 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<bo
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>You're Invited to Join MechlinTech CRM</title>
+        <title>You're Invited to Join ClientSphere</title>
         <style>
           body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -92,9 +92,28 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<bo
           }
           .logo {
             color: #006AFF;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+          }
+          .logo-text {
+            display: flex;
+            align-items: baseline;
+          }
+          .logo-client {
+            color: #666;
+          }
+          .logo-sphere {
+            color: #006AFF;
+          }
+          .logo img {
+            height: 40px;
+            width: auto;
+            display: block;
           }
           .button {
             display: inline-block;
@@ -126,14 +145,38 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<bo
       </head>
       <body>
         <div class="container">
-          <div class="header">
-            <div class="logo">MechlinTech CRM</div>
-            <h1>You're Invited!</h1>
-          </div>
+          <table align="center" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+  <tr>
+    <td align="center" style="padding-bottom: 2px;">
+      <table cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td style="vertical-align: middle; padding-right: 8px; line-height: 0;">
+            <img 
+              src="https://devcrm.mechlintech.com/logo.png" 
+              alt="ClientSphere Logo" 
+              height="40" 
+              style="display:block;"
+            />
+          </td>
+          <td style="vertical-align: middle; font-size: 22px; font-weight: bold;">
+            <span style="color:#666;">Client</span><span style="color:#006AFF;">Sphere</span>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- 👇 Separate full-width row -->
+  <tr>
+    <td align="center" style="font-size: 13px; color: #666; padding-bottom: 20px;">
+      by Mechlin Technologies
+    </td>
+  </tr>
+</table>
           
           <p>Hello,</p>
           
-          <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.organisationName}</strong> on ClientSphere from Mechlin Technologies.</p>
+          <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.organisationName}</strong> on ClientSphere.</p>
           
           <p>Click the button below to accept the invitation and set up your account:</p>
           
@@ -143,11 +186,11 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<bo
           
           <p>If you have any questions, please contact your administrator.</p>
           
-          <p>Best regards,<br>The MechlinTech Team</p>
+          <p>Best regards,<br>The ClientSphere Team</p>
           
           <div class="footer">
             <p>This is an automated message. Please do not reply to this email.</p>
-            <p>© 2026 MechlinTech. All rights reserved.</p>
+            <p>© 2026 ClientSphere. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -156,7 +199,7 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<bo
 
     const emailMessage = {
       message: {
-        subject: `You're invited to join ${data.organisationName} on ClientSphere from Mechlin Technologies`,
+        subject: `You're invited to join ${data.organisationName} on ClientSphere`,
         body: {
           contentType: 'html',
           content: htmlContent,
@@ -171,7 +214,7 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<bo
         from: {
           emailAddress: {
             address: process.env.FROM_EMAIL!,
-            name: 'MechlinTech CRM',
+            name: 'ClientSphere',
           },
         },
       },

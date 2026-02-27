@@ -101,7 +101,7 @@ export async function hasAnyRole(roles: string[]): Promise<boolean> {
 }
 
 /**
- * Get all permissions for the current user
+ * Get all permissions for the current user (both role-based and direct)
  * @returns Promise<string[]> - Array of permission names
  */
 export async function getUserPermissions(): Promise<string[]> {
@@ -109,26 +109,47 @@ export async function getUserPermissions(): Promise<string[]> {
         const { data: { user }, error: authError } = await supabase.auth.getUser()
         if (authError || !user) return []
         
-        const { data, error } = await supabase
-            .from("user_roles")
-            .select(`
-                roles(
-                    role_permissions(
-                        permissions(name)
+        // Fetch both role-based and direct permissions in parallel
+        const [rolePermsResponse, directPermsResponse] = await Promise.all([
+            // Role-based permissions
+            supabase
+                .from("user_roles")
+                .select(`
+                    roles(
+                        role_permissions(
+                            permissions(name)
+                        )
                     )
-                )
-            `)
-            .eq("user_id", user.id)
+                `)
+                .eq("user_id", user.id),
+            
+            // Direct permissions
+            supabase
+                .from("user_permissions")
+                .select(`
+                    permissions(name)
+                `)
+                .eq("user_id", user.id)
+        ])
         
-        if (error) return []
+        if (rolePermsResponse.error || directPermsResponse.error) return []
         
         const permissions = new Set<string>()
-        data?.forEach((userRole: any) => {
+        
+        // Add role-based permissions
+        rolePermsResponse.data?.forEach((userRole: any) => {
             userRole.roles?.role_permissions?.forEach((rp: any) => {
                 if (rp.permissions?.name) {
                     permissions.add(rp.permissions.name)
                 }
             })
+        })
+        
+        // Add direct permissions
+        directPermsResponse.data?.forEach((userPerm: any) => {
+            if (userPerm.permissions?.name) {
+                permissions.add(userPerm.permissions.name)
+            }
         })
         
         return Array.from(permissions)
