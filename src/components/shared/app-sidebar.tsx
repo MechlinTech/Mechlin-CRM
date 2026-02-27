@@ -306,13 +306,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               const canManageUsers = hasPermission('users.read') || hasPermission('users.create') || hasPermission('users.update') || hasPermission('users.delete');
               const canAssignRoles = hasPermission('users.assign_roles');
               const canManageRoles = hasPermission('roles.read') || hasPermission('roles.create') || hasPermission('roles.update') || hasPermission('roles.delete');
+              const canManagePermissions = hasPermission('permissions.view') || hasPermission('permissions.update');
 
-              if (!canManageUsers && !canAssignRoles && !canManageRoles) return null;
+              if (!canManageUsers && !canAssignRoles && !canManageRoles && !canManagePermissions) return null;
 
               const filteredSubItems = item.items?.filter(sub => {
                 if (sub.title === "Users") return canManageUsers;
                 if (sub.title === "Role Based Permissions") return canManageRoles;
                 if (sub.title === "User Permissions") return canAssignRoles || canManageUsers;
+                if (sub.title === "Permissions Management") return canManagePermissions && isInternal !== false;
                 return true;
               });
 
