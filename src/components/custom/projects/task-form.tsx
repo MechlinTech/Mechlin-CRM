@@ -59,7 +59,7 @@ export function TaskForm({ ids, task, onSuccess }: { ids: any, task?: any, onSuc
             <FormControl>
               <Input 
                 {...field} 
-                className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF] transition-all" 
+                className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF] transition-all break-all whitespace-pre-wrap" 
                 placeholder="Enter task title" 
               />
             </FormControl>

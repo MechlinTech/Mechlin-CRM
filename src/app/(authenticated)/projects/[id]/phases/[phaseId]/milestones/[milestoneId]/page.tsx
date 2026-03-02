@@ -57,7 +57,7 @@ const statusColor = m.status === 'Active' || m.status === 'Open'
             Back to Project
           </Button>
         </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <section className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div className="space-y-1">
@@ -84,7 +84,7 @@ const statusColor = m.status === 'Active' || m.status === 'Open'
               )}
             </div>
           </div>
-          <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8">{m.deliverables || "No deliverables description provided for this milestone."}</div>
+          <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8 break-words whitespace-pre-wrap">{m.deliverables || "No deliverables description provided for this milestone."}</div>
           <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-slate-100">
             {loading ? (
   <Button variant="secondary" className="h-10 w-32" disabled>
@@ -104,7 +104,7 @@ const statusColor = m.status === 'Active' || m.status === 'Open'
         </section>
 
         {/* Milestone Stats Section - Fixed spacing to prevent blank look */}
-        <section className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between overflow-hidden h-full">
+        <section className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col  overflow-hidden min-h-[200px] pt-12">
             <div className="flex items-center gap-2 mb-6"><Activity className="h-4 w-4 text-[#006AFF]" /><h3 className="text-sm font-semibold tracking-wide uppercase">Milestone Stats</h3></div>
             <div className="space-y-6">
                 <div className="flex items-center justify-between text-xs"><span className="text-slate-400 font-medium uppercase tracking-wider">Timeline</span><span className="font-semibold text-slate-900">{m.start_date} — {m.end_date}</span></div>

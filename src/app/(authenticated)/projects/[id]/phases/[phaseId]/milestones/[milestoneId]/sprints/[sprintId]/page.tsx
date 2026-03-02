@@ -41,9 +41,9 @@ function TaskItem({ task, ids, onRefresh }: { task: any, ids: any, onRefresh: ()
    <>
       {hasPermission('tasks.read') && (
          <div className="p-5 bg-white border border-slate-100 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between hover:border-[#006AFF]/30 transition-all group shadow-sm gap-4">
-      <div className="space-y-2 flex-1">
+      <div className="space-y-2 flex-1 min-w-0">
         <div className="flex items-center gap-3">
-            <p className="font-semibold text-sm text-slate-700 tracking-tight">{task.title}</p>
+            <p className="font-semibold text-sm text-slate-700 tracking-tight break-all">{task.title}</p>
             <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5 text-[9px] font-medium border uppercase tracking-wider", taskStatusStyles)}>
                 {task.status || 'Pending'}
             </Badge>
@@ -132,12 +132,12 @@ export default function SprintPage({ params }: { params: any }) {
             Back to Milestone
           </Button>
         </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <section className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="flex justify-between items-start mb-6">
             <div className="space-y-1">
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-semibold tracking-tight">{sprint.name}</h1>
+                <h1 className="text-xl font-semibold tracking-tight break-all">{sprint.name}</h1>
                 <Badge variant="outline" className={cn("px-3 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider", statusColor)}>{sprint.status || 'Pending'}</Badge>
               </div>
               <p className="text-sm font-medium text-slate-500">Sprint Execution</p>
@@ -161,7 +161,7 @@ export default function SprintPage({ params }: { params: any }) {
               )}
             </div>
           </div>
-          <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8">{sprint.description || "Active sprint phase focusing on task execution."}</div>
+          <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8 break-all whitespace-pre-wrap">{sprint.description || "Active sprint phase focusing on task execution."}</div>
           <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-slate-100">
              {loading ? (
   <Button variant="secondary" className="h-10 w-32" disabled>
@@ -182,7 +182,7 @@ export default function SprintPage({ params }: { params: any }) {
         </section>
 
         {/* Sprint Stats Section - Fixed spacing to fill column */}
-        <section className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-start overflow-hidden h-full">
+        <section className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-start overflow-hidden min-h-[200px] pt-12">
             <div className="flex items-center gap-2 mb-8 shrink-0">
                 <Activity className="h-4 w-4 text-[#006AFF]" />
                 <h3 className="text-xs font-bold tracking-widest uppercase text-slate-400">Sprint Stats</h3>
