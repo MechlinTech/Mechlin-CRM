@@ -5,10 +5,10 @@ services:
     image: ${DOCKERHUB_USERNAME}/login-whitelabel:${APP_VERSION}
     container_name: login-whitelabel-prod
     ports:
-      - "3010:3000"
+      - "3010:3010"
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3010
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     restart: unless-stopped
