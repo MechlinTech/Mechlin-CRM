@@ -58,25 +58,34 @@ export function SprintForm({ milestoneId, projectId, sprint, onSuccess }: any) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans">
-        <FormField control={form.control} name="name" render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Sprint Name</FormLabel>
-            <FormControl>
-              <Input {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF] transition-all" />
-            </FormControl>
-            <FormMessage className="text-[10px]" />
-          </FormItem>
-        )} />
-        
-        <FormField control={form.control} name="description" render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Description</FormLabel>
-            <FormControl>
-              <Textarea {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[100px] resize-none focus:border-[#006AFF] transition-all" />
-            </FormControl>
-            <FormMessage className="text-[10px]" />
-          </FormItem>
-        )} />
+<FormField control={form.control} name="name" render={({ field }) => (
+  <FormItem>
+    <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Sprint Name</FormLabel>
+    <FormControl>
+      {/* CHANGED: Input to Textarea to allow multi-line wrapping */}
+      <Textarea 
+        {...field} 
+        rows={1}
+        className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[40px] focus:border-[#006AFF] transition-all w-full max-w-full break-all whitespace-pre-wrap py-2" 
+      />
+    </FormControl>
+    <FormMessage className="text-[10px]" />
+  </FormItem>
+)} />
+{/* Description Field */}
+<FormField control={form.control} name="description" render={({ field }) => (
+  <FormItem>
+    <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Description</FormLabel>
+    <FormControl>
+      {/* ADDED: w-full max-w-full break-all whitespace-pre-wrap */}
+      <Textarea 
+        {...field} 
+        className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[100px] resize-none focus:border-[#006AFF] transition-all w-full max-w-full break-all whitespace-pre-wrap" 
+      />
+    </FormControl>
+    <FormMessage className="text-[10px]" />
+  </FormItem>
+)} />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField control={form.control} name="start_date" render={({ field }) => (

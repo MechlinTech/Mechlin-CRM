@@ -71,26 +71,33 @@ export function MilestoneForm({ phaseId, projectId, milestone, onSuccess }: any)
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans text-[#0F172A] ">
        
-        <FormField control={form.control} name="name" render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Name</FormLabel>
-            <FormControl>
-              <Input {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10" />
-            </FormControl>
-            <FormMessage className="text-[10px]" /> {/* Added Message */}
-          </FormItem>
-        )} />
+<FormField control={form.control} name="name" render={({ field }) => (
+  <FormItem>
+    <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Name</FormLabel>
+    <FormControl>
+      <Input 
+        {...field} 
+
+        className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 w-full max-w-full break-all" 
+      />
+    </FormControl>
+    <FormMessage className="text-[10px]" />
+  </FormItem>
+)} />
        
-        <FormField control={form.control} name="deliverables" render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Deliverables</FormLabel>
-            <FormControl>
-              <Textarea {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[80px] resize-none" />
-            </FormControl>
-            <FormMessage className="text-[10px]" />
-          </FormItem>
-        )} />
- 
+<FormField control={form.control} name="deliverables" render={({ field }) => (
+  <FormItem>
+    <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Deliverables</FormLabel>
+    <FormControl>
+      <Textarea 
+        {...field} 
+    
+        className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[80px] resize-none w-full max-w-full break-all whitespace-pre-wrap" 
+      />
+    </FormControl>
+    <FormMessage className="text-[10px]" />
+  </FormItem>
+)} />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField control={form.control} name="start_date" render={({ field }) => (
             <FormItem>
