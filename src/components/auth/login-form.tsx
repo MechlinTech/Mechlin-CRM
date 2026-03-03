@@ -23,6 +23,7 @@ import { isInternalUser } from "@/lib/permissions"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { BrandedHeader } from "./branded-header"
 
 type CheckRoleResponse = {
   hasRole: boolean
@@ -144,11 +145,12 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("", className)} {...props}>
+    <div className={cn("w-[520px]", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
+          <BrandedHeader />
+          <CardTitle className="text-center">Login to your account</CardTitle>
+          <CardDescription className="text-center">
             Enter your email below to login to your account
           </CardDescription>
         </CardHeader>

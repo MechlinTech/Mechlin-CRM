@@ -133,7 +133,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         return (
           <SidebarGroup>
             <SidebarGroupLabel>Current Project</SidebarGroupLabel>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0">
               <SidebarMenuItem>
                 <span className="text-sm text-zinc-500 p-2">Loading project...</span>
               </SidebarMenuItem>
@@ -151,7 +151,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <Collapsible key="current-project" defaultOpen className="group/collapsible">
           <SidebarGroup>
             <SidebarGroupLabel asChild>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton asChild className="text-xs font-medium">
                 <CollapsibleTrigger>
                   Current Project: {currentProject.name}
                   <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
@@ -160,11 +160,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarGroupLabel>
             <CollapsibleContent>
               <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu className="gap-0">
                   {currentProject.phases?.map((phase: any) => (
                     <Collapsible key={phase.id} className="group/collapsible">
                       <SidebarMenuItem>
-                        <SidebarMenuButton asChild className="text-sm">
+                        <SidebarMenuButton asChild className="text-xs">
                           <CollapsibleTrigger>
                             <Folder className="mr-2 h-3 w-3 text-blue-500" />
                             <Link href={`/projects/${currentProject.id}`}>
@@ -235,7 +235,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 
       <Sidebar {...props} className="">
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-2 border-b border-gray-200">
           <div className="flex items-center gap-4">
             <Image 
               src="https://devcrm.mechlintech.com/logo.png" 
@@ -266,7 +266,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <Collapsible key={item.title} defaultOpen className="group/collapsible">
                   <SidebarGroup>
                     <SidebarGroupLabel asChild>
-                      <SidebarMenuButton asChild>
+                      <SidebarMenuButton asChild className="text-sm font-medium">
                         <CollapsibleTrigger>
                           {item.title}
                           <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
@@ -275,10 +275,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarGroupLabel>
                     <CollapsibleContent>
                       <SidebarGroupContent>
-                        <SidebarMenu>
+                        <SidebarMenu className="gap-0">
                           {item.items?.map((subItem) => (
                             <SidebarMenuItem key={subItem.title}>
-                              <SidebarMenuButton asChild isActive={pathname === subItem.url}>
+                              <SidebarMenuButton asChild isActive={pathname === subItem.url} className="text-xs">
                                 <Link href={subItem.url}>{subItem.title}</Link>
                               </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -324,7 +324,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <Collapsible key={item.title} defaultOpen className="group/collapsible">
                   <SidebarGroup>
                     <SidebarGroupLabel asChild>
-                      <SidebarMenuButton asChild>
+                      <SidebarMenuButton asChild className="text-sm font-medium">
                         <CollapsibleTrigger>
                           {item.title}
                           <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
@@ -333,10 +333,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarGroupLabel>
                     <CollapsibleContent>
                       <SidebarGroupContent>
-                        <SidebarMenu>
+                        <SidebarMenu className="gap-0">
                           {filteredSubItems.map((subItem) => (
                             <SidebarMenuItem key={subItem.title}>
-                              <SidebarMenuButton asChild isActive={pathname === subItem.url}>
+                              <SidebarMenuButton asChild isActive={pathname === subItem.url} className="text-xs">
                                 <Link href={subItem.url}>{subItem.title}</Link>
                               </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -359,9 +359,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
               return (
                 <SidebarGroup key={item.title}>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-0">
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={isActive} className="font-medium py-3">
+                      <SidebarMenuButton asChild isActive={isActive} className="font-medium py-0.5">
                         <Link href={url}>
                           <LayoutGrid className="mr-2 h-4 w-4" />
                           <span>{item.title}</span>
@@ -378,11 +378,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {renderProjectHierarchy()}
         </SidebarContent>
         <SidebarFooter>
-          <div className="p-1 border-t border-gray-200">
+          <div className="p-0.5 border-t border-gray-200">
             {mounted ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-2 transition-colors w-full">
+                  <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors w-full">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="text-xs border border-[2px] border-[#006AFF] text-[#006AFF]">
                         {getUserInitials()}
@@ -410,7 +410,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center gap-2 px-2 py-2">
+              <div className="flex items-center gap-2 px-2 py-1">
                 <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
                 <div className="flex-1">
                   <div className="h-4 w-24 bg-gray-200 rounded mb-1"></div>
