@@ -117,7 +117,8 @@ export async function getAllRoles(organisationId?: string | null) {
     }
     // If organisationId is undefined, don't filter (show all - for super admins only)
     
-    return await query
+    const result = await query 
+    return result
 }
 
 export async function getRoleById(roleId: string) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { supabaseAdmin } from "@/lib/supabase-admin"
 
 export async function GET() {
   try {
@@ -30,10 +31,35 @@ export async function GET() {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
-    // Fetch roles
-    const { data, error } = await supabase
+    const userId = userRes.user.id
+
+    // Get current user's organization with is_internal flag
+    const { data: currentUser } = await supabaseAdmin
+      .from('users')
+      .select(`
+        organisation_id,
+        organisation:organisations(is_internal)
+      `)
+      .eq('id', userId)
+      .single()
+
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    const isInternalOrg = (currentUser.organisation as any)?.is_internal || false
+
+    // Fetch roles: all roles for internal orgs, org-specific for non-internal
+    let query = supabaseAdmin
       .from("roles")
       .select("id, name, display_name, description, is_system_role, is_active")
+
+    // Apply organization filter only for non-internal organizations
+    if (!isInternalOrg) {
+      query = query.eq('organisation_id', currentUser.organisation_id)
+    }
+
+    const { data, error } = await query
       .order("display_name", { ascending: true })
 
     if (error) {

@@ -18,14 +18,15 @@ import { Input } from "@/components/ui/input"
 import { supabase } from "@/lib/supabase"
 import { useState } from "react"
 import { redirect } from "next/navigation"
+import { BrandedHeader } from "./branded-header"
+import { cn } from "@/lib/utils"
 
-export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
+export function SignupForm({ className, ...props }: React.ComponentProps<typeof Card>) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // Function to sign up with email and password
   async function signUp(email: string, password: string) {
     setError(null)
     setLoading(true)
@@ -44,7 +45,6 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
     } else {
       console.log("Successfully signed up:", data)
       toast.success("Account created successfully!")
-      // Navigate to login page
       redirect('/')
     }
   }
@@ -55,10 +55,12 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   }
 
   return (
-    <Card {...props}>
+    // ✅ w-[520px] added here
+    <Card className={cn("w-[520px]", className)} {...props}>
       <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>
+        <BrandedHeader />
+        <CardTitle className="text-center">Create an account</CardTitle>
+        <CardDescription className="text-center">
           Enter your information below to create your account
         </CardDescription>
       </CardHeader>
