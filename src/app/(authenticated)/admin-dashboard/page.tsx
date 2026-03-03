@@ -1,5 +1,5 @@
 "use client"
-
+ 
 import React from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
@@ -8,6 +8,7 @@ import { isAdminCached, isInternalUserCached } from '@/lib/permission-cache'
 import { getUserWithOrganisation, getOrganisationProjects } from '@/actions/organisation-management'
 import { Building2, Building, Users, Calendar, DollarSign, ExternalLink, Loader2, FolderKanban, BarChart3, TrendingUp, PieChart, ChevronDown, ChevronUp } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   OrgProjectStatusChart,
@@ -15,7 +16,7 @@ import {
   OrgTimelineChart,
   OrgActivityChart
 } from '@/components/custom/organization-analytics'
-
+ 
 export default function AdminDashboardPage() {
   const [organization, setOrganization] = React.useState<any>(null)
   const [projects, setProjects] = React.useState<any[]>([])
@@ -23,7 +24,7 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [showAnalytics, setShowAnalytics] = React.useState(false)
-
+ 
   React.useEffect(() => {
     async function checkAccessAndFetchData() {
       try {
@@ -33,49 +34,49 @@ export default function AdminDashboardPage() {
           redirect('/login')
           return
         }
-
+ 
         // Run all checks in parallel for better performance
         const [adminCheck, internalCheck, userData] = await Promise.all([
           isAdminCached(),
           isInternalUserCached(),
           getUserWithOrganisation(user.id)
         ])
-        
+       
         if (!adminCheck || internalCheck) {
           redirect('/unauthorized')
           return
         }
-
+ 
         if (!userData?.organisations) {
           setError('Organization not found')
           setIsLoading(false)
           return
         }
-
+ 
         setOrganization(userData.organisations)
-
+ 
         // Fetch projects separately to avoid blocking
         const projectsData = await getOrganisationProjects(userData.organisation_id)
-        
+       
         if (!projectsData) {
           console.error('Error fetching projects')
           setError('Failed to fetch projects')
         } else {
           setProjects(projectsData)
         }
-
+ 
         // Fetch organization analytics
         try {
           // First test if API routes are working
           console.log('Testing API connectivity...')
           const testResponse = await fetch('/api/test-analytics')
           console.log('Test API response:', testResponse.status)
-          
+         
           if (testResponse.ok) {
             const testData = await testResponse.json()
             console.log('Test API data:', testData)
           }
-
+ 
           // Now try the actual analytics endpoint
           console.log('Fetching analytics...')
           const analyticsResponse = await fetch('/api/organization-analytics', {
@@ -85,9 +86,9 @@ export default function AdminDashboardPage() {
             },
             credentials: 'include', // Important: include cookies for authentication
           })
-
+ 
           console.log('Analytics response status:', analyticsResponse.status)
-          
+         
           if (analyticsResponse.ok) {
             const analyticsData = await analyticsResponse.json()
             console.log('Analytics data received:', analyticsData)
@@ -101,7 +102,7 @@ export default function AdminDashboardPage() {
           console.error('Network error fetching analytics:', fetchError)
           // Don't set error for analytics failure, just continue without it
         }
-
+ 
       } catch (err) {
         console.error('Error:', err)
         setError('An unexpected error occurred')
@@ -109,10 +110,10 @@ export default function AdminDashboardPage() {
         setIsLoading(false)
       }
     }
-
+ 
     checkAccessAndFetchData()
   }, [])
-
+ 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -123,7 +124,7 @@ export default function AdminDashboardPage() {
       </div>
     )
   }
-
+ 
   if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -138,7 +139,7 @@ export default function AdminDashboardPage() {
       </div>
     )
   }
-
+ 
   if (!organization) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -153,17 +154,17 @@ export default function AdminDashboardPage() {
       </div>
     )
   }
-
+ 
   const activeProjects = projects.filter(p => p.status === 'Active')
   const pendingProjects = projects.filter(p => p.status === 'Pending')
   const suspendedProjects = projects.filter(p => p.status === 'Suspended')
   const totalBudget = projects.reduce((sum, p) => sum + (Number(p.budget) || 0), 0)
-
+ 
   return (
     <div className="min-h-screen">
       <div className="px-3 sm:px-4 lg:px-6">
         <div className="max-w-7xl mx-auto pt-6">
-          
+         
           <div className="space-y-6">
             {/* Organization Header - Compact Design */}
             <div className="flex items-center justify-between">
@@ -193,22 +194,29 @@ export default function AdminDashboardPage() {
                   {organization.status ? organization.status.charAt(0).toUpperCase() + organization.status.slice(1) : 'Unknown'}
                 </Badge>
               </div>
-              
-              {/* Analytics Toggle Button */}
-              <button
-                onClick={() => setShowAnalytics(!showAnalytics)}
-                className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-[#006AFF] text-white rounded-lg hover:bg-[#0056CC] transition-all duration-200 shadow-lg hover:shadow-xl text-sm"
-              >
-                <BarChart3 className="h-4 w-4" />
-                <span>Analytics</span>
-                {showAnalytics ? (
-                  <ChevronUp className="h-3 w-3" />
-                ) : (
-                  <ChevronDown className="h-3 w-3" />
-                )}
-              </button>
+             
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                <Link href={`/admin-dashboard/about`}>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    Organization Details
+                  </Button>
+                </Link>
+                <button
+                  onClick={() => setShowAnalytics(!showAnalytics)}
+                  className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-[#006AFF] text-white rounded-lg hover:bg-[#0056CC] transition-all duration-200 shadow-lg hover:shadow-xl text-sm"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Analytics</span>
+                  {showAnalytics ? (
+                    <ChevronUp className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                </button>
+              </div>
             </div>
-
+ 
             {/* Stats Grid - Compact Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-[#0F172A]/10 hover:border-[#006AFF]/20 transition-all duration-300">
@@ -220,7 +228,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <p className="text-2xl font-semibold text-[#0F172A] tracking-tight">{projects.length}</p>
               </div>
-              
+             
               <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-[#0F172A]/10 hover:border-[#006AFF]/20 transition-all duration-300">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="p-1.5 bg-green-50 rounded-lg">
@@ -230,7 +238,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <p className="text-2xl font-semibold text-green-600 tracking-tight">{activeProjects.length}</p>
               </div>
-              
+             
               <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-[#0F172A]/10 hover:border-[#006AFF]/20 transition-all duration-300">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="p-1.5 bg-yellow-50 rounded-lg">
@@ -240,7 +248,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <p className="text-2xl font-semibold text-yellow-600 tracking-tight">{pendingProjects.length}</p>
               </div>
-              
+             
               <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-[#0F172A]/10 hover:border-[#006AFF]/20 transition-all duration-300">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="p-1.5 bg-[#006AFF]/10 rounded-lg">
@@ -253,7 +261,7 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
             </div>
-
+ 
             {/* Analytics Section */}
             {showAnalytics && (
               <div className="space-y-6">
@@ -270,7 +278,7 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     </div>
-
+ 
                 {/* Enhanced Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl text-white">
@@ -282,7 +290,7 @@ export default function AdminDashboardPage() {
                       <Users className="h-8 w-8 text-blue-200" />
                     </div>
                   </div>
-                  
+                 
                   <div className="p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-xl text-white">
                     <div className="flex items-center justify-between">
                       <div>
@@ -294,13 +302,13 @@ export default function AdminDashboardPage() {
                       <DollarSign className="h-8 w-8 text-green-200" />
                     </div>
                   </div>
-                  
+                 
                   <div className="p-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl text-white">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-purple-100 text-xs font-medium">Active Rate</p>
                         <p className="text-2xl font-bold">
-                          {analytics.organization.total_projects > 0 
+                          {analytics.organization.total_projects > 0
                             ? Math.round((analytics.organization.active_projects / analytics.organization.total_projects) * 100)
                             : 0}%
                         </p>
@@ -308,7 +316,7 @@ export default function AdminDashboardPage() {
                       <TrendingUp className="h-8 w-8 text-purple-200" />
                     </div>
                   </div>
-                  
+                 
                   <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl text-white">
                     <div className="flex items-center justify-between">
                       <div>
@@ -321,7 +329,7 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                 </div>
-
+ 
                 {/* Charts Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Project Status Chart */}
@@ -332,7 +340,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <OrgProjectStatusChart projects={analytics.projects} />
                   </div>
-
+ 
                   {/* Budget Chart */}
                   <div className="bg-white rounded-xl border border-gray-200/50 p-6 shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
@@ -341,7 +349,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <OrgBudgetChart projects={analytics.projects} />
                   </div>
-
+ 
                   {/* Timeline Chart */}
                   <div className="bg-white rounded-xl border border-gray-200/50 p-6 shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
@@ -350,7 +358,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <OrgTimelineChart projects={analytics.projects} />
                   </div>
-
+ 
                   {/* Activity Chart */}
                   <div className="bg-white rounded-xl border border-gray-200/50 p-6 shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
@@ -374,7 +382,7 @@ export default function AdminDashboardPage() {
                 )}
               </div>
             )}
-
+ 
             {/* Projects Section - Compact Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -390,7 +398,7 @@ export default function AdminDashboardPage() {
                 {projects.length} Projects
               </Badge>
             </div>
-
+ 
             {/* Projects Grid - Compact Cards */}
             {projects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -419,7 +427,7 @@ export default function AdminDashboardPage() {
                             {project.status}
                           </Badge>
                         </div>
-
+ 
                         <div className="space-y-2">
                           {project.budget && (
                             <div className="flex items-center gap-2">
@@ -431,7 +439,7 @@ export default function AdminDashboardPage() {
                               </span>
                             </div>
                           )}
-                          
+                         
                           {project.start_date && (
                             <div className="flex items-center gap-2">
                               <div className="p-1 bg-[#006AFF]/10 rounded-lg">
@@ -440,7 +448,7 @@ export default function AdminDashboardPage() {
                               <span className="text-xs text-[#0F172A]/70">Start: {project.start_date}</span>
                             </div>
                           )}
-                          
+                         
                           {project.expected_end_date && (
                             <div className="flex items-center gap-2">
                               <div className="p-1 bg-[#006AFF]/10 rounded-lg">
@@ -449,7 +457,7 @@ export default function AdminDashboardPage() {
                               <span className="text-xs text-[#0F172A]/70">End: {project.expected_end_date}</span>
                             </div>
                           )}
-
+ 
                           {project.repo_link && (
                             <div className="flex items-center gap-2">
                               <div className="p-1 bg-[#006AFF]/10 rounded-lg">
@@ -468,7 +476,7 @@ export default function AdminDashboardPage() {
                             </div>
                           )}
                         </div>
-                        
+                       
                         <div className="pt-3 border-t border-[#0F172A]/10 flex items-center justify-between text-xs text-[#0F172A]/50">
                           <span className="font-mono">{project.id.slice(0, 8)}</span>
                           <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
@@ -496,3 +504,4 @@ export default function AdminDashboardPage() {
     </div>
   )
 }
+ 

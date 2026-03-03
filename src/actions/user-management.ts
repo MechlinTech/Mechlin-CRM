@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getAllOrganisations, createOrganisation, updateOrganisation, deleteOrganisation } from "@/data/organisations"
+import { getAllOrganisations, createOrganisation, updateOrganisation, deleteOrganisation, getOrganisationProfileData } from "@/data/organisations"
 import { getAllUsers, createUser, updateUser, deleteUser } from "@/data/users"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
@@ -43,6 +43,16 @@ export async function getAllOrganisationsAction() {
     return { success: true, organisations: data }
 }
 
+export async function getOrganisationProfileDetailsAction(userId: string) {
+    const { data, error } = await getOrganisationProfileData(userId);
+    
+    if (error) {
+        return { success: false, error: error.message, code: error.code };
+    }
+    
+    return { success: true, organisation: data };
+}
+
 export async function createOrganisationAction(organisationData: CreateOrganisationInput) {
     const { error } = await createOrganisation(organisationData)
     if (error) {
@@ -58,6 +68,55 @@ export async function updateOrganisationAction(id: string, organisationData: Cre
         return { success: false, error: error.message, code: error.code }
     }
     revalidatePath("/organisations")
+    return { success: true }
+}
+
+export async function updateOrganisationProfileClientAction(id: string, profileData: {
+    name: string;
+    about: string;
+    location: string;
+    logo_path: string;
+    website_url: string;
+    contact_email: string;
+    contact_phone: string;
+    industry: string;
+}) {
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() { return cookieStore.getAll() },
+                setAll(cookiesToSet) {
+                    try {
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            cookieStore.set(name, value, options)
+                        )
+                    } catch {}
+                },
+            },
+        }
+    )
+
+    const { error } = await supabase
+        .from("organisations")
+        .update({
+            name: profileData.name,
+            about: profileData.about,
+            location: profileData.location,
+            logo_path: profileData.logo_path,
+            website_url: profileData.website_url,
+            contact_email: profileData.contact_email,
+            contact_phone: profileData.contact_phone,
+            industry: profileData.industry,
+            updated_at: new Date().toISOString()
+        })
+        .eq("id", id)
+
+    if (error) return { success: false, error: error.message };
+    
+    revalidatePath("/admin-dashboard/about")
     return { success: true }
 }
 

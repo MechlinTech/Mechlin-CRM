@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS organisations (
     slug VARCHAR(100) UNIQUE NOT NULL,
     escalation_contacts JSONB DEFAULT '[]',
     is_internal BOOLEAN DEFAULT FALSE,
+    about TEXT,
+   location TEXT DEFAULT 'Not specified',
+   logo_path TEXT;
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'trial')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -683,3 +686,14 @@ CREATE TABLE tasks (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+
+--- Bucket for organisation logos
+
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('logos', 'logos', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. Set up Storage Policies (Allows anyone to view, authenticated to upload)
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'logos');
+CREATE POLICY "Auth Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'logos' AND auth.role() = 'authenticated');

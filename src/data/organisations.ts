@@ -56,6 +56,33 @@ export async function updateOrganisation(id: string, data: CreateOrganisationInp
         .single()
 }
 
+export async function getOrganisationProfileData(userId: string) {
+    const { data, error } = await supabase
+        .from("users")
+        .select(`
+            organisation_id,
+            organisations (
+                id,
+                name,
+                about,
+                location,
+                logo_path,
+                created_at,
+                updated_at,
+                status,
+                slug,
+                website_url,
+                contact_email,
+                contact_phone,
+                industry
+            )
+        `)
+        .eq("id", userId)
+        .single();
+
+    return { data, error };
+}
+
 export async function deleteOrganisation(id: string) {
     return await supabase.from("organisations").delete().eq("id", id).select().single()
 }
