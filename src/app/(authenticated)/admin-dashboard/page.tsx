@@ -6,15 +6,23 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { isAdminCached, isInternalUserCached } from '@/lib/permission-cache'
 import { getUserWithOrganisation, getOrganisationProjects } from '@/actions/organisation-management'
-import { Building2, Building, Users, Calendar, DollarSign, ExternalLink, Loader2, FolderKanban } from 'lucide-react'
+import { Building2, Building, Users, Calendar, DollarSign, ExternalLink, Loader2, FolderKanban, BarChart3, TrendingUp, PieChart, ChevronDown, ChevronUp } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  OrgProjectStatusChart,
+  OrgBudgetChart,
+  OrgTimelineChart,
+  OrgActivityChart
+} from '@/components/custom/organization-analytics'
 
 export default function AdminDashboardPage() {
   const [organization, setOrganization] = React.useState<any>(null)
   const [projects, setProjects] = React.useState<any[]>([])
+  const [analytics, setAnalytics] = React.useState<any>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
+  const [showAnalytics, setShowAnalytics] = React.useState(false)
 
   React.useEffect(() => {
     async function checkAccessAndFetchData() {
@@ -54,6 +62,44 @@ export default function AdminDashboardPage() {
           setError('Failed to fetch projects')
         } else {
           setProjects(projectsData)
+        }
+
+        // Fetch organization analytics
+        try {
+          // First test if API routes are working
+          console.log('Testing API connectivity...')
+          const testResponse = await fetch('/api/test-analytics')
+          console.log('Test API response:', testResponse.status)
+          
+          if (testResponse.ok) {
+            const testData = await testResponse.json()
+            console.log('Test API data:', testData)
+          }
+
+          // Now try the actual analytics endpoint
+          console.log('Fetching analytics...')
+          const analyticsResponse = await fetch('/api/organization-analytics', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include', // Important: include cookies for authentication
+          })
+
+          console.log('Analytics response status:', analyticsResponse.status)
+          
+          if (analyticsResponse.ok) {
+            const analyticsData = await analyticsResponse.json()
+            console.log('Analytics data received:', analyticsData)
+            setAnalytics(analyticsData)
+          } else {
+            const errorText = await analyticsResponse.text()
+            console.error('Error fetching analytics - Status:', analyticsResponse.status, 'Error:', errorText)
+            // Don't set error for analytics failure, just continue without it
+          }
+        } catch (fetchError) {
+          console.error('Network error fetching analytics:', fetchError)
+          // Don't set error for analytics failure, just continue without it
         }
 
       } catch (err) {
@@ -131,22 +177,36 @@ export default function AdminDashboardPage() {
                   </h1>
                   <p className="text-xs text-[#0F172A]/60 mt-0.5">Organization overview and management</p>
                 </div>
+                <Badge
+                  variant="outline"
+                  className={`
+                    ${
+                      organization.status === 'active'
+                        ? 'border-green-500/30 text-green-600 bg-green-50'
+                        : organization.status === 'trial'
+                        ? 'border-yellow-500/30 text-yellow-600 bg-yellow-50'
+                        : 'border-red-500/30 text-red-600 bg-red-50'
+                    }
+                    font-medium px-3 py-1 rounded-full text-xs
+                  `}
+                >
+                  {organization.status ? organization.status.charAt(0).toUpperCase() + organization.status.slice(1) : 'Unknown'}
+                </Badge>
               </div>
-              <Badge
-                variant="outline"
-                className={`
-                  ${
-                    organization.status === 'active'
-                      ? 'border-green-500/30 text-green-600 bg-green-50'
-                      : organization.status === 'trial'
-                      ? 'border-yellow-500/30 text-yellow-600 bg-yellow-50'
-                      : 'border-red-500/30 text-red-600 bg-red-50'
-                  }
-                  font-medium px-3 py-1 rounded-full text-xs
-                `}
+              
+              {/* Analytics Toggle Button */}
+              <button
+                onClick={() => setShowAnalytics(!showAnalytics)}
+                className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-[#006AFF] text-white rounded-lg hover:bg-[#0056CC] transition-all duration-200 shadow-lg hover:shadow-xl text-sm"
               >
-                {organization.status ? organization.status.charAt(0).toUpperCase() + organization.status.slice(1) : 'Unknown'}
-              </Badge>
+                <BarChart3 className="h-4 w-4" />
+                <span>Analytics</span>
+                {showAnalytics ? (
+                  <ChevronUp className="h-3 w-3" />
+                ) : (
+                  <ChevronDown className="h-3 w-3" />
+                )}
+              </button>
             </div>
 
             {/* Stats Grid - Compact Cards */}
@@ -193,6 +253,127 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
             </div>
+
+            {/* Analytics Section */}
+            {showAnalytics && (
+              <div className="space-y-6">
+                {analytics ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-[#006AFF] rounded-xl shadow-lg">
+                          <BarChart3 className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-semibold text-[#0F172A] tracking-tight">Organization Analytics</h2>
+                          <p className="text-xs text-[#0F172A]/60 mt-0.5">Detailed insights and performance metrics</p>
+                        </div>
+                      </div>
+                    </div>
+
+                {/* Enhanced Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-xs font-medium">Total Users</p>
+                        <p className="text-2xl font-bold">{analytics.organization.total_users}</p>
+                      </div>
+                      <Users className="h-8 w-8 text-blue-200" />
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-xl text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-xs font-medium">Avg Project Budget</p>
+                        <p className="text-2xl font-bold">
+                          ${Math.round(analytics.organization.average_project_budget).toLocaleString()}
+                        </p>
+                      </div>
+                      <DollarSign className="h-8 w-8 text-green-200" />
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 text-xs font-medium">Active Rate</p>
+                        <p className="text-2xl font-bold">
+                          {analytics.organization.total_projects > 0 
+                            ? Math.round((analytics.organization.active_projects / analytics.organization.total_projects) * 100)
+                            : 0}%
+                        </p>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-purple-200" />
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-orange-100 text-xs font-medium">Total Budget</p>
+                        <p className="text-2xl font-bold">
+                          ${analytics.organization.total_budget.toLocaleString()}
+                        </p>
+                      </div>
+                      <BarChart3 className="h-8 w-8 text-orange-200" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Charts Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Project Status Chart */}
+                  <div className="bg-white rounded-xl border border-gray-200/50 p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <PieChart className="h-5 w-5 text-[#006AFF]" />
+                      <h3 className="text-lg font-semibold">Project Status Distribution</h3>
+                    </div>
+                    <OrgProjectStatusChart projects={analytics.projects} />
+                  </div>
+
+                  {/* Budget Chart */}
+                  <div className="bg-white rounded-xl border border-gray-200/50 p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <DollarSign className="h-5 w-5 text-[#006AFF]" />
+                      <h3 className="text-lg font-semibold">Projects by Budget</h3>
+                    </div>
+                    <OrgBudgetChart projects={analytics.projects} />
+                  </div>
+
+                  {/* Timeline Chart */}
+                  <div className="bg-white rounded-xl border border-gray-200/50 p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <TrendingUp className="h-5 w-5 text-[#006AFF]" />
+                      <h3 className="text-lg font-semibold">Project Growth Over Time</h3>
+                    </div>
+                    <OrgTimelineChart projects={analytics.projects} />
+                  </div>
+
+                  {/* Activity Chart */}
+                  <div className="bg-white rounded-xl border border-gray-200/50 p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <BarChart3 className="h-5 w-5 text-[#006AFF]" />
+                      <h3 className="text-lg font-semibold">Project Activity This Year</h3>
+                    </div>
+                    <OrgActivityChart projects={analytics.projects} />
+                  </div>
+                </div>
+              </>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg mb-4">
+                      <BarChart3 className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-[#0F172A] mb-2 tracking-tight">Loading Analytics</h3>
+                    <p className="text-xs text-[#0F172A]/60 max-w-md mx-auto">
+                      Analytics data is being prepared. This should only take a moment...
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Projects Section - Compact Header */}
             <div className="flex items-center justify-between">

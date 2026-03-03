@@ -43,7 +43,7 @@ export default function ProjectOverview({ params }: { params: any }) {
   const [isAddPhaseOpen, setIsAddPhaseOpen] = React.useState(false);
   const [activeMilestonePhase, setActiveMilestonePhase] = React.useState<string | null>(null);
   const [editingPhaseId, setEditingPhaseId] = React.useState<string | null>(null);
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = React.useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = React.useState(true);
 
   const { hasPermission, loading } = useRBAC();
   const { userOrg, loading: orgLoading, canAccessProject } = useOrganization();

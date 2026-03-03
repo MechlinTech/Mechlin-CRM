@@ -40,8 +40,10 @@ export default function RolesPage() {
                     return
                 }
 
-                const organisation = orgResult.organisation?.organisations?.[0]
+                const organisation = orgResult.organisation?.organisations as any
                 const isInternalOrg = organisation?.is_internal || false
+                
+
 
                 let result
                 if (isInternalOrg) {

@@ -19,6 +19,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Mechlin CRM",
   description: "Unified Project Management",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
