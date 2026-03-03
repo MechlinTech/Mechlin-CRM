@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mechlin CRM",
+  title: "Clientsphere ",
   description: "Unified Project Management",
 };
 

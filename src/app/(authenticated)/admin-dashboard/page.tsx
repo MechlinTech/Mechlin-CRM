@@ -6,9 +6,10 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { isAdminCached, isInternalUserCached } from '@/lib/permission-cache'
 import { getUserWithOrganisation, getOrganisationProjects } from '@/actions/organisation-management'
-import { Building2, Building, Users, Calendar, DollarSign, ExternalLink, Loader2, FolderKanban } from 'lucide-react'
+import { Building2, Building, Users, Calendar, DollarSign, ExternalLink, Loader2, FolderKanban , Info} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 export default function AdminDashboardPage() {
   const [organization, setOrganization] = React.useState<any>(null)
@@ -132,21 +133,15 @@ export default function AdminDashboardPage() {
                   <p className="text-xs text-[#0F172A]/60 mt-0.5">Organization overview and management</p>
                 </div>
               </div>
-              <Badge
-                variant="outline"
-                className={`
-                  ${
-                    organization.status === 'active'
-                      ? 'border-green-500/30 text-green-600 bg-green-50'
-                      : organization.status === 'trial'
-                      ? 'border-yellow-500/30 text-yellow-600 bg-yellow-50'
-                      : 'border-red-500/30 text-red-600 bg-red-50'
-                  }
-                  font-medium px-3 py-1 rounded-full text-xs
-                `}
-              >
-                {organization.status ? organization.status.charAt(0).toUpperCase() + organization.status.slice(1) : 'Unknown'}
-              </Badge>
+
+
+              <Link href={`/admin-dashboard/about`}>
+    <Button size="sm" className="flex items-center gap-2">
+      
+      Organization Details
+    </Button>
+  </Link>
+              
             </div>
 
             {/* Stats Grid - Compact Cards */}
