@@ -4,11 +4,13 @@ services:
   web:
     image: ${DOCKERHUB_USERNAME}/login-whitelabel:${APP_VERSION}
     container_name: login-whitelabel-prod
+
     ports:
-      - "8880:3000"
+      - "3010:3010"
+
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3010
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
@@ -18,3 +20,27 @@ services:
       FROM_EMAIL: ${FROM_EMAIL}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          memory: 256M
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3010"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    security_opt:
+      - no-new-privileges:true
