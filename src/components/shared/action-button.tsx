@@ -12,30 +12,38 @@ import {
 interface ActionButtonProps {
   title: string
   trigger: React.ReactNode
-  content: React.ReactElement
+  children: React.ReactNode // Switch back to children for standard React nesting
 }
 
-export function ActionButton({ title, trigger, content }: ActionButtonProps) {
+// Create a Context to allow deep children to close the dialog
+export const ActionModalContext = React.createContext<{ close: () => void }>({ close: () => {} });
+
+export function ActionButton({ title, trigger, children }: ActionButtonProps) {
   const [open, setOpen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
+  const close = () => setOpen(false);
 
-  // Defensive check: ensure content exists before cloning
-  if (!content) return null;
+  // Prevent hydration mismatch by waiting for client-side mount
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  // Inject onSuccess logic into the child form on the client side
-  const formWithProps = React.cloneElement(content as React.ReactElement<any>, {
-    onSuccess: () => setOpen(false)
-  })
+  if (!mounted) {
+    return <>{trigger}</>
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="bg-white text-black max-w-xl border-none shadow-2xl overflow-y-auto max-h-[90vh]">
+      <DialogContent className="bg-white text-black max-w-xl border-none shadow-2xl overflow-y-auto custom-scrollbar max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="font-black text-xl tracking-tighter uppercase">{title}</DialogTitle>
         </DialogHeader>
-        {formWithProps}
+        <ActionModalContext.Provider value={{ close }}>
+          {children}
+        </ActionModalContext.Provider>
       </DialogContent>
     </Dialog>
   )

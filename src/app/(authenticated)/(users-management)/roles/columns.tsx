@@ -1,0 +1,147 @@
+"use client"
+
+import { ColumnDef } from "@tanstack/react-table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react"
+import type { Role } from "@/types/rbac"
+import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
+import { useIsAdmin } from "@/hooks/useIsAdmin" // Added admin check
+
+export const columns: ColumnDef<any>[] = [
+    {
+        accessorKey: "display_name",
+        header: "Role Name",
+        cell: ({ row }) => {
+            return (
+                <div className="font-medium text-[#0F172A]">
+                    {row.getValue("display_name")}
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "description",
+        header: "Description",
+        cell: ({ row }) => {
+            const description = row.getValue("description") as string
+            return (
+                <div className="text-sm text-gray-600 max-w-md truncate">
+                    {description || "No description"}
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "organisation_name",
+        header: "Organization",
+        cell: ({ row }) => {
+            const role = row.original
+            if (role.is_system_role) {
+                return (
+                    <Badge variant="outline" className="text-xs">
+                        System
+                    </Badge>
+                )
+            }
+            return (
+                <div className="text-sm text-gray-600">
+                    {role.organisation_name || "Unknown Organization"}
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "role_permissions",
+        header: "Permissions",
+        cell: ({ row }) => {
+            const permissions = row.original.role_permissions || []
+            return (
+                <Badge variant="secondary" className="font-normal">
+                    {permissions.length} permissions
+                </Badge>
+            )
+        },
+    },
+    {
+        accessorKey: "is_active",
+        header: "Status",
+        cell: ({ row }) => {
+            const isActive = row.getValue("is_active")
+            return (
+                <Badge className={"border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-white"}>
+                    {isActive ? "Active" : "Inactive"}
+                </Badge>
+            )
+        },
+    },
+    {
+        id: "actions",
+        cell: ({ row, table }) => {
+            const role = row.original
+            const isSystemRole = role.is_system_role
+            const { hasPermission, loading } = useRBAC() // Added RBAC Hook
+            const { isAdminOnly, loading: adminLoading } = useIsAdmin() // Added admin check
+
+            if (loading || adminLoading) return <div className="h-8 w-8" />
+
+            const canUpdate = hasPermission('roles.update')
+            const canDelete = hasPermission('roles.delete')
+
+            // Admin users cannot edit system roles, but super_admin can
+            const canEditSystemRole = isSystemRole && !isAdminOnly && canUpdate
+            const canEditNonSystemRole = !isSystemRole && canUpdate
+
+            return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                            onClick={() => (table.options.meta as any)?.onView?.(role)}
+                        >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                        </DropdownMenuItem>
+
+                        {/* Edit permission - admin users cannot edit system roles */}
+                        {(canEditSystemRole || canEditNonSystemRole) && (
+                            <DropdownMenuItem
+                                onClick={() => (table.options.meta as any)?.onEdit?.(role)}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                        )}
+
+                        {/* RBAC: Delete permission for non-system roles */}
+                        {!isSystemRole && canDelete && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    onClick={() => (table.options.meta as any)?.onDelete?.(role)}
+                                    className="text-red-600"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )
+        },
+    },
+]

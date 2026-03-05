@@ -12,6 +12,11 @@ export type Thread = {
     created_at: string
     updated_at: string
     last_message_at: string
+    user?: {
+        id: string
+        name?: string
+        email?: string
+    }
 }
 
 export type Message = {
@@ -21,6 +26,11 @@ export type Message = {
     message_type: 'text' | 'system' | 'file'
     created_by: string
     created_at: string
+    user?: {
+        id: string
+        name?: string
+        email?: string
+    }
 }
 
 export type Participant = {
@@ -83,7 +93,7 @@ export type CreateAttachmentInput = {
     uploaded_by: string
 }
 
-// Get all threads with optional context filtering
+// Get all threads with optional context filtering and user information
 export async function getAllThreads(contextType?: string, contextId?: string) {
     let query = supabase
         .from('enquiry_threads')
@@ -97,9 +107,33 @@ export async function getAllThreads(contextType?: string, contextId?: string) {
         query = query.eq('context_id', contextId)
     }
 
-    const { data, error } = await query
+    const { data: threads, error } = await query
 
-    return { data, error }
+    if (error || !threads) {
+        return { data: null, error }
+    }
+
+    // Fetch user information for each thread creator
+    const threadsWithUsers = await Promise.all(
+        threads.map(async (thread) => {
+            const { data: userData } = await supabase
+                .from('users')
+                .select('id, name, email')
+                .eq('id', thread.created_by)
+                .single()
+
+            return {
+                ...thread,
+                user: userData || {
+                    id: thread.created_by,
+                    name: 'Unknown User',
+                    email: ''
+                }
+            }
+        })
+    )
+
+    return { data: threadsWithUsers, error: null }
 }
 
 // Get thread by ID
@@ -166,15 +200,39 @@ export async function deleteThread(id: string) {
     return { error }
 }
 
-// Get messages by thread
+// Get messages by thread with user information
 export async function getMessagesByThread(threadId: string) {
-    const { data, error } = await supabase
+    const { data: messages, error } = await supabase
         .from('enquiry_messages')
         .select('*')
         .eq('thread_id', threadId)
         .order('created_at', { ascending: true })
 
-    return { data, error }
+    if (error || !messages) {
+        return { data: null, error }
+    }
+
+    // Fetch user information for each message
+    const messagesWithUsers = await Promise.all(
+        messages.map(async (message) => {
+            const { data: userData } = await supabase
+                .from('users')
+                .select('id, name, email')
+                .eq('id', message.created_by)
+                .single()
+
+            return {
+                ...message,
+                user: userData || {
+                    id: message.created_by,
+                    name: 'Unknown User',
+                    email: ''
+                }
+            }
+        })
+    )
+
+    return { data: messagesWithUsers, error: null }
 }
 
 // Create message
@@ -195,12 +253,36 @@ export async function createMessage(messageData: CreateMessageInput) {
 
 // Get participants by thread
 export async function getParticipantsByThread(threadId: string) {
-    const { data, error } = await supabase
+    const { data: participants, error } = await supabase
         .from('thread_participants')
         .select('*')
         .eq('thread_id', threadId)
 
-    return { data, error }
+    if (error || !participants) {
+        return { data: null, error }
+    }
+
+    // Fetch user information for each participant
+    const participantsWithUsers = await Promise.all(
+        participants.map(async (participant) => {
+            const { data: userData } = await supabase
+                .from('users')
+                .select('id, name, email')
+                .eq('id', participant.user_id)
+                .single()
+
+            return {
+                ...participant,
+                user: userData || {
+                    id: participant.user_id,
+                    name: 'Unknown User',
+                    email: ''
+                }
+            }
+        })
+    )
+
+    return { data: participantsWithUsers, error: null }
 }
 
 // Add participant to thread

@@ -3,124 +3,145 @@
 import * as React from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { ChevronRight, Plus, Pencil, Trash2 } from "lucide-react";
+import { ChevronRight, Plus, Pencil, Trash2, FileUp, FolderOpen, Activity, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SprintForm } from "@/components/custom/projects/sprint-form";
 import { MilestoneForm } from "@/components/custom/projects/milestone-form";
-import { deleteMilestoneAction, deleteSprintAction } from "@/actions/hierarchy";
+import { deleteMilestoneAction } from "@/actions/hierarchy";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
-import { MilestoneThreads } from "@/components/custom/threads";
+import { redirect, useRouter } from "next/navigation";
+import { ActionButton } from "@/components/shared/action-button";
+import { DocumentForm } from "@/components/custom/projects/document-form";
+import { MilestoneThreads } from "@/components/custom/threads/MilestoneThreads";
+import { cn } from "@/lib/utils";
+import { useRBAC } from "@/context/rbac-context"; 
+
 
 export default function MilestonePage({ params }: { params: any }) {
   const router = useRouter();
   const { id, phaseId, milestoneId } = React.use(params) as any;
   const [m, setMilestone] = React.useState<any>(null);
+  const { hasPermission, loading } = useRBAC(); 
+
   const [isSprintOpen, setIsSprintOpen] = React.useState(false);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
-  const [editingSprint, setEditingSprint] = React.useState<any>(null);
 
   const fetchData = React.useCallback(async () => {
     const { data } = await supabase.from("milestones").select("*, sprints(*)").eq("id", milestoneId).single();
-    setMilestone(data);
+    if (data) { setMilestone({ ...data }); }
   }, [milestoneId]);
 
   React.useEffect(() => { fetchData(); }, [fetchData]);
+  if(!loading && !hasPermission('milestones.read')) {
+        redirect('/unauthorized');
+  }
 
   if (!m) return null;
 
+const statusColor = m.status === 'Active' || m.status === 'Open' 
+  ? 'text-[#006AFF] border-[#006AFF]/20 bg-[#006AFF]/5' 
+  : m.status === 'Inactive' 
+  ? 'text-slate-500 border-slate-500/20 bg-slate-50/50' 
+  : 'text-emerald-600 border-emerald-500/20 bg-emerald-50/50';
   return (
-    <div className="max-w-5xl space-y-10 text-black font-sans">
-      <nav className="flex text-[10px] text-zinc-400 gap-2 mb-4 uppercase font-bold tracking-widest">
-        <Link href={`/projects/${id}`} className="hover:text-black">Project</Link>
-        <span>/</span>
-        <Link href={`/projects/${id}/phases/${phaseId}`} className="hover:text-black">Phase</Link>
-        <span>/</span>
-        <span className="text-zinc-800">Milestone View</span>
-      </nav>
-
-      <section className="space-y-8 p-10 bg-white border border-zinc-200 rounded-3xl shadow-sm">
-        <div className="flex justify-between items-start border-b border-zinc-100 pb-8">
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter mb-2">{m.name}</h1>
-            <p className="text-[10px] font-bold uppercase px-3 py-1 bg-zinc-900 text-white inline-block rounded-md">{m.status}</p>
-          </div>
-          <div className="flex gap-2">
-            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="rounded-full gap-2 border-zinc-300 uppercase text-[9px] font-bold">
-                  <Pencil className="h-3 w-3" /> Edit Milestone
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-white text-black border-zinc-200 shadow-2xl">
-                <DialogHeader><DialogTitle>Edit Milestone Details</DialogTitle></DialogHeader>
-                <MilestoneForm projectId={id} phaseId={phaseId} milestone={m} onSuccess={() => { setIsEditOpen(false); fetchData(); }} />
-              </DialogContent>
-            </Dialog>
-
-            <Button variant="outline" size="sm" onClick={async () => { await deleteMilestoneAction(milestoneId, id); router.push(`/projects/${id}`); }} className="rounded-full border-red-200 text-red-600 hover:bg-red-50 uppercase text-[9px] font-bold gap-2">
-              <Trash2 className="h-3 w-3" /> Delete
-            </Button>
-          </div>
+    <div className="max-w-5xl mx-auto space-y-10 pb-20 px-4 sm:px-6 lg:px-0 text-[#0F172A] font-sans">
+             <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 hover:bg-gray-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Project
+          </Button>
         </div>
-        <div className="grid grid-cols-2 gap-y-10 text-sm">
-          <div><p className="text-[9px] font-bold uppercase text-zinc-400">Deliverables</p><p className="mt-1 font-medium">{m.deliverables || "None"}</p></div>
-          <div><p className="text-[9px] font-bold uppercase text-zinc-400">Demo Date</p><p className="mt-1 font-bold text-orange-600">{m.demo_date || "Pending"}</p></div>
-          <div><p className="text-[9px] font-bold uppercase text-zinc-400">Hours/Budget</p><p className="mt-1 font-bold">{m.hours} Hrs — ${m.budget?.toLocaleString()}</p></div>
-          <div><p className="text-[9px] font-bold uppercase text-zinc-400">Timeline</p><p className="mt-1 font-bold">{m.start_date} to {m.end_date}</p></div>
-        </div>
-      </section>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <section className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-semibold tracking-tight">{m.name}</h1>
+                <Badge variant="outline" className={cn("px-3 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider", statusColor)}>{m.status}</Badge>
+              </div>
+              <p className="text-sm font-medium text-slate-500">Milestone Details</p>
+            </div>
+            <div className="flex gap-2">
+              {!loading && hasPermission('milestones.update') && (
+                <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                  <DialogTrigger asChild>
+                    <button className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:text-[#006AFF] active:scale-95 bg-white cursor-pointer"><Pencil className="h-4 w-4" /></button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-white border-none shadow-2xl">
+                    <DialogHeader><DialogTitle className="text-lg font-semibold">Edit Milestone</DialogTitle></DialogHeader>
+                    <MilestoneForm key={`${m.id}-${m.status}-${m.name}`} projectId={id} phaseId={phaseId} milestone={m} onSuccess={() => { setIsEditOpen(false); fetchData(); router.refresh(); }} />
+                  </DialogContent>
+                </Dialog>
+              )}
+              {!loading && hasPermission('milestones.delete') && (
+                <button onClick={() => confirm('Delete?') && deleteMilestoneAction(milestoneId, id).then(() => router.push(`/projects/${id}`))} className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer"><Trash2 className="h-4 w-4" /></button>
+              )}
+            </div>
+          </div>
+          <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8 break-words whitespace-pre-wrap">{m.deliverables || "No deliverables description provided for this milestone."}</div>
+          <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-slate-100">
+            {loading ? (
+  <Button variant="secondary" className="h-10 w-32" disabled>
+    <FileUp className="h-4 w-4" /> Upload
+  </Button>
+) : hasPermission('documents.create') ? (
+  <ActionButton title="Upload" trigger={
+    <Button variant="secondary" className="h-10 w-32 cursor-pointer">
+      <FileUp className="h-4 w-4" /> Upload
+    </Button>
+  }>
+    <DocumentForm projectId={id} ids={{ phase_id: phaseId, milestone_id: milestoneId }} />
+  </ActionButton>
+) : null}
+             <Link href={`/projects/${id}/documents?milestoneId=${milestoneId}`} className="flex items-center justify-center h-10 w-32 bg-[#006AFF] text-white rounded-md font-semibold text-xs gap-2 hover:bg-[#99C4FF] transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"><FolderOpen className="h-4 w-4" /> View Doc</Link>
+          </div>
+        </section>
+
+        {/* Milestone Stats Section - Fixed spacing to prevent blank look */}
+        <section className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col  overflow-hidden min-h-[200px] pt-12">
+            <div className="flex items-center gap-2 mb-6"><Activity className="h-4 w-4 text-[#006AFF]" /><h3 className="text-sm font-semibold tracking-wide uppercase">Milestone Stats</h3></div>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between text-xs"><span className="text-slate-400 font-medium uppercase tracking-wider">Timeline</span><span className="font-semibold text-slate-900">{m.start_date} — {m.end_date}</span></div>
+                <div className="flex items-center justify-between text-xs"><span className="text-slate-400 font-medium uppercase tracking-wider">Budget</span><span className="font-semibold text-slate-900">${m.budget?.toLocaleString() || 0}</span></div>
+                <div className="flex items-center justify-between text-xs pt-6 border-t border-slate-100"><span className="text-slate-400 font-medium uppercase tracking-wider">Demo Date</span><p className="font-semibold text-[#006AFF]">{m.demo_date || "TBD"}</p></div>
+            </div>
+        </section>
+      </div>
 
       <section className="space-y-6">
-        <div className="flex justify-between items-center px-2">
-          <h2 className="text-xl font-black tracking-tight">Milestone Sprints</h2>
-          <Dialog open={isSprintOpen} onOpenChange={(val) => { if(!val) setEditingSprint(null); setIsSprintOpen(val); }}>
-            <DialogTrigger asChild>
-              <Button className="h-8 px-5 bg-black text-white rounded-full text-[10px] font-bold uppercase gap-2">
-                <Plus className="h-3 w-3" /> Add Sprint
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-white text-black border-zinc-200 shadow-2xl">
-              <DialogHeader><DialogTitle>{editingSprint ? "Edit Sprint" : "Add New Sprint"}</DialogTitle></DialogHeader>
-              <SprintForm 
-                milestoneId={milestoneId} 
-                projectId={id} 
-                sprint={editingSprint}
-                onSuccess={() => { setIsSprintOpen(false); setEditingSprint(null); fetchData(); }} 
-              />
-            </DialogContent>
-          </Dialog>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Milestone Sprints</h2>
+          {!loading && hasPermission('sprints.create') && (
+            <Dialog open={isSprintOpen} onOpenChange={setIsSprintOpen}>
+              <DialogTrigger asChild><Button className="cursor-pointer"><Plus className="h-4 w-4" /> Add Sprint</Button></DialogTrigger>
+              <DialogContent className="bg-white border-none shadow-2xl"><DialogHeader><DialogTitle className="text-lg font-semibold">Create Sprint Cycle</DialogTitle></DialogHeader>
+                <SprintForm milestoneId={milestoneId} projectId={id} onSuccess={() => { setIsSprintOpen(false); fetchData(); }} />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
-        
-        <div className="grid gap-3">
+       <>
+      {hasPermission('sprints.read') && (
+          <div className="grid gap-4">
           {m.sprints?.map((sprint: any) => (
-            <div key={sprint.id} className="p-5 bg-zinc-50/50 border border-zinc-200 rounded-2xl flex items-center justify-between hover:border-black transition-all group">
-              <Link href={`/projects/${id}/phases/${phaseId}/milestones/${milestoneId}/sprints/${sprint.id}`} className="flex-1">
-                <p className="font-bold text-sm mb-1">{sprint.name}</p>
-                <p className="text-[10px] text-zinc-400 truncate max-w-md">{sprint.description || "No description provided"}</p>
-              </Link>
-              <div className="flex items-center gap-4">
-                <Badge variant="outline" className="text-[10px] uppercase">{sprint.status || 'Active'}</Badge>
-                <button onClick={() => { setEditingSprint(sprint); setIsSprintOpen(true); }} className="text-zinc-300 hover:text-black transition-colors">
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <button onClick={async () => { await deleteSprintAction(sprint.id, id); fetchData(); }} className="text-zinc-300 hover:text-red-600 transition-colors">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-                <ChevronRight className="h-4 w-4 text-zinc-300 group-hover:text-black" />
-              </div>
+            <div key={sprint.id} className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-[#006AFF]/30 transition-all group shadow-sm ring-1 ring-slate-50">
+                <Link href={`/projects/${id}/phases/${phaseId}/milestones/${milestoneId}/sprints/${sprint.id}`} className="flex-1 font-medium text-sm text-slate-700 hover:text-[#006AFF] transition-colors cursor-pointer">{sprint.name}</Link>
+                <div className="flex items-center gap-5"><span className="text-[10px] font-normal text-slate-400">Starts: {sprint.start_date || 'TBD'}</span><ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-[#006AFF] transition-all group-hover:translate-x-1" /></div>
             </div>
           ))}
         </div>
+        )
+        }
+        </>
       </section>
 
-      <section className="mt-8">
-        <MilestoneThreads 
-          milestoneId={milestoneId}
-          title="Milestone Discussions"
-        />
-      </section>
+      <section className="mt-8 border-t border-slate-100 pt-10"><MilestoneThreads milestoneId={milestoneId} title="Discussions" /></section>
     </div>
   );
 }

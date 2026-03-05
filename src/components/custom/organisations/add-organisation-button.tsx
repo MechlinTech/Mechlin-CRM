@@ -11,14 +11,35 @@ import {
     DialogTrigger,
   } from "@/components/ui/dialog"
 import { CreateOrganisationForm } from "./create-organisation-form"
+import { useRBAC } from "@/context/rbac-context"
 
-export function AddOrganisationButton() {
+interface AddOrganisationButtonProps {
+    onSuccess?: () => void
+}
+
+export function AddOrganisationButton({ onSuccess }: AddOrganisationButtonProps) {
+    const { hasPermission, loading } = useRBAC();
     const [open, setOpen] = useState(false)
     
+    const handleSuccess = () => {
+        // Close the dialog
+        setOpen(false)
+        
+        // Call parent onSuccess if provided
+        if (onSuccess) {
+            onSuccess()
+        }
+    }
+    
+    // RBAC: Hide button if user cannot create organisations
+    if (loading || !hasPermission('organisations.create')) {
+        return null;
+    }
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default">Add Organisation</Button>
+                <Button variant="default" onClick={() => setOpen(true)}>Add Organisation</Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -27,7 +48,7 @@ export function AddOrganisationButton() {
                     This action will create a new organisation.
                 </DialogDescription>
                 </DialogHeader>
-                <CreateOrganisationForm onSuccess={() => setOpen(false)} />
+                <CreateOrganisationForm onSuccess={handleSuccess} />
             </DialogContent>
         </Dialog>
     )

@@ -1,7 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'devcrm.mechlintech.com',
+        port: '',
+        pathname: '/logo.png',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

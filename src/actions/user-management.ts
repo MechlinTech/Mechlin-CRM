@@ -1,8 +1,10 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getAllOrganisations, createOrganisation, updateOrganisation, deleteOrganisation } from "@/data/organisations"
+import { getAllOrganisations, createOrganisation, updateOrganisation, deleteOrganisation, getOrganisationProfileData } from "@/data/organisations"
 import { getAllUsers, createUser, updateUser, deleteUser } from "@/data/users"
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
 
 
 // Organisation type - represents the full organisation record from the database
@@ -11,6 +13,7 @@ export type Organisation = {
     name: string
     slug: string
     status: "active" | "suspended" | "trial"
+    is_internal: boolean
     escalation_contacts: EscalationContact[]
     created_at: string
     updated_at: string
@@ -28,6 +31,7 @@ export type CreateOrganisationInput = {
     name: string
     slug: string
     status: "active" | "suspended" | "trial"
+    is_internal: boolean
     escalation_contacts?: EscalationContact[]
 }
 
@@ -37,6 +41,16 @@ export async function getAllOrganisationsAction() {
         return { success: false, error: error.message, code: error.code }
     }
     return { success: true, organisations: data }
+}
+
+export async function getOrganisationProfileDetailsAction(userId: string) {
+    const { data, error } = await getOrganisationProfileData(userId);
+    
+    if (error) {
+        return { success: false, error: error.message, code: error.code };
+    }
+    
+    return { success: true, organisation: data };
 }
 
 export async function createOrganisationAction(organisationData: CreateOrganisationInput) {
@@ -54,6 +68,55 @@ export async function updateOrganisationAction(id: string, organisationData: Cre
         return { success: false, error: error.message, code: error.code }
     }
     revalidatePath("/organisations")
+    return { success: true }
+}
+
+export async function updateOrganisationProfileClientAction(id: string, profileData: {
+    name: string;
+    about: string;
+    location: string;
+    logo_path: string;
+    website_url: string;
+    contact_email: string;
+    contact_phone: string;
+    industry: string;
+}) {
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() { return cookieStore.getAll() },
+                setAll(cookiesToSet) {
+                    try {
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            cookieStore.set(name, value, options)
+                        )
+                    } catch {}
+                },
+            },
+        }
+    )
+
+    const { error } = await supabase
+        .from("organisations")
+        .update({
+            name: profileData.name,
+            about: profileData.about,
+            location: profileData.location,
+            logo_path: profileData.logo_path,
+            website_url: profileData.website_url,
+            contact_email: profileData.contact_email,
+            contact_phone: profileData.contact_phone,
+            industry: profileData.industry,
+            updated_at: new Date().toISOString()
+        })
+        .eq("id", id)
+
+    if (error) return { success: false, error: error.message };
+    
+    revalidatePath("/admin-dashboard/about")
     return { success: true }
 }
 
@@ -91,7 +154,49 @@ export type CreateUserInput = {
 }
 
 export async function getAllUsersAction() {
-    const { data, error } = await getAllUsers()
+    // Get current user and check if they are admin with is_internal === false
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value
+                },
+            },
+        }
+    )
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    let organisationId: string | undefined = undefined
+    
+    if (!authError && user) {
+        // Check if user is admin with is_internal === false
+        const [rolesResult, userDataResult] = await Promise.all([
+            supabase
+                .from("user_roles")
+                .select("roles(name)")
+                .eq("user_id", user.id),
+            supabase
+                .from("users")
+                .select("organisation_id, organisations(is_internal)")
+                .eq("id", user.id)
+                .single()
+        ])
+
+        const roles = rolesResult.data?.map((ur: any) => ur.roles?.name).filter(Boolean) || []
+        const isAdmin = roles.includes("admin")
+        const isInternal = (userDataResult.data as any)?.organisations?.is_internal || false
+
+        // If user is admin with is_internal === false, filter by their organisation_id
+        if (isAdmin && !isInternal && userDataResult.data?.organisation_id) {
+            organisationId = userDataResult.data.organisation_id
+        }
+    }
+
+    const { data, error } = await getAllUsers(organisationId, supabase)
     if (error) {
         return { success: false, error: error.message, code: error.code }
     }

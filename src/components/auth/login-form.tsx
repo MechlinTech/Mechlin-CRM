@@ -1,4 +1,5 @@
-'use client'
+"use client"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -18,64 +19,124 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { supabase } from "@/lib/supabase"
+import { isInternalUser } from "@/lib/permissions"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { BrandedHeader } from "./branded-header"
+
+type CheckRoleResponse = {
+  hasRole: boolean
+  roleNames?: string[]
+  error?: string
+}
+
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // Function to sign in with Microsoft or Google
-  async function signIn(provider: 'azure' | 'google') {
+  async function signIn(provider: "azure" | "google") {
     const options: any = {
-      scopes: 'email openid',
+      scopes: "email openid",
       redirectTo: window.location.origin,
     }
 
-    // Add prompt parameter for Azure to force account selection
-    if (provider === 'azure') {
-      options.queryParams = {
-        prompt: 'select_account'
-      }
+    if (provider === "azure") {
+      options.queryParams = { prompt: "select_account" }
     }
 
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: provider,
-      options: options,
+      provider,
+      options,
     })
+
     if (error) {
       console.log("Error signing in with", provider, ":", error)
       toast.error(`Error signing in with ${provider}: ${error.message}`)
     }
   }
 
-  // Function to sign in with email and password
+  // ✅ Helper: call server once and read role list
+  async function getMyRoleNames(): Promise<string[]> {
+    try {
+      const res = await fetch("/api/check-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // send empty role to get roleNames back, OR send a dummy role and read roleNames
+        body: JSON.stringify({ role: "__list__" }),
+        cache: "no-store",
+      })  
+
+      const data: CheckRoleResponse = await res.json().catch(() => ({ hasRole: false }))
+
+      // If API failed, return empty
+      if (!res.ok) {
+        console.error("[check-role] failed", data)
+        return []
+      }
+
+      return Array.isArray(data.roleNames) ? data.roleNames : []
+    } catch (e) {
+      console.error("[check-role] error", e)
+      return []
+    }
+  }
+
   async function signInWithEmail(email: string, password: string) {
     setError(null)
     setLoading(true)
 
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
+      email,
+      password,
     })
 
     if (error) {
-      console.log("Error signing in with email and password:", error)
       setError(error.message || "Failed to sign in. Please check your credentials.")
-      toast.error(`Error signing in with email and password: ${error.message}`)
+      toast.error(`Login failed: ${error.message}`)
       setLoading(false)
-    } else {
-      console.log("Successfully signed in with email and password:", data)
-      setLoading(false)
-      // Navigate with query parameter to trigger toast on success page
-      router.push('/success?login=email')
+      return
     }
+
+    console.log("Successfully signed in:", data)
+
+    // ✅ Read internal role names from DB via API
+    const roleNames = await getMyRoleNames()
+    // if(roleNames.length===0){
+    //   router.replace("/users-dashboard")
+    //   return
+    // }
+    console.log("Role names:", roleNames)
+
+    // ✅ IMPORTANT: match INTERNAL names from DB
+    const isAdmin = roleNames.includes("admin")
+    const isSuperAdmin = roleNames.includes("super_admin")
+    
+    // ✅ Check if user is internal (Mechlin member)
+    const isInternal = await isInternalUser()
+    console.log("isInternal value:", isInternal) // Debug log for testing
+
+    setLoading(false)
+
+    // Route internal admins and super admins to dashboard
+    if (isInternal && (isAdmin || isSuperAdmin)) {
+      router.replace("/dashboard")
+      return
+    }
+    
+    // Route external admins to admin-dashboard
+    if (isAdmin) {
+      router.replace("/admin-dashboard")
+      return
+    }
+
+    router.replace("/users-dashboard")
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -84,11 +145,12 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("", className)} {...props}>
+    <div className={cn("w-[520px]", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
+          <BrandedHeader />
+          <CardTitle className="text-center">Login to your account</CardTitle>
+          <CardDescription className="text-center">
             Enter your email below to login to your account
           </CardDescription>
         </CardHeader>
@@ -100,6 +162,7 @@ export function LoginForm({
                   {error}
                 </div>
               )}
+
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
@@ -112,6 +175,7 @@ export function LoginForm({
                   disabled={loading}
                 />
               </Field>
+
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
@@ -131,17 +195,22 @@ export function LoginForm({
                   disabled={loading}
                 />
               </Field>
+
               <Field>
                 <Button type="submit" disabled={loading}>
                   {loading ? "Signing in..." : "Login"}
                 </Button>
+
                 <FieldSeparator className="my-2">Or continue with</FieldSeparator>
-                <Button variant="outline" type="button" onClick={() => signIn('google')}>
+
+                <Button variant="outline" type="button" onClick={() => signIn("google")}>
                   Login with Google
                 </Button>
-                <Button variant="outline" type="button" onClick={() => signIn('azure')}>
+
+                <Button variant="outline" type="button" onClick={() => signIn("azure")}>
                   Login with Microsoft
                 </Button>
+
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <Link href="/signup">Sign up</Link>
                 </FieldDescription>
