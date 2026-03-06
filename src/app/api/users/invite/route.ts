@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Generate a simple invitation URL without Azure AD
-        const inviteRedeemUrl = 'https://devcrm.mechlintech.com/'
+        const inviteRedeemUrl = 'https://clientsphere.mechlintech.com/'
 
         // Store invite in database
         const { data: inviteRecord, error: dbError } = await supabaseAdmin
