@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS organisations (
     is_internal BOOLEAN DEFAULT FALSE,
     about TEXT,
    location TEXT DEFAULT 'Not specified',
-   logo_path TEXT;
+   logo_path TEXT,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'trial')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -149,6 +149,24 @@ CREATE TABLE IF NOT EXISTS invoices (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 1. Create the 'invoices' storage bucket
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('invoices', 'invoices', true)
+ON CONFLICT (id) DO NOTHING;
+ 
+-- 2. Add Storage Path to the invoices table for better tracking
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS storage_path TEXT;
+ 
+-- 3. Set Storage Policies (Only Authenticated users can upload)
+CREATE POLICY "Allow Authenticated Uploads" ON storage.objects
+FOR INSERT TO authenticated WITH CHECK (bucket_id = 'invoices');
+ 
+CREATE POLICY "Allow Public Read Access" ON storage.objects
+FOR SELECT TO public USING (bucket_id = 'invoices');
+ 
+CREATE POLICY "Allow Authenticated Deletes" ON storage.objects
+FOR DELETE TO authenticated USING (bucket_id = 'invoices');
  
 -- Project Members
 CREATE TABLE IF NOT EXISTS project_members (

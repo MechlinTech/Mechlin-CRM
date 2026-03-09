@@ -19,14 +19,20 @@
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   organisation_id: z.string().uuid("Please select an organization"),
-status: z.enum(["Active", "Pending", "Suspended"]),
+  status: z.enum(["Active", "Pending", "Suspended"]),
   repo_link: z.string().url("Must be a valid URL").or(z.literal("")).nullable(),
   start_date: z.string().min(1, "Start date is required"),
   expected_end_date: z.string().optional().nullable(),
   budget: z.coerce.number().min(0, "Budget must be a positive number").optional().nullable(),
   currency: z.string().min(1, "Currency is required").default("USD"),
   members: z.array(z.string()).min(1, "Assign at least one member"),
-})
+}).refine((data) => {
+  if (!data.expected_end_date || !data.start_date) return true;
+  return new Date(data.expected_end_date) >= new Date(data.start_date);
+}, {
+  message: "End Date cannot be earlier than Start Date",
+  path: ["expected_end_date"], // This ensures the error appears under the End Date input
+});
 
   export function CreateProjectForm({ onSuccess, project, organisations }: any) {
     const [loading, setLoading] = React.useState(false)
@@ -208,12 +214,30 @@ status: z.enum(["Active", "Pending", "Suspended"]),
                   <FormControl><Input type="date" className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" {...field} value={field.value ?? ""} /></FormControl>
               </FormItem>
             )} />
-            <FormField control={form.control} name="expected_end_date" render={({ field }) => (
-              <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Expected End Date</FormLabel>
-                  <FormControl><Input type="date" className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" {...field} value={field.value ?? ""} /></FormControl>
-              </FormItem>
-            )} />
+    <FormField 
+  control={form.control} 
+  name="expected_end_date" 
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+        Expected End Date
+      </FormLabel>
+      <FormControl>
+        <Input 
+          type="date" 
+          className={cn(
+            "bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer",
+            form.formState.errors.expected_end_date && "border-red-500"
+          )} 
+          {...field} 
+          value={field.value ?? ""} 
+        />
+      </FormControl>
+      {/* ADD THIS LINE BELOW */}
+      <FormMessage className="text-[10px] text-red-500 font-medium" />
+    </FormItem>
+  )} 
+/>
           </div>
 
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

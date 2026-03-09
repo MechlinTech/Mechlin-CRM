@@ -19,7 +19,13 @@ const sprintSchema = z.object({
   start_date: z.string().min(1, "Start date is required"),
   end_date: z.string().min(1, "End date is required"),
   status: z.string().min(1, "Status is required"),
-})
+}).refine((data) => {
+  if (!data.start_date || !data.end_date) return true;
+  return new Date(data.end_date) >= new Date(data.start_date);
+}, {
+  message: "End Date cannot be earlier than Start Date",
+  path: ["end_date"],
+});
 
 type SprintFormValues = z.infer<typeof sprintSchema>
 
