@@ -163,7 +163,17 @@ export default  function DashboardPage() {
     }
   }, [loading, tabs, activeTab]);
 
-  if (loading) return null;
+  // Show loading spinner while RBAC permissions or initial data are being fetched
+  if (loading || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#006AFF] mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
