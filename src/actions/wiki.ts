@@ -68,8 +68,9 @@ export async function createWikiPageAction(pageData: CreateWikiPageInput & { cre
         return { success: false, error: (error as any)?.message || 'Failed to create page', code: (error as any)?.code }
     }
 
-    // Create initial version without user tracking
-    if (data) {
+    // Create initial version only if there's meaningful content
+    // This prevents creating a version with empty content that would be redundant
+    if (data && pageData.content && pageData.content.trim() !== '') {
         await createWikiVersion({
             page_id: data.id,
             content: pageData.content,
@@ -89,22 +90,29 @@ export async function updateWikiPageAction(
     // Get current page for version history
     const { data: currentPage } = await getWikiPageById(id)
     
-    const { data, error } = await updateWikiPage(id, pageData)
-    if (error) {
-        return { success: false, error: (error as any)?.message || 'Failed to update page', code: (error as any)?.code }
-    }
-
-    // Create version with OLD content before updating (no user tracking)
+    // Create version with NEW content after updating (no user tracking)
     if (currentPage && 
         JSON.stringify(currentPage.content) !== JSON.stringify(pageData.content)) {
+        
+        // Check if this is the first meaningful content (page was previously empty)
+        const isFirstContent = !currentPage.content || currentPage.content.trim() === ''
+        const summary = isFirstContent 
+            ? "Initial version" 
+            : pageData.changes_summary || "Page updated"
+        
         await createWikiVersion({
             page_id: id,
-            content: currentPage.content, // Save the OLD content as history
-            changes_summary: pageData.changes_summary || "Page updated"
+            content: pageData.content, // Save the NEW content as history
+            changes_summary: summary
         })
 
         // Keep only the last 1 version (previous version)
         await cleanupOldVersions(id)
+    }
+    
+    const { data, error } = await updateWikiPage(id, pageData)
+    if (error) {
+        return { success: false, error: (error as any)?.message || 'Failed to update page', code: (error as any)?.code }
     }
 
     // No revalidatePath needed since wiki is only in projects

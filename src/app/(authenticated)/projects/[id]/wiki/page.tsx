@@ -333,7 +333,7 @@ export default function WikiPageView() {
               </div>
             ) : (
               <div 
-                className="prose prose-lg max-w-none"
+                className="wiki-content"
                 dangerouslySetInnerHTML={{ __html: page.content || '<p class="text-gray-500">No content available</p>' }}
               />
             )}
@@ -378,7 +378,7 @@ export default function WikiPageView() {
                     <div className="bg-gray-50 rounded-lg p-4">
                       <p className="text-xs text-gray-500 mb-3">Content Preview:</p>
                       <div 
-                        className="text-sm prose prose-sm max-w-none overflow-auto custom-scrollbar max-h-96"
+                        className="text-sm wiki-content overflow-auto custom-scrollbar max-h-96"
                         dangerouslySetInnerHTML={{ __html: version.content || '<p class="text-gray-400">No content</p>' }}
                       />
                     </div>
