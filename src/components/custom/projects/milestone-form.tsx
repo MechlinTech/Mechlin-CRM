@@ -12,20 +12,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createMilestoneAction, updateMilestoneAction } from "@/actions/hierarchy"
 import { toast } from "sonner"
  
-// 1. Define the Validation Schema based on your SQL constraints
 const milestoneSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   deliverables: z.string().optional(),
   start_date: z.string().min(1, "Start date is required"),
   end_date: z.string().min(1, "End date is required"),
   demo_date: z.string().optional().or(z.literal("")),
-  // Coerce string input from forms into numbers for the DB
   hours: z.union([z.coerce.number().min(0, "Hours must be positive"), z.undefined()]),
   budget: z.union([z.coerce.number().min(0, "Budget must be positive"), z.undefined()]),
-status: z.enum(['Active', 'Closed', 'Inactive', 'Open', 'Payment Pending', 'Payment Done'], {
+  status: z.enum(['Active', 'Closed', 'Inactive', 'Open', 'Payment Pending', 'Payment Done'], {
     message: "Please select a status",
   }),
-})
+}).superRefine((data, ctx) => {
+  const start = new Date(data.start_date);
+
+  // Validate End Date
+  if (data.end_date && new Date(data.end_date) < start) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "End Date cannot be earlier than Start Date",
+      path: ["end_date"],
+    });
+  }
+
+  // Validate Demo Date (only if it has a value)
+  if (data.demo_date && new Date(data.demo_date) < start) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Demo Date cannot be earlier than Start Date",
+      path: ["demo_date"],
+    });
+  }
+});
  
 type MilestoneFormValues = z.infer<typeof milestoneSchema>
  

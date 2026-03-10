@@ -79,9 +79,18 @@ const statusColor = m.status === 'Active' || m.status === 'Open'
                   </DialogContent>
                 </Dialog>
               )}
-              {!loading && hasPermission('milestones.delete') && (
-                <button onClick={() => confirm('Delete?') && deleteMilestoneAction(milestoneId, id).then(() => router.push(`/projects/${id}`))} className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer"><Trash2 className="h-4 w-4" /></button>
-              )}
+         {!loading && hasPermission('milestones.delete') && (
+  <button 
+    onClick={() => {
+      if (window.confirm("Are you sure you want to delete this milestone? This action cannot be undone and may affect associated sprints , tasks and data.")) {
+        deleteMilestoneAction(milestoneId, id).then(() => router.push(`/projects/${id}`));
+      }
+    }} 
+    className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer"
+  >
+    <Trash2 className="h-4 w-4" />
+  </button>
+)}
             </div>
           </div>
           <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8 break-words whitespace-pre-wrap">{m.deliverables || "No deliverables description provided for this milestone."}</div>

@@ -255,7 +255,7 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
                   <h3 className="font-semibold text-xs text-[#1F2937] line-clamp-2 mb-1 group-hover:text-[#006AFF] transition-colors tracking-tight ">
                     {doc.name}
                   </h3>
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex flex-wrap gap-y-2 items-center gap-2 mb-4">
                     <span className="text-[9px] font-semibold  text-slate-600">
                       {doc.phases?.name || doc.milestones?.name || doc.sprints?.name || "Root"}
                     </span>

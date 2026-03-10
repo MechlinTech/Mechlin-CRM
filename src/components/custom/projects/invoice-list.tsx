@@ -65,9 +65,9 @@ export function InvoiceList({ invoices, projectId, organisationName, onRefresh }
             {/* RBAC: Only show Delete if user has invoices.delete permission */}
             {!loading && hasPermission('invoices.delete') && (
               <button onClick={async () => { 
-                if(confirm('Purge record?')) {
+                if(confirm('Delete record?')) {
                   await deleteInvoiceAction(inv.id, projectId, inv.storage_path); 
-                  toast.success("Purge complete");
+                  toast.success("Delete complete");
                   onRefresh?.(); 
                 }
               }} className="h-10 w-10 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer">
