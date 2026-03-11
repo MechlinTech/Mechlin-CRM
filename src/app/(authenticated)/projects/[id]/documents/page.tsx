@@ -2,12 +2,18 @@
 
 import * as React from "react"
 import { supabase } from "@/lib/supabase"
-import { FileText, ArrowLeft, Calendar, ArrowUpDown, Eye, Search, Filter } from "lucide-react"
+import { FileText, ArrowLeft, Calendar, ArrowUpDown, Eye, Search, Filter, PenTool } from "lucide-react"
 import Link from "next/link"
 import { deleteDocumentAction } from "@/actions/documents"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { useRBAC } from "@/context/rbac-context"
+import dynamic from "next/dynamic"
+
+const PDFSignerModal = dynamic(
+  () => import("@/components/custom/projects/pdf-signer-modal"),
+  { ssr: false }
+)
 
 export default function ProjectDocumentsPage({ params }: { params: any }) {
   const { id } = React.use(params) as any
@@ -27,6 +33,7 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
   const [milestones, setMilestones] = React.useState<any[]>([])
   const [sprints, setSprints] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(false)
+  const [signingDoc, setSigningDoc] = React.useState<{ id: string, name: string, url: string } | null>(null)
 
   const pushParams = React.useCallback(
     (next: Record<string, string>) => {
@@ -69,7 +76,7 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
   }
 
   React.useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       const { data, error } = await supabase.from("phases").select("id, name").eq("project_id", id)
       if (error) {
         console.error(error)
@@ -80,7 +87,7 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
   }, [id])
 
   React.useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       if (!phaseId) {
         setMilestones([])
         setSprints([])
@@ -101,7 +108,7 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
   }, [phaseId, milestoneId, pushParams])
 
   React.useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       if (!milestoneId) {
         setSprints([])
         return
@@ -221,19 +228,19 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
           ))}
         </select>
 
-   <select
-  disabled={!milestoneId} // FIX: Now disabled if no milestone is selected
-  onChange={(e) => updateFilter("sprintId", e.target.value)}
-  className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-semibold text-[#1F2937] outline-none disabled:opacity-50 cursor-pointer"
-  value={sprintId}
->
-  <option value="">All Sprints</option>
-  {sprints.map((s) => (
-    <option key={s.id} value={s.id}>
-      {s.name}
-    </option>
-  ))}
-</select>
+        <select
+          disabled={!milestoneId} // FIX: Now disabled if no milestone is selected
+          onChange={(e) => updateFilter("sprintId", e.target.value)}
+          className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-semibold text-[#1F2937] outline-none disabled:opacity-50 cursor-pointer"
+          value={sprintId}
+        >
+          <option value="">All Sprints</option>
+          {sprints.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {loading ? (
@@ -260,10 +267,15 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
                       {doc.phases?.name || doc.milestones?.name || doc.sprints?.name || "Root"}
                     </span>
                     {doc.doc_type && (
-    <span className="px-2 py-0.5 text-[9px] font-semibold  text-slate-600">
-      {doc.doc_type}
-    </span>
-  )}
+                      <span className="px-2 py-0.5 text-[9px] font-semibold  text-slate-600">
+                        {doc.doc_type}
+                      </span>
+                    )}
+                    {doc.signature_status === 'signed' && (
+                      <span className="px-2 py-0.5 text-[9px] font-semibold bg-green-100 text-green-700 rounded">
+                        Signed
+                      </span>
+                    )}
                     <span className="text-[9px] font-medium text-slate-600 flex items-center gap-1 uppercase tracking-tighter">
                       <Calendar className="h-3 w-3" /> {new Date(doc.created_at).toLocaleDateString()}
                     </span>
@@ -287,6 +299,16 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
                         className="h-8 bg-white border border-slate-200 text-[#1F2937] rounded-lg text-[9px] font-semibold uppercase hover:bg-[#006AFF] hover:text-white hover:border-[#006AFF] transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-sm"
                       >
                         <Eye className="h-3 w-3" /> View
+                      </button>
+                    )}
+
+
+                    {!rbacLoading && hasPermission("documents.sign") && doc.file_url?.toLowerCase().endsWith('.pdf') && (!doc.signature_status || doc.signature_status === 'pending') && (
+                      <button
+                        onClick={() => setSigningDoc({ id: doc.id, name: doc.name, url: doc.file_url })}
+                        className="h-8 bg-green-600 text-white rounded-lg text-[9px] font-semibold uppercase hover:bg-green-700 transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+                      >
+                        <PenTool className="h-3 w-3" /> Sign
                       </button>
                     )}
 
@@ -315,6 +337,21 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
             </div>
           )}
         </div>
+      )}
+
+      {/* PDF Signing Modal */}
+      {signingDoc && (
+        <PDFSignerModal
+          isOpen={!!signingDoc}
+          onClose={() => setSigningDoc(null)}
+          documentId={signingDoc.id}
+          documentName={signingDoc.name}
+          pdfUrl={signingDoc.url}
+          onSignComplete={() => {
+            setSigningDoc(null)
+            fetchDocs()
+          }}
+        />
       )}
     </div>
   )

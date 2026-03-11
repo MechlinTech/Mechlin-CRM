@@ -715,3 +715,94 @@ ON CONFLICT (id) DO NOTHING;
 -- 3. Set up Storage Policies (Allows anyone to view, authenticated to upload)
 CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'logos');
 CREATE POLICY "Auth Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'logos' AND auth.role() = 'authenticated');
+
+-- ============================================
+-- PDF SIGNING FUNCTIONALITY MIGRATION
+-- ============================================
+-- This migration adds PDF signing capabilities to the documents system
+ 
+-- 1. Add signature columns to documents table
+ALTER TABLE documents
+ADD COLUMN IF NOT EXISTS signature_url TEXT,
+ADD COLUMN IF NOT EXISTS signed_at TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS signer_name VARCHAR(255),
+ADD COLUMN IF NOT EXISTS signer_email VARCHAR(255),
+ADD COLUMN IF NOT EXISTS signature_status VARCHAR(20) DEFAULT 'pending' CHECK (signature_status IN ('pending', 'signed'));
+ 
+-- 2. Add documents.sign permission
+INSERT INTO permissions (name, display_name, description, module, action) VALUES
+    ('documents.sign', 'Sign Documents', 'Can electronically sign PDF documents', 'documents', 'sign')
+ON CONFLICT (name) DO NOTHING;
+ 
+-- 3. Grant signing permission to relevant roles
+-- Developer role
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000004', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- QA Engineer role  
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000005', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- Project Manager role (should already have all document permissions)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000003', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- Admin role
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000002', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- Super Admin role (should already have all permissions)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000001', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- 4. Create storage buckets for signatures and documents
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('signatures', 'signatures', false)
+ON CONFLICT (id) DO NOTHING;
+ 
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('documents', 'documents', true)
+ON CONFLICT (id) DO NOTHING;
+ 
+-- 5. Add index for signature status queries
+CREATE INDEX IF NOT EXISTS idx_documents_signature_status ON documents(signature_status);
+CREATE INDEX IF NOT EXISTS idx_documents_signed_at ON documents(signed_at);
+
+-- storage policies for signatures bucket
+
+ 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view signatures" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload signatures" ON storage.objects;
+ 
+-- Create new policies for signatures bucket
+CREATE POLICY "Users can view signatures" ON storage.objects FOR SELECT 
+USING (bucket_id = 'signatures' AND auth.role() = 'authenticated');
+ 
+CREATE POLICY "Users can upload signatures" ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'signatures' AND auth.role() = 'authenticated');
+ 
+-- Also ensure documents bucket has proper policies
+DROP POLICY IF EXISTS "Public Document Access" ON storage.objects;
+DROP POLICY IF EXISTS "Auth Document Upload" ON storage.objects;
+ 
+CREATE POLICY "Public Document Access" ON storage.objects FOR SELECT 
+USING (bucket_id = 'documents');
+ 
+CREATE POLICY "Auth Document Upload" ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'documents' AND auth.role() = 'authenticated');
+
+-- Add signature position columns to documents table
+ALTER TABLE documents
+ADD COLUMN IF NOT EXISTS signature_position_x DECIMAL(5,2),
+ADD COLUMN IF NOT EXISTS signature_position_y DECIMAL(5,2);
