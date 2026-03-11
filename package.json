@@ -7,10 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
-
-
-
-    
   },
   "dependencies": {
     "@azure/msal-browser": "^5.3.0",
@@ -28,6 +24,8 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@react-pdf-viewer/core": "^3.12.0",
+    "@react-pdf-viewer/default-layout": "^3.12.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.91.0",
     "@tanstack/react-table": "^8.21.3",
@@ -39,10 +37,13 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",
+    "framer-motion": "^12.35.2",
     "lucide-react": "^0.562.0",
     "next": "16.1.4",
     "next-themes": "^0.4.6",
     "nodemailer": "^8.0.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^3.4.120",
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-chartjs-2": "^5.3.1",

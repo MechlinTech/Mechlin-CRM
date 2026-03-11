@@ -136,8 +136,64 @@ CREATE TABLE IF NOT EXISTS documents (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('documents', 'documents', true)
+ON CONFLICT (id) DO NOTHING;
  
--- Invoices
+
+ALTER TABLE documents 
+ADD COLUMN IF NOT EXISTS phase_id UUID REFERENCES phases(id) ON DELETE CASCADE;
+ 
+
+CREATE POLICY "Allow Auth Uploads" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'documents');
+CREATE POLICY "Allow Public Read" ON storage.objects FOR SELECT TO public USING (bucket_id = 'documents');
+ 
+ALTER TABLE documents 
+ADD COLUMN IF NOT EXISTS signature_status VARCHAR(20) DEFAULT 'pending' CHECK (signature_status IN ('pending', 'signed')),
+ADD COLUMN IF NOT EXISTS signed_at TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS signer_name VARCHAR(255),
+ADD COLUMN IF NOT EXISTS signer_email VARCHAR(255);
+
+-- 2. Robust Storage Policies for 'documents' bucket
+-- This ensures that even if you don't use the Admin Key, Auth users can work.
+BEGIN;
+  -- Remove old restrictive policies
+  DROP POLICY IF EXISTS "Enable Upload for Documents" ON storage.objects;
+  DROP POLICY IF EXISTS "Enable Update for Documents" ON storage.objects;
+  DROP POLICY IF EXISTS "Public Document Access" ON storage.objects;
+
+  -- 1. Select: Anyone can view documents (since bucket is public)
+  CREATE POLICY "Public Document Access" ON storage.objects 
+  FOR SELECT USING (bucket_id = 'documents');
+
+  -- 2. Insert: Auth users can upload
+  CREATE POLICY "Enable Upload for Documents" ON storage.objects 
+  FOR INSERT TO authenticated WITH CHECK (bucket_id = 'documents');
+
+  -- 3. Update: Auth users can update (needed for upsert)
+  CREATE POLICY "Enable Update for Documents" ON storage.objects 
+  FOR UPDATE TO authenticated USING (bucket_id = 'documents');
+  
+  -- 4. Delete: Auth users can delete
+  CREATE POLICY "Enable Delete for Documents" ON storage.objects 
+  FOR DELETE TO authenticated USING (bucket_id = 'documents');
+COMMIT;
+
+-- 3. Table Policies
+BEGIN;
+  DROP POLICY IF EXISTS "Enable Insert for Auth Users" ON documents;
+  DROP POLICY IF EXISTS "Enable Update for Auth Users" ON documents;
+  DROP POLICY IF EXISTS "Enable Delete for Auth Users" ON documents;
+
+  CREATE POLICY "Enable Insert for Auth Users" ON documents FOR INSERT TO authenticated WITH CHECK (true);
+  CREATE POLICY "Enable Update for Auth Users" ON documents FOR UPDATE TO authenticated USING (true);
+  CREATE POLICY "Enable Select for Auth Users" ON documents FOR SELECT TO authenticated USING (true);
+  CREATE POLICY "Enable Delete for Auth Users" ON documents FOR DELETE TO authenticated USING (true);
+COMMIT;
+
+
+
 CREATE TABLE IF NOT EXISTS invoices (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
