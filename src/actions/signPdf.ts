@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase"
 import { PDFDocument, rgb } from "pdf-lib"
 import type { SignaturePos } from "@/types/pdfsign"
 
+ 
 interface SignPdfArgs {
   pdfUrl: string
   documentId: string
@@ -12,25 +13,25 @@ interface SignPdfArgs {
   signaturePlacements: SignaturePos[]
   pageSizes: { width: number; height: number }[]
 }
-
+ 
 export async function signPdf({
   pdfUrl, documentId, signatureImage, signatureFileType,
   signerName, signerEmail, signaturePlacements, pageSizes,
-}: SignPdfArgs): Promise<void> {
+}: SignPdfArgs): Promise<void>{
   const pdfBytes = await fetch(pdfUrl).then(r => r.arrayBuffer())
   const pdfDoc = await PDFDocument.load(pdfBytes)
-
+ 
   const base64Data = signatureImage.split(",")[1]
   const binaryStr = atob(base64Data)
   const sigArray = new Uint8Array(binaryStr.length)
   for (let i = 0; i < binaryStr.length; i++) sigArray[i] = binaryStr.charCodeAt(i)
-
+ 
   const sigEmbed = signatureFileType === "jpg"
     ? await pdfDoc.embedJpg(sigArray.buffer)
     : await pdfDoc.embedPng(sigArray.buffer)
-
+ 
   const pdfPages = pdfDoc.getPages()
-
+ 
   for (const placement of signaturePlacements) {
     const targetPage = pdfPages[placement.page - 1]
     const { width: pageW, height: pageH } = targetPage.getSize()
@@ -45,7 +46,7 @@ export async function signPdf({
       height: placement.height * scaleY,
     })
   }
-
+ 
   const lastP = signaturePlacements[signaturePlacements.length - 1]
   const lastPage = pdfPages[lastP.page - 1]
   const { width: lastPageW, height: lastPageH } = lastPage.getSize()
@@ -64,26 +65,26 @@ export async function signPdf({
       size: 7, color: rgb(0.4, 0.4, 0.4),
     })
   }
-
+ 
   const modifiedBytes = await pdfDoc.save()
   const modifiedBlob = new Blob([modifiedBytes.buffer as ArrayBuffer], { type: "application/pdf" })
   const signedFileName = `signed-documents/${documentId}-signed-${Date.now()}.pdf`
-
+ 
   const { error: uploadErr } = await supabase.storage
     .from("documents")
     .upload(signedFileName, modifiedBlob, { contentType: "application/pdf", upsert: false })
   if (uploadErr) throw uploadErr
-
+ 
   const { data: { publicUrl } } = supabase.storage.from("documents").getPublicUrl(signedFileName)
-
+ 
   const sigFileName = `signatures/${documentId}-${Date.now()}.png`
   const { error: sigUploadErr } = await supabase.storage
     .from("signatures")
     .upload(sigFileName, new Blob([sigArray], { type: "image/png" }), { contentType: "image/png", upsert: false })
   if (sigUploadErr) throw sigUploadErr
-
+ 
   const { data: { publicUrl: sigPublicUrl } } = supabase.storage.from("signatures").getPublicUrl(sigFileName)
-
+ 
   const { error: updateErr } = await supabase.from("documents").update({
     signature_url: sigPublicUrl,
     signed_at: new Date().toISOString(),
@@ -95,4 +96,23 @@ export async function signPdf({
     signature_position_y: lastP.y,
   }).eq("id", documentId)
   if (updateErr) throw updateErr
+ 
+  // 2. NEW: Mark the specific assignment as signed in the workflow table
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { error: workflowErr } = await supabase
+      .from("document_signers")
+      .update({
+        status: "signed",
+        signed_at: new Date().toISOString(),
+        signature_url: sigPublicUrl
+      })
+      .eq("document_id", documentId)
+      .eq("user_id", user.id);
+   
+    if (workflowErr) console.error("Workflow update failed:", workflowErr);
+
+    
+
+  }
 }

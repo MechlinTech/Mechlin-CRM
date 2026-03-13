@@ -1,4 +1,4 @@
-  "use client"
+"use client"
 
   import * as React from "react"
   import { useForm } from "react-hook-form"
@@ -115,9 +115,11 @@ const projectSchema = z.object({
       setLoading(false);
     }
 
-    const renderSelectionBox = (users: any[], label: string) => (
+    const renderSelectionBox = (users: any[], label: string, isRequired: boolean = false) => (
       <div className="flex flex-col gap-2">
-        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">{label}</FormLabel>
+        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+            {label} {isRequired && <span className="text-red-500">*</span>}
+        </FormLabel>
         <div className="border border-slate-200 rounded-xl p-3 h-[180px] overflow-y-auto bg-slate-50/30 transition-all focus-within:bg-white focus-within:border-[#006AFF]/30 scrollbar-hide">
           {users.length > 0 ? users.map((u) => (
             <FormField key={u.id} control={form.control} name="members" render={({ field }) => (
@@ -150,7 +152,9 @@ const projectSchema = z.object({
     name="name"
     render={({ field }) => (
       <FormItem>
-        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Project Name</FormLabel>
+        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+            Project Name <span className="text-red-500">*</span>
+        </FormLabel>
         <FormControl>
           <Input 
             {...field} 
@@ -171,7 +175,9 @@ const projectSchema = z.object({
     name="organisation_id"
     render={({ field }) => (
       <FormItem>
-        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Organization</FormLabel>
+        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+            Organization <span className="text-red-500">*</span>
+        </FormLabel>
         <Select onValueChange={field.onChange} value={field.value ?? ""}>
           <FormControl>
             <SelectTrigger className={cn(
@@ -195,7 +201,7 @@ const projectSchema = z.object({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div className="flex flex-col gap-2">
-        {renderSelectionBox(mechlinTeam, "Mechlin Team Members")}
+        {renderSelectionBox(mechlinTeam, "Mechlin Team Members", true)}
         {/* Render error for the members array specifically here */}
      {form.formState.errors.members && (
   <p className="text-[10px] text-red-500 font-medium mt-1">
@@ -210,7 +216,9 @@ const projectSchema = z.object({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="start_date" render={({ field }) => (
               <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Start Date</FormLabel>
+                  <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                    Start Date <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl><Input type="date" className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer" {...field} value={field.value ?? ""} /></FormControl>
               </FormItem>
             )} />
@@ -249,7 +257,9 @@ const projectSchema = z.object({
   )} />
       <FormField control={form.control} name="currency" render={({ field }) => (
     <FormItem>
-        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Currency</FormLabel>
+        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+            Currency <span className="text-red-500">*</span>
+        </FormLabel>
         <Select onValueChange={field.onChange} value={field.value ?? "USD"}>
             <FormControl>
                 <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer">
@@ -268,7 +278,9 @@ const projectSchema = z.object({
 
   <FormField control={form.control} name="status" render={({ field }) => (
     <FormItem>
-        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Status</FormLabel>
+        <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+            Status <span className="text-red-500">*</span>
+        </FormLabel>
         <Select onValueChange={field.onChange} value={field.value ?? ""}>
             <FormControl>
                 <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer">

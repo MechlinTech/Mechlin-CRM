@@ -136,6 +136,18 @@ CREATE TABLE IF NOT EXISTS documents (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+NSERT INTO storage.buckets (id, name, public) 
+VALUES ('documents', 'documents', true)
+ON CONFLICT (id) DO NOTHING;
+ 
+
+ALTER TABLE documents 
+ADD COLUMN IF NOT EXISTS phase_id UUID REFERENCES phases(id) ON DELETE CASCADE;
+ 
+
+CREATE POLICY "Allow Auth Uploads" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'documents');
+CREATE POLICY "Allow Public Read" ON storage.objects FOR SELECT TO public USING (bucket_id = 'documents');
  
 -- Invoices
 CREATE TABLE IF NOT EXISTS invoices (
@@ -167,6 +179,34 @@ FOR SELECT TO public USING (bucket_id = 'invoices');
  
 CREATE POLICY "Allow Authenticated Deletes" ON storage.objects
 FOR DELETE TO authenticated USING (bucket_id = 'invoices');
+
+
+ -- 1. Create a table to track signature requests per user
+CREATE TABLE IF NOT EXISTS document_signers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'signed')),
+    signed_at TIMESTAMP WITH TIME ZONE,
+    signature_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(document_id, user_id)
+);
+ 
+-- 2. Add specific permission for requesting signatures
+INSERT INTO permissions (name, display_name, description, module, action) VALUES
+    ('documents.request_sign', 'Request Signatures', 'Can assign documents to others for signature', 'documents', 'request')
+ON CONFLICT (name) DO NOTHING;
+ 
+-- 3. Grant to PM and Admin
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT id, (SELECT id FROM permissions WHERE name = 'documents.request_sign')
+FROM roles WHERE name IN ('pm', 'admin', 'super_admin')
+ON CONFLICT DO NOTHING;
+ 
+-- Index for fetching assigned documents quickly
+CREATE INDEX IF NOT EXISTS idx_doc_signers_user_id ON document_signers(user_id, status);
+ 
  
 -- Project Members
 CREATE TABLE IF NOT EXISTS project_members (
@@ -179,6 +219,13 @@ CREATE TABLE IF NOT EXISTS project_members (
     UNIQUE(project_id, user_id)
 );
  
+
+ ALTER TABLE documents 
+ALTER COLUMN signature_position_x TYPE DECIMAL(10,2);
+
+ALTER TABLE documents 
+ALTER COLUMN signature_position_y TYPE DECIMAL(10,2);
+
 -- Wiki Pages
 CREATE TABLE IF NOT EXISTS wiki_pages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
