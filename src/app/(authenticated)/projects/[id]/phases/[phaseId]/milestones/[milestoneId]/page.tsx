@@ -82,7 +82,7 @@ const statusColor = m.status === 'Active' || m.status === 'Open'
          {!loading && hasPermission('milestones.delete') && (
   <button 
     onClick={() => {
-      if (window.confirm("Are you sure you want to delete this milestone? This action cannot be undone and may affect associated sprints , tasks and data.")) {
+      if (window.confirm("Are you sure you want to delete this milestone? This action cannot be undone and may affect associated sprints  ,tasks and data.")) {
         deleteMilestoneAction(milestoneId, id).then(() => router.push(`/projects/${id}`));
       }
     }} 

@@ -256,10 +256,11 @@ export default function PDFSignerModal({
       toast.success(`Document signed with ${signaturePlacements.length} signature${signaturePlacements.length > 1 ? 's' : ''}!`)
       onSignComplete()
       onClose()
-    } catch (err) {
-      console.error("Signing error:", err)
-      toast.error("Failed to sign PDF. Please try again.")
-    } finally {
+    } catch (err: any) {
+  // Change this line to see the actual error message
+  console.error("Signing error details:", err.message || err); 
+  toast.error(`Failed to sign PDF: ${err.message || 'Unknown error'}`);
+} finally {
       setIsSigning(false)
     }
   }

@@ -39,7 +39,7 @@ class GraphAuthProvider implements AuthenticationProvider {
 
 let graphClient: Client | null = null
 
-function getGraphClient(): Client {
+export function getGraphClient(): Client {
   if (graphClient) {
     return graphClient
   }

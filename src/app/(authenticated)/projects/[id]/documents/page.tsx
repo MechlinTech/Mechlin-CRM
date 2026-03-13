@@ -9,6 +9,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { useRBAC } from "@/context/rbac-context"
 import dynamic from "next/dynamic"
+import { RequestSignatureModal } from "@/components/custom/projects/request-signature-modal"
+import { AssignedDocumentsGrid } from "@/components/custom/projects/assigned-documents-grid"
+import { cn } from "@/lib/utils"
 
 const PDFSignerModal = dynamic(
   () => import("@/components/custom/projects/pdf-signer-modal"),
@@ -34,6 +37,7 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
   const [sprints, setSprints] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(false)
   const [signingDoc, setSigningDoc] = React.useState<{ id: string, name: string, url: string } | null>(null)
+  const [activeTab, setActiveTab] = React.useState<"all" | "assigned">("all")
 
   const pushParams = React.useCallback(
     (next: Record<string, string>) => {
@@ -140,7 +144,6 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
         `)
         .eq("project_id", id)
 
-      // Filtering logic using the new phase_id column
       if (sprintId) q = q.eq("sprint_id", sprintId)
       else if (milestoneId) q = q.eq("milestone_id", milestoneId)
       else if (phaseId) q = q.eq("phase_id", phaseId)
@@ -173,9 +176,26 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
             <ArrowLeft className="h-5 w-5 text-[#0F172A] group-hover:text-[#006AFF]" />
           </Link>
           <h1 className="text-xl font-semibold tracking-tight">Documents</h1>
+          <div className="flex bg-slate-100 p-1 rounded-xl ml-4">
+            <button 
+              onClick={() => setActiveTab("all")}
+              className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer", activeTab === "all" ? "bg-white shadow-sm text-[#006AFF]" : "text-slate-500 hover:text-slate-700 cursor-pointer")}
+            >
+              All Docs 
+            </button>
+            <button 
+              onClick={() => setActiveTab("assigned")}
+              className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer", activeTab === "assigned" ? "bg-white shadow-sm text-[#006AFF]" : "text-slate-500 hover:text-slate-700 cursor-pointer")}
+            >
+              Assigned
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
+          {!rbacLoading && hasPermission("documents.request_sign") && (
+            <RequestSignatureModal projectId={id} />
+          )}
           <div className="relative group flex-1 md:w-[300px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#006AFF] transition-colors" />
             <input
@@ -208,9 +228,7 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
         >
           <option value="">All Phases</option>
           {phases.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
+            <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
 
@@ -222,124 +240,120 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
         >
           <option value="">All Milestones</option>
           {milestones.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
+            <option key={m.id} value={m.id}>{m.name}</option>
           ))}
         </select>
 
         <select
-          disabled={!milestoneId} // FIX: Now disabled if no milestone is selected
+          disabled={!milestoneId}
           onChange={(e) => updateFilter("sprintId", e.target.value)}
           className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-semibold text-[#1F2937] outline-none disabled:opacity-50 cursor-pointer"
           value={sprintId}
         >
           <option value="">All Sprints</option>
           {sprints.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
+            <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
       </div>
 
-      {loading ? (
-        <div className="py-20 text-center text-xs text-slate-400 font-semibold uppercase tracking-widest">
-          Loading documents...
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredDocs.length > 0 ? (
-            filteredDocs.map((doc: any) => (
-              <div
-                key={doc.id}
-                className="group bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm hover:border-[#006AFF]/30 transition-all relative flex flex-col justify-between ring-1 ring-slate-50"
-              >
-                <div>
-                  <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center text-[#0F172A] mb-4 group-hover:bg-[#006AFF] group-hover:text-white transition-all shadow-sm">
-                    <FileText className="h-7 w-7" />
-                  </div>
-                  <h3 className="font-semibold text-xs text-[#1F2937] line-clamp-2 mb-1 group-hover:text-[#006AFF] transition-colors tracking-tight ">
-                    {doc.name}
-                  </h3>
-                  <div className="flex flex-wrap gap-y-2 items-center gap-2 mb-4">
-                    <span className="text-[9px] font-semibold  text-slate-600">
-                      {doc.phases?.name || doc.milestones?.name || doc.sprints?.name || "Root"}
-                    </span>
-                    {doc.doc_type && (
-                      <span className="px-2 py-0.5 text-[9px] font-semibold  text-slate-600">
-                        {doc.doc_type}
+      {activeTab === "all" ? (
+        loading ? (
+          <div className="py-20 text-center text-xs text-slate-400 font-semibold uppercase tracking-widest">
+            Loading documents...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredDocs.length > 0 ? (
+              filteredDocs.map((doc: any) => (
+                <div
+                  key={doc.id}
+                  className="group bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm hover:border-[#006AFF]/30 transition-all relative flex flex-col justify-between ring-1 ring-slate-50"
+                >
+                  <div>
+                    <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center text-[#0F172A] mb-4 group-hover:bg-[#006AFF] group-hover:text-white transition-all shadow-sm">
+                      <FileText className="h-7 w-7" />
+                    </div>
+                    <h3 className="font-semibold text-xs text-[#1F2937] line-clamp-2 mb-1 group-hover:text-[#006AFF] transition-colors tracking-tight ">
+                      {doc.name}
+                    </h3>
+                    <div className="flex flex-wrap gap-y-2 items-center gap-2 mb-4">
+                      <span className="text-[9px] font-semibold  text-slate-600">
+                        {doc.phases?.name || doc.milestones?.name || doc.sprints?.name || "Root"}
                       </span>
-                    )}
-                    {doc.signature_status === 'signed' && (
-                      <span className="px-2 py-0.5 text-[9px] font-semibold bg-green-100 text-green-700 rounded">
-                        Signed
+                      {doc.doc_type && (
+                        <span className="px-2 py-0.5 text-[9px] font-semibold  text-slate-600">
+                          {doc.doc_type}
+                        </span>
+                      )}
+                      {doc.signature_status === 'signed' && (
+                        <span className="px-2 py-0.5 text-[9px] font-semibold bg-green-100 text-green-700 rounded">
+                          Signed
+                        </span>
+                      )}
+                      <span className="text-[9px] font-medium text-slate-600 flex items-center gap-1 uppercase tracking-tighter">
+                        <Calendar className="h-3 w-3" /> {new Date(doc.created_at).toLocaleDateString()}
                       </span>
-                    )}
-                    <span className="text-[9px] font-medium text-slate-600 flex items-center gap-1 uppercase tracking-tighter">
-                      <Calendar className="h-3 w-3" /> {new Date(doc.created_at).toLocaleDateString()}
-                    </span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2 pt-4 border-t border-slate-100">
-                  {!rbacLoading && hasPermission("documents.read") && (
-                    <button
-                      onClick={() => handleDownload(doc.file_url, doc.name)}
-                      className="w-full h-10 bg-[#006AFF] text-white rounded-xl text-[10px] font-semibold tracking-wider hover:bg-[#99C4FF] shadow-sm transition-all active:scale-95 cursor-pointer"
-                    >
-                      Download
-                    </button>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2 pt-4 border-t border-slate-100">
                     {!rbacLoading && hasPermission("documents.read") && (
                       <button
-                        onClick={() => window.open(doc.file_url, "_blank")}
-                        className="h-8 bg-white border border-slate-200 text-[#1F2937] rounded-lg text-[9px] font-semibold uppercase hover:bg-[#006AFF] hover:text-white hover:border-[#006AFF] transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+                        onClick={() => handleDownload(doc.file_url, doc.name)}
+                        className="w-full h-10 bg-[#006AFF] text-white rounded-xl text-[10px] font-semibold tracking-wider hover:bg-[#99C4FF] shadow-sm transition-all active:scale-95 cursor-pointer"
                       >
-                        <Eye className="h-3 w-3" /> View
+                        Download
                       </button>
                     )}
 
+                    <div className="grid grid-cols-2 gap-2">
+                      {!rbacLoading && hasPermission("documents.read") && (
+                        <button
+                          onClick={() => window.open(doc.file_url, "_blank")}
+                          className="h-8 bg-white border border-slate-200 text-[#1F2937] rounded-lg text-[9px] font-semibold uppercase hover:bg-[#006AFF] hover:text-white hover:border-[#006AFF] transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+                        >
+                          <Eye className="h-3 w-3" /> View
+                        </button>
+                      )}
 
-                    {!rbacLoading && hasPermission("documents.sign") && doc.file_url?.toLowerCase().endsWith('.pdf') && (!doc.signature_status || doc.signature_status === 'pending') && (
-                      <button
-                        onClick={() => setSigningDoc({ id: doc.id, name: doc.name, url: doc.file_url })}
-                        className="h-8 bg-green-600 text-white rounded-lg text-[9px] font-semibold uppercase hover:bg-green-700 transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-sm"
-                      >
-                        <PenTool className="h-3 w-3" /> Sign
-                      </button>
-                    )}
-
-                    {!rbacLoading && hasPermission("documents.delete") && (
-                      <button
-                        onClick={async () => {
-                          if (confirm("Delete file?")) {
-                            await deleteDocumentAction(doc.id, id)
-                            fetchDocs()
-                          }
-                        }}
-                        className="h-8 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-semibold uppercase hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all active:scale-95 cursor-pointer shadow-sm"
-                      >
-                        Delete
-                      </button>
-                    )}
+                      {!rbacLoading && hasPermission("documents.delete") && (
+                        <button
+                          onClick={async () => {
+                            if (confirm("Delete file?")) {
+                              await deleteDocumentAction(doc.id, id)
+                              fetchDocs()
+                            }
+                          }}
+                          className="h-8 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-semibold uppercase hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all active:scale-95 cursor-pointer shadow-sm"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-100 rounded-[32px] bg-slate-50/20">
+                <p className="text-xs text-slate-400 font-black uppercase tracking-widest opacity-60">
+                  No documents found in this vault
+                </p>
               </div>
-            ))
-          ) : (
-            <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-100 rounded-[32px] bg-slate-50/20">
-              <p className="text-xs text-slate-400 font-black uppercase tracking-widest opacity-60">
-                No documents found in this vault
-              </p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )
+      ) : (
+        <AssignedDocumentsGrid 
+    projectId={id} 
+    searchTerm={searchTerm} 
+    phaseId={phaseId}
+    milestoneId={milestoneId}
+    sprintId={sprintId}
+    sortOrder={sortOrder}
+  />
       )}
 
-      {/* PDF Signing Modal */}
       {signingDoc && (
         <PDFSignerModal
           isOpen={!!signingDoc}
