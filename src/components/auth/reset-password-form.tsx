@@ -20,76 +20,88 @@ export function ResetPasswordForm({
     const [email, setEmail] = useState('')
     const [loading, setLoading] = useState(false)
 
-    // Function to reset password (send reset email)
+    // Basic email validation regex
+    const isValidEmail = (email: string) => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
     async function resetPassword(email: string) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: window.location.origin + "/update-password",
         })
-        
         if (error) {
-            console.error("Error resetting password:", error)
-            toast.error(`Error: ${error.message}`)
-            return false // Indicate failure
+            console.log("Error resetting password:", error)
+            toast.error(`Error resetting password: ${error.message}`)
+            return false; // Indicate failure
         }
-        
-        return true // Indicate success
+        else {
+            console.log("Successfully reset password:", data)
+            return true; // Indicate success
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         
-        // 1. Basic Validation check
-        if (!email || email.trim() === "") {
-            toast.error("Please enter your email address.")
-            return
+        // 1. Check if empty
+        if (!email.trim()) {
+            return toast.error("Please enter your email address first.");
+        }
+
+        // 2. Validate format
+        if (!isValidEmail(email)) {
+            return toast.error("Please enter a valid email address.");
         }
 
         setLoading(true)
-        
-        // 2. Only show success if the Supabase call actually works
         const success = await resetPassword(email)
         
         if (success) {
-            toast.success("Open the link sent to your email to reset your password!")
             setEmail('')
+            toast.success("Open the link sent to your email to reset your password!")
         }
         
         setLoading(false)
     }
 
-    return (
-        <div className={cn("center-content", className)} {...props}>
-            <div className="w-full max-w-md">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Reset Password</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSubmit}>
-                            <FieldGroup>
-                                <Field>
-                                    <FieldLabel htmlFor="email">Email</FieldLabel>
-                                    {/* Added 'required' attribute for browser-level validation */}
-                                    <Input 
-                                        id="email"
-                                        type="email" 
-                                        placeholder="Email" 
-                                        value={email} 
-                                        onChange={(e) => setEmail(e.target.value)} 
-                                        required 
-                                        disabled={loading}
-                                    />
-                                </Field>
-                                <Field>
-                                    <Button type="submit" disabled={loading}>
-                                        {loading ? "Sending reset email..." : "Reset Password"}
-                                    </Button>
-                                </Field>
-                            </FieldGroup>
-                        </form>
-                    </CardContent>
-                </Card>
-            </div>
+    // Disable button if input is empty or loading
+    const isButtonDisabled = loading || email.length === 0;
+
+  return (
+    <div className={cn("center-content", className)} {...props}>
+        <div className="w-full max-w-md">
+        <Card>
+        <CardHeader>
+            <CardTitle>Reset Password</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <form onSubmit={handleSubmit}>
+            <FieldGroup>
+                <Field>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input 
+                        id="email"
+                        type="email" 
+                        placeholder="example@domain.com" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        required // Browser-level backup validation
+                    />
+                </Field>
+                <Field>
+                    <Button 
+                        type="submit" 
+                        disabled={isButtonDisabled}
+                        className="w-full"
+                    >
+                        {loading ? "Sending reset email..." : "Reset Password"}
+                    </Button>
+                </Field>
+            </FieldGroup>
+            </form>
+        </CardContent>
+        </Card>
         </div>
-    )
+    </div>
+  )
 }
