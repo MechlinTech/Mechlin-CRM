@@ -95,7 +95,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<typeof 
                 disabled={loading}
               />
               <FieldDescription>
-                Must be at least 8 characters long.
+                Must be at least 6 characters long.
               </FieldDescription>
             </Field>
             <FieldGroup>
