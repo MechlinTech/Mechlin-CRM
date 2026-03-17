@@ -105,7 +105,7 @@ function EscalationContactsField({ value, onChange, organisationId }: {
 
       {value.length > 0 && (
         <div className="space-y-2">
-          <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
             Current Escalation Contacts
           </FormLabel>
           {value.map((contact, index) => (
@@ -303,13 +303,15 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full flex flex-col max-h-[80vh] overflow-y-auto pr-2">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full flex flex-col max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar">
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                Name <span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   placeholder="Enter organisation name"
@@ -329,7 +331,9 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
             name="slug"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Slug</FormLabel>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                  Slug <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="my-organisation"
@@ -358,7 +362,9 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Status</FormLabel>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                Status <span className="text-red-500">*</span>
+              </FormLabel>
               <Select
                 onValueChange={field.onChange}
                 value={field.value}
@@ -380,28 +386,28 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
           )}
         />
 
- <FormField
-  control={form.control}
-  name="is_internal"
-  render={({ field }) => (
-    <FormItem className="flex items-center space-x-3 rounded-md border p-4">
-      <FormControl>
-        <Checkbox
-          className="translate-y-[1px]"
-          checked={field.value}
-          onCheckedChange={field.onChange}
-          disabled={loading}
+        <FormField
+          control={form.control}
+          name="is_internal"
+          render={({ field }) => (
+            <FormItem className="flex items-center space-x-3 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  className="translate-y-[1px]"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={loading}
+                />
+              </FormControl>
+
+              <FormLabel className="leading-none cursor-pointer">
+                Internal Organisation
+              </FormLabel>
+
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </FormControl>
-
-      <FormLabel className="leading-none cursor-pointer">
-        Internal Organisation
-      </FormLabel>
-
-      <FormMessage />
-    </FormItem>
-  )}
-/>
 
 
         <FormField
@@ -409,7 +415,9 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
           name="escalation_contacts"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Escalation Contacts</FormLabel>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                Escalation Contacts
+              </FormLabel>
               <FormControl>
                 <EscalationContactsField 
                   value={field.value || []}
@@ -425,7 +433,7 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
           )}
         />
 
-        <Button type="submit" disabled={loading} className="ml-auto">
+        <Button type="submit" disabled={loading} className="ml-auto w-full bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#1a7bff] transition-all active:scale-95 cursor-pointer">
           {loading 
             ? (isEditMode ? "Updating..." : "Creating...") 
             : (isEditMode ? "Update Organisation" : "Create Organisation")}

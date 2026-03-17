@@ -223,7 +223,7 @@ export default function PDFSignerModal({
 
   const processFile = (file: File) => {
     if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) return toast.error("Only PNG or JPG allowed")
-    if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB")
+    if (file.size > 5 * 1024 * 1024) return toast.error("Signature image is too large. Please upload a PNG image smaller than 5 MB")
     setSignatureFileType(file.type === "image/jpeg" || file.type === "image/jpg" ? "jpg" : "png")
     const reader = new FileReader()
     reader.onload = (ev) => {
