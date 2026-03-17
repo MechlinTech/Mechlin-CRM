@@ -73,7 +73,7 @@ export function AssignedDocumentsGrid({
   if (loading) return <div className="py-20 text-center text-xs text-slate-400 font-semibold uppercase tracking-widest">Loading assignments...</div>
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in duration-500">
+  <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-in fade-in duration-500">
       {filtered.length > 0 ? filtered.map((item) => {
         const doc = item.documents;
         const isSigned = item.status === 'signed';
@@ -97,7 +97,7 @@ export function AssignedDocumentsGrid({
                   <CheckCircle2 className="h-3 w-3" /> Signed on {item.signed_at ? format(new Date(item.signed_at), "MMM d, yyyy") : 'Recently'}
                 </span>
               ) : (
-                <span className="text-[9px] font-medium text-slate-400 flex items-center gap-1 uppercase tracking-tighter">
+                <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1 uppercase tracking-tighter">
                   <Calendar className="h-3 w-3" /> Waiting for your sign
                 </span>
               )}
