@@ -27,6 +27,21 @@ export function SignupForm({ className, ...props }: React.ComponentProps<typeof 
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  // ✅ New: Password validation logic
+  const validatePassword = (pass: string) => {
+    const hasUppercase = /[A-Z]/.test(pass);
+    const hasNumber = /[0-9]/.test(pass);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
+    const isLongEnough = pass.length >= 6;
+
+    if (!isLongEnough) return "Password must be at least 6 characters long.";
+    if (!hasUppercase) return "Password must include at least one uppercase letter.";
+    if (!hasNumber) return "Password must include at least one number.";
+    if (!hasSpecialChar) return "Password must include at least one special character.";
+    
+    return null; // No errors
+  }
+
   async function signUp(email: string, password: string) {
     setError(null)
     setLoading(true)
@@ -51,11 +66,19 @@ export function SignupForm({ className, ...props }: React.ComponentProps<typeof 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    // ✅ Added client-side validation check
+    const validationError = validatePassword(password);
+    if (validationError) {
+      setError(validationError);
+      toast.error(validationError);
+      return;
+    }
+
     await signUp(email, password)
   }
 
   return (
-    // ✅ w-[520px] added here
     <Card className={cn("w-[520px]", className)} {...props}>
       <CardHeader>
         <BrandedHeader />
@@ -91,16 +114,19 @@ export function SignupForm({ className, ...props }: React.ComponentProps<typeof 
                 type="password" 
                 required 
                 value={password} 
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError(null); // Clear error while user types
+                }}
                 disabled={loading}
               />
               <FieldDescription>
-                Must be at least 6 characters long.
+                Must be at least 6 characters, including at least one uppercase letter, one number, and one special character.
               </FieldDescription>
             </Field>
             <FieldGroup>
               <Field>
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading} className="w-full">
                   {loading ? "Creating account..." : "Create Account"}
                 </Button>
                 <FieldDescription className="px-6 text-center">

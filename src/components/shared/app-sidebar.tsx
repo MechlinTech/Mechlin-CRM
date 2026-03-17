@@ -257,7 +257,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
             // ORGANIZATION MANAGEMENT Visibility (Checks any Organisation CRUD) [cite: 1]
             // Hide for admin users with is_internal === false
-            if (item.title === "Organization Management") {
+            if (item.title === "Organisation Management") {
               if (!canManageOrgs) return null;
 
               if (isInternal === false) return null;

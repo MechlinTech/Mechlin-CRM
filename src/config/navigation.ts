@@ -9,10 +9,10 @@ export const SIDEBAR_NAVIGATION = [
     items: [], // Always include this to satisfy TypeScript
   },
   {
-    title: "Organization Management",
+    title: "Organisation Management",
     url: "",
     items: [
-      { title: "Organizations", url: "/organisations" },
+      { title: "Organisations", url: "/organisations" },
     ],
   },
   {

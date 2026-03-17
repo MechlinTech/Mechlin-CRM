@@ -43,28 +43,28 @@ export async function GET(request: NextRequest) {
     console.log('Analytics API: User data:', userData)
     
     if (!userData?.organisations) {
-      console.error('Analytics API: No organization found for user:', user.id)
-      return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
+      console.error('Analytics API: No organisation found for user:', user.id)
+      return NextResponse.json({ error: 'Organisation not found' }, { status: 404 })
     }
 
     const organizationId = userData.organisation_id
     const organization = userData.organisations
 
-    console.log('Analytics API: Organization found:', organizationId)
+    console.log('Analytics API: Organisation found:', organizationId)
 
-    // Fetch organization analytics data
+    // Fetch organisation analytics data
     const [
       projectsResult,
       usersResult
     ] = await Promise.all([
-      // Get all projects for this organization
+      // Get all projects for this organisation
       supabase
         .from('projects')
         .select('*')
         .eq('organisation_id', organizationId)
         .order('created_at', { ascending: false }),
       
-      // Get all users for this organization
+      // Get all users for this organisation
       supabase
         .from('users')
         .select('*')
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(analytics)
 
   } catch (error) {
-    console.error('Analytics API: Error in organization analytics:', error)
+    console.error('Analytics API: Error in organisation analytics:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

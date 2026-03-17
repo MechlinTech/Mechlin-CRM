@@ -2,10 +2,8 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  let supabaseResponse = NextResponse.next({
+    request,
   })
 
   const supabase = createServerClient(
@@ -13,39 +11,43 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: any) {
-          request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+        setAll(cookiesToSet) {
+          // Set cookies on the request (for downstream use)
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          // Recreate response ONCE with updated request
+          supabaseResponse = NextResponse.next({
+            request,
           })
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: any) {
-          request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({ name, value: '', ...options })
+          // Set cookies on the response (for the browser)
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
         },
       },
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // IMPORTANT: This call triggers token refresh if needed
+  // Do NOT remove it or replace with getSession()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  // Protect all /projects routes. Redirect to home if not logged in.
+  // Protect /projects routes
   if (!user && request.nextUrl.pathname.startsWith('/projects')) {
-    return NextResponse.redirect(new URL('/', request.url))
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    return NextResponse.redirect(url)
   }
 
-  return response
+  // IMPORTANT: Return supabaseResponse (not a new NextResponse)
+  // so refreshed cookies are passed back to the browser
+  return supabaseResponse
 }
 
 export const config = {

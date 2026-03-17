@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(orgUsers)
   } catch (error) {
-    console.error("Error fetching organization users:", error)
+    console.error("Error fetching organisation users:", error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

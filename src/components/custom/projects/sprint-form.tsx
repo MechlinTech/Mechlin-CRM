@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createSprintAction, updateSprintAction } from "@/actions/hierarchy"
 import { toast } from "sonner"
 
-// 1. Define the Validation Schema
 const sprintSchema = z.object({
   name: z.string().trim().min(1, "Sprint name is required"),
   description: z.string().optional().or(z.literal("")),
@@ -32,7 +31,6 @@ type SprintFormValues = z.infer<typeof sprintSchema>
 export function SprintForm({ milestoneId, projectId, sprint, onSuccess }: any) {
   const isEdit = !!sprint
   
-  // 2. Initialize form with Zod
   const form = useForm<SprintFormValues>({
     resolver: zodResolver(sprintSchema),
     defaultValues: {
@@ -63,83 +61,98 @@ export function SprintForm({ milestoneId, projectId, sprint, onSuccess }: any) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-2 font-sans">
-<FormField control={form.control} name="name" render={({ field }) => (
-  <FormItem>
-    <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Sprint Name</FormLabel>
-    <FormControl>
-      {/* CHANGED: Input to Textarea to allow multi-line wrapping */}
-      <Textarea 
-        {...field} 
-        rows={1}
-        className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[40px] focus:border-[#006AFF] transition-all w-full max-w-full break-all whitespace-pre-wrap py-2" 
-      />
-    </FormControl>
-    <FormMessage className="text-[10px]" />
-  </FormItem>
-)} />
-{/* Description Field */}
-<FormField control={form.control} name="description" render={({ field }) => (
-  <FormItem>
-    <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Description</FormLabel>
-    <FormControl>
-      {/* ADDED: w-full max-w-full break-all whitespace-pre-wrap */}
-      <Textarea 
-        {...field} 
-        className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[100px] resize-none focus:border-[#006AFF] transition-all w-full max-w-full break-all whitespace-pre-wrap" 
-      />
-    </FormControl>
-    <FormMessage className="text-[10px]" />
-  </FormItem>
-)} />
+      {/* Removed flex-col and max-height from the form itself to prevent stretching */}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="font-sans text-[#0F172A]">
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField control={form.control} name="start_date" render={({ field }) => (
+        {/* The scrollable area handles the zoom protection without forcing height */}
+        <div className="max-h-[60vh] overflow-y-auto px-1 pr-2 space-y-5 pt-2 custom-scrollbar">
+          
+          <FormField control={form.control} name="name" render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Start Date</FormLabel>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                Sprint Name <span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
-                <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer focus:border-[#006AFF] transition-all" />
+                <Textarea 
+                  {...field} 
+                  rows={1}
+                  className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[40px] focus:border-[#006AFF] transition-all w-full max-w-full break-all whitespace-pre-wrap py-2" 
+                />
               </FormControl>
               <FormMessage className="text-[10px]" />
             </FormItem>
           )} />
-          <FormField control={form.control} name="end_date" render={({ field }) => (
+
+          <FormField control={form.control} name="description" render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">End Date</FormLabel>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Description</FormLabel>
               <FormControl>
-                <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer focus:border-[#006AFF] transition-all" />
+                <Textarea 
+                  {...field} 
+                  className="bg-white border-slate-200 rounded-xl text-xs font-medium min-h-[100px] resize-none focus:border-[#006AFF] transition-all w-full max-w-full break-all whitespace-pre-wrap" 
+                />
               </FormControl>
+              <FormMessage className="text-[10px]" />
+            </FormItem>
+          )} />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField control={form.control} name="start_date" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                  Start Date <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer focus:border-[#006AFF] transition-all" />
+                </FormControl>
+                <FormMessage className="text-[10px]" />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="end_date" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                  End Date <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer focus:border-[#006AFF] transition-all" />
+                </FormControl>
+                <FormMessage className="text-[10px]" />
+              </FormItem>
+            )} />
+          </div>
+
+          <FormField control={form.control} name="status" render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                Status <span className="text-red-500">*</span>
+              </FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer focus:border-[#006AFF] transition-all">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-white border-slate-200 rounded-xl shadow-2xl">
+                  <SelectItem value="Active" className="text-xs font-medium cursor-pointer">Active</SelectItem>
+                  <SelectItem value="Completed" className="text-xs font-medium cursor-pointer">Completed</SelectItem>
+                  <SelectItem value="Delayed" className="text-xs font-medium cursor-pointer">Delayed</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage className="text-[10px]" />
             </FormItem>
           )} />
         </div>
 
-        <FormField control={form.control} name="status" render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Status</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer focus:border-[#006AFF] transition-all">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent className="bg-white border-slate-200 rounded-xl shadow-2xl">
-                <SelectItem value="Active" className="text-xs font-medium cursor-pointer">Active</SelectItem>
-                <SelectItem value="Completed" className="text-xs font-medium cursor-pointer">Completed</SelectItem>
-                <SelectItem value="Delayed" className="text-xs font-medium cursor-pointer">Delayed</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage className="text-[10px]" />
-          </FormItem>
-        )} />
-
-        <Button 
-          type="submit" 
-          disabled={form.formState.isSubmitting}
-          className="w-full bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#1a7bff] transition-all active:scale-95 cursor-pointer mt-2"
-        >
-          {form.formState.isSubmitting ? "Saving..." : (isEdit ? "Update Sprint" : "Create Sprint")}
-        </Button>
+        {/* This button will now sit naturally below the fields with a small padding */}
+        <div className="pt-6">
+          <Button 
+            type="submit" 
+            disabled={form.formState.isSubmitting}
+            className="w-full bg-[#006AFF] text-white font-semibold h-12 rounded-xl shadow-lg hover:bg-[#1a7bff] transition-all active:scale-95 cursor-pointer"
+          >
+            {form.formState.isSubmitting ? "Saving..." : (isEdit ? "Update Sprint" : "Create Sprint")}
+          </Button>
+        </div>
       </form>
     </Form>
   )

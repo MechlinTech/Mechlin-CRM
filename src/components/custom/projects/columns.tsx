@@ -84,7 +84,7 @@ const ActionsCell = ({ project, organisations, users }: { project: any, organisa
 // FIX: Added 'users' parameter to match the call in projects-table.tsx
 export const getColumns = (organisations: any[], users: any[]): ColumnDef<any>[] => [
   { accessorKey: "name", header: "Project Name" },
-  { accessorKey: "organisations.name", header: "Organization" },
+  { accessorKey: "organisations.name", header: "Organisation" },
   { 
     accessorKey: "status", 
     header: "Status",

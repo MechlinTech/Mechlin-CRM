@@ -37,7 +37,21 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
   const [sprints, setSprints] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(false)
   const [signingDoc, setSigningDoc] = React.useState<{ id: string, name: string, url: string } | null>(null)
-  const [activeTab, setActiveTab] = React.useState<"all" | "assigned">("all")
+ // Use the 'tab' search param to determine the initial active tab
+const [activeTab, setActiveTab] = React.useState<"all" | "assigned">(
+  searchParams.get("tab") === "assigned" ? "assigned" : "all"
+);
+
+// Sync tab state with URL parameters
+React.useEffect(() => {
+  const tab = searchParams.get("tab");
+  if (tab === "assigned") {
+    setActiveTab("assigned");
+  } else {
+    setActiveTab("all");
+  }
+}, [searchParams]); // This triggers whenever the URL changes
+
 
   const pushParams = React.useCallback(
     (next: Record<string, string>) => {
@@ -167,7 +181,7 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 py-10 px-4 text-[#0F172A] font-sans">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-nowrap items-end md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link
             href={`/projects/${id}`}
@@ -176,28 +190,34 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
             <ArrowLeft className="h-5 w-5 text-[#0F172A] group-hover:text-[#006AFF]" />
           </Link>
           <h1 className="text-xl font-semibold tracking-tight">Documents</h1>
-          <div className="flex bg-slate-100 p-1 rounded-xl ml-4">
-            <button 
-              onClick={() => setActiveTab("all")}
-              className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer", activeTab === "all" ? "bg-white shadow-sm text-[#006AFF]" : "text-slate-500 hover:text-slate-700 cursor-pointer")}
-            >
-              All Docs 
-            </button>
-            <button 
-              onClick={() => setActiveTab("assigned")}
-              className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer", activeTab === "assigned" ? "bg-white shadow-sm text-[#006AFF]" : "text-slate-500 hover:text-slate-700 cursor-pointer")}
-            >
-              Assigned
-            </button>
-          </div>
+        <div className="flex bg-slate-100 p-1 rounded-xl ml-4">
+  <button 
+    onClick={() => {
+      setActiveTab("all");
+      pushParams({ tab: "" }); // Clears the tab param
+    }}
+    className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer", activeTab === "all" ? "bg-white shadow-sm text-[#006AFF]" : "text-slate-500 hover:text-slate-700 cursor-pointer")}
+  >
+    All Docs 
+  </button>
+  <button 
+    onClick={() => {
+      setActiveTab("assigned");
+      pushParams({ tab: "assigned" }); // Sets the tab param
+    }}
+    className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer", activeTab === "assigned" ? "bg-white shadow-sm text-[#006AFF]" : "text-slate-500 hover:text-slate-700 cursor-pointer")}
+  >
+    Assigned
+  </button>
+</div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
           {!rbacLoading && hasPermission("documents.request_sign") && (
             <RequestSignatureModal projectId={id} />
           )}
-          <div className="relative group flex-1 md:w-[300px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#006AFF] transition-colors" />
+          <div className="relative group flex-1 max-w-[300px] md:w-[300px] min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#006AFF] transition-colors " />
             <input
               type="text"
               placeholder="Search..."
@@ -208,7 +228,7 @@ export default function ProjectDocumentsPage({ params }: { params: any }) {
           </div>
           <button
             onClick={() => updateFilter("sort", sortOrder === "asc" ? "desc" : "asc")}
-            className="h-10 px-4 bg-[#006AFF] text-white rounded-xl text-[10px] font-semibold hover:bg-[#99C4FF] transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
+            className="h-10 px-4 bg-[#006AFF] text-white rounded-xl text-[10px] font-semibold hover:bg-[#99C4FF] transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95 shrink-0"
           >
             <ArrowUpDown className="h-3.5 w-3.5" /> Sort
           </button>

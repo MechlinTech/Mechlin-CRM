@@ -42,7 +42,7 @@ export const columns: ColumnDef<any>[] = [
     },
     {
         accessorKey: "organisation_name",
-        header: "Organization",
+        header: "Organisation",
         cell: ({ row }) => {
             const role = row.original
             if (role.is_system_role) {
@@ -54,7 +54,7 @@ export const columns: ColumnDef<any>[] = [
             }
             return (
                 <div className="text-sm text-gray-600">
-                    {role.organisation_name || "Unknown Organization"}
+                    {role.organisation_name || "Unknown Organisation"}
                 </div>
             )
         },

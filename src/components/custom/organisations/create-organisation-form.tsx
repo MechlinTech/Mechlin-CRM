@@ -87,7 +87,7 @@ function EscalationContactsField({ value, onChange, organisationId }: {
             disabled={loadingUsers}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select user from organization..." />
+              <SelectValue placeholder="Select user from organisation..." />
             </SelectTrigger>
             <SelectContent>
               {users.map(user => (
@@ -98,7 +98,7 @@ function EscalationContactsField({ value, onChange, organisationId }: {
             </SelectContent>
           </Select>
           <FormDescription className="text-sm text-muted-foreground">
-            Select a user from this organization to add as an escalation contact.
+            Select a user from this organisation to add as an escalation contact.
           </FormDescription>
         </div>
       )}
@@ -395,7 +395,7 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
       </FormControl>
 
       <FormLabel className="leading-none cursor-pointer">
-        Internal Organization
+        Internal Organisation
       </FormLabel>
 
       <FormMessage />
@@ -418,7 +418,7 @@ export function CreateOrganisationForm({ onSuccess, organisation }: CreateOrgani
                 />
               </FormControl>
               <FormDescription>
-                Add escalation contacts for this organisation. Select users from the organization or add manual contacts.
+                Add escalation contacts for this organisation. Select users from the organisation or add manual contacts.
               </FormDescription>
               <FormMessage />
             </FormItem>
