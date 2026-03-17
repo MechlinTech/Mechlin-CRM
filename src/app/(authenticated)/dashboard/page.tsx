@@ -163,7 +163,17 @@ export default  function DashboardPage() {
     }
   }, [loading, tabs, activeTab]);
 
-  if (loading) return null;
+  // Show loading spinner while RBAC permissions or initial data are being fetched
+  if (loading || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#006AFF] mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -246,7 +256,7 @@ export default  function DashboardPage() {
                             <div className="flex items-center gap-1">
                               <Building className="h-4 w-4 text-[#006AFF]" />
                               <span className=" truncate">
-                                {project.organisations?.name || 'No Organization'}
+                                {project.organisations?.name || 'No Organisation'}
                               </span>
                             </div>
                             {project.budget && (
@@ -373,7 +383,7 @@ export default  function DashboardPage() {
                     </div>
                     <div>
                       <h2 className="text-lg font-semibold">All Organisations</h2>
-                      <p className="text-sm text-[#4C5C96]/60">Manage your organization portfolio</p>
+                      <p className="text-sm text-[#4C5C96]/60">Manage your organisation portfolio</p>
                     </div>
                     <Badge variant="outline" className="bg-[#006AFF]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">{organisations.length}</Badge>
                   </div>
@@ -381,7 +391,7 @@ export default  function DashboardPage() {
                 {isLoading ? (
                   <div className="text-center py-20">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#006AFF] mx-auto mb-4"></div>
-                    <p className="text-sm text-gray-600">Loading organization details...</p>
+                    <p className="text-sm text-gray-600">Loading organisation details...</p>
                   </div>
                 ) : organisations.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -430,7 +440,7 @@ export default  function DashboardPage() {
                             {org.is_internal !== undefined && (
                               <div className="flex items-center ">
                                 <span className="">
-                                  {org.is_internal ? 'Internal Organization' : 'External Organization'}
+                                  {org.is_internal ? 'Internal Organisation' : 'External Organisation'}
                                 </span>
                               </div>
                             )}
@@ -449,8 +459,8 @@ export default  function DashboardPage() {
                     <div className="mx-auto w-20 h-20 bg-[#006AFF] rounded-md flex items-center justify-center shadow-lg mb-6">
                       <Building2 className="h-10 w-10 text-white" />
                     </div>
-                    <h3 className="text-lg tracking-tight mb-3">No Organizations Yet</h3>
-                    <p className="text-xs text-gray-800 max-w-md mx-auto">Create your first organization to start managing projects and teams efficiently</p>
+                    <h3 className="text-lg tracking-tight mb-3">No Organisations Yet</h3>
+                    <p className="text-xs text-gray-800 max-w-md mx-auto">Create your first organisation to start managing projects and teams efficiently</p>
                   </div>
                 )}
               </div>

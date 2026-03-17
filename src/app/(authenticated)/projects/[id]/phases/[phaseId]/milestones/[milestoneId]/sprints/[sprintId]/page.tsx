@@ -148,7 +148,7 @@ export default function SprintPage({ params }: { params: any }) {
                   <DialogTrigger asChild>
                     <button className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:text-[#006AFF] transition-all active:scale-95 bg-white cursor-pointer"><Pencil className="h-4 w-4" /></button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-[90vw] sm:max-w-[60vw] w-full max-h-[90vh] min-h-[42rem] bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col rounded-lg">
+                  <DialogContent className="max-w-[90vw] sm:max-w-[60vw] w-full max-h-[90vh]  bg-white text-black border-none shadow-2xl p-0 overflow-hidden flex flex-col rounded-lg">
                     <DialogHeader className="p-6 border-b"><DialogTitle className="text-lg font-semibold">Edit Sprint</DialogTitle></DialogHeader>
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-6 scrollbar-hide">
                       <SprintForm projectId={id} milestoneId={milestoneId} sprint={sprint} onSuccess={() => { setIsEditOpen(false); fetchData(); }} />

@@ -26,6 +26,7 @@ import { ManageUserRolesDialog } from "@/components/custom/users/manage-user-rol
 import { useState } from "react"
 import { formatDate } from "@/lib/utils"
 import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
+import { useAuth } from "@/hooks/useAuth" // Added to get current user
 
 const organisationColumn: ColumnDef<User> = {
   accessorKey: "organisations.name",
@@ -111,12 +112,21 @@ const baseColumns: ColumnDef<User>[] = [
       const [editDialogOpen, setEditDialogOpen] = useState(false)
       const [rolesDialogOpen, setRolesDialogOpen] = useState(false)
       const { hasPermission, loading } = useRBAC() // Added RBAC Hook
+      const { user: currentUser } = useAuth() // Get current logged-in user
 
       if (loading) return <div className="h-8 w-8" />
 
       const canUpdate = hasPermission('users.update')
       const canManageRoles = hasPermission('users.assign_roles')
       const canDelete = hasPermission('users.delete')
+
+      // Check if the user being viewed is the current user and has super_admin role
+      const isCurrentUser = currentUser?.id === user.id
+      const userRoles = (user as any).user_roles || []
+      const isSuperAdmin = userRoles.some((ur: any) => ur.roles?.name === 'super_admin')
+      
+      // Prevent super admins from deleting themselves
+      const canDeleteUser = canDelete && !(isCurrentUser && isSuperAdmin)
 
       return (
         <>
@@ -144,7 +154,7 @@ const baseColumns: ColumnDef<User>[] = [
               )}
 
               {/* RBAC: Delete permission */}
-              {canDelete && (
+              {canDeleteUser && (
                 <DropdownMenuItem
                   className="text-red-600 focus:text-red-600"
                   onClick={() => confirm('Delete user?') && deleteUserAction(user.id)}

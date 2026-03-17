@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS organisations (
     is_internal BOOLEAN DEFAULT FALSE,
     about TEXT,
    location TEXT DEFAULT 'Not specified',
-   logo_path TEXT;
+   logo_path TEXT,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'trial')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -136,6 +136,18 @@ CREATE TABLE IF NOT EXISTS documents (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('documents', 'documents', true)
+ON CONFLICT (id) DO NOTHING;
+ 
+
+ALTER TABLE documents 
+ADD COLUMN IF NOT EXISTS phase_id UUID REFERENCES phases(id) ON DELETE CASCADE;
+ 
+
+CREATE POLICY "Allow Auth Uploads" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'documents');
+CREATE POLICY "Allow Public Read" ON storage.objects FOR SELECT TO public USING (bucket_id = 'documents');
  
 -- Invoices
 CREATE TABLE IF NOT EXISTS invoices (
@@ -149,6 +161,52 @@ CREATE TABLE IF NOT EXISTS invoices (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 1. Create the 'invoices' storage bucket
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('invoices', 'invoices', true)
+ON CONFLICT (id) DO NOTHING;
+ 
+-- 2. Add Storage Path to the invoices table for better tracking
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS storage_path TEXT;
+ 
+-- 3. Set Storage Policies (Only Authenticated users can upload)
+CREATE POLICY "Allow Authenticated Uploads" ON storage.objects
+FOR INSERT TO authenticated WITH CHECK (bucket_id = 'invoices');
+ 
+CREATE POLICY "Allow Public Read Access" ON storage.objects
+FOR SELECT TO public USING (bucket_id = 'invoices');
+ 
+CREATE POLICY "Allow Authenticated Deletes" ON storage.objects
+FOR DELETE TO authenticated USING (bucket_id = 'invoices');
+
+
+ -- 1. Create a table to track signature requests per user
+CREATE TABLE IF NOT EXISTS document_signers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'signed')),
+    signed_at TIMESTAMP WITH TIME ZONE,
+    signature_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(document_id, user_id)
+);
+ 
+-- 2. Add specific permission for requesting signatures
+INSERT INTO permissions (name, display_name, description, module, action) VALUES
+    ('documents.request_sign', 'Request Signatures', 'Can assign documents to others for signature', 'documents', 'request')
+ON CONFLICT (name) DO NOTHING;
+ 
+-- 3. Grant to PM and Admin
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT id, (SELECT id FROM permissions WHERE name = 'documents.request_sign')
+FROM roles WHERE name IN ('pm', 'admin', 'super_admin')
+ON CONFLICT DO NOTHING;
+ 
+-- Index for fetching assigned documents quickly
+CREATE INDEX IF NOT EXISTS idx_doc_signers_user_id ON document_signers(user_id, status);
+ 
  
 -- Project Members
 CREATE TABLE IF NOT EXISTS project_members (
@@ -161,6 +219,13 @@ CREATE TABLE IF NOT EXISTS project_members (
     UNIQUE(project_id, user_id)
 );
  
+
+ ALTER TABLE documents 
+ALTER COLUMN signature_position_x TYPE DECIMAL(10,2);
+
+ALTER TABLE documents 
+ALTER COLUMN signature_position_y TYPE DECIMAL(10,2);
+
 -- Wiki Pages
 CREATE TABLE IF NOT EXISTS wiki_pages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -697,3 +762,94 @@ ON CONFLICT (id) DO NOTHING;
 -- 3. Set up Storage Policies (Allows anyone to view, authenticated to upload)
 CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'logos');
 CREATE POLICY "Auth Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'logos' AND auth.role() = 'authenticated');
+
+-- ============================================
+-- PDF SIGNING FUNCTIONALITY MIGRATION
+-- ============================================
+-- This migration adds PDF signing capabilities to the documents system
+ 
+-- 1. Add signature columns to documents table
+ALTER TABLE documents
+ADD COLUMN IF NOT EXISTS signature_url TEXT,
+ADD COLUMN IF NOT EXISTS signed_at TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS signer_name VARCHAR(255),
+ADD COLUMN IF NOT EXISTS signer_email VARCHAR(255),
+ADD COLUMN IF NOT EXISTS signature_status VARCHAR(20) DEFAULT 'pending' CHECK (signature_status IN ('pending', 'signed'));
+ 
+-- 2. Add documents.sign permission
+INSERT INTO permissions (name, display_name, description, module, action) VALUES
+    ('documents.sign', 'Sign Documents', 'Can electronically sign PDF documents', 'documents', 'sign')
+ON CONFLICT (name) DO NOTHING;
+ 
+-- 3. Grant signing permission to relevant roles
+-- Developer role
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000004', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- QA Engineer role  
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000005', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- Project Manager role (should already have all document permissions)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000003', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- Admin role
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000002', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- Super Admin role (should already have all permissions)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT '00000000-0000-0000-0000-000000000001', id FROM permissions
+WHERE name = 'documents.sign'
+ON CONFLICT DO NOTHING;
+ 
+-- 4. Create storage buckets for signatures and documents
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('signatures', 'signatures', false)
+ON CONFLICT (id) DO NOTHING;
+ 
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('documents', 'documents', true)
+ON CONFLICT (id) DO NOTHING;
+ 
+-- 5. Add index for signature status queries
+CREATE INDEX IF NOT EXISTS idx_documents_signature_status ON documents(signature_status);
+CREATE INDEX IF NOT EXISTS idx_documents_signed_at ON documents(signed_at);
+
+-- storage policies for signatures bucket
+
+ 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view signatures" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload signatures" ON storage.objects;
+ 
+-- Create new policies for signatures bucket
+CREATE POLICY "Users can view signatures" ON storage.objects FOR SELECT 
+USING (bucket_id = 'signatures' AND auth.role() = 'authenticated');
+ 
+CREATE POLICY "Users can upload signatures" ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'signatures' AND auth.role() = 'authenticated');
+ 
+-- Also ensure documents bucket has proper policies
+DROP POLICY IF EXISTS "Public Document Access" ON storage.objects;
+DROP POLICY IF EXISTS "Auth Document Upload" ON storage.objects;
+ 
+CREATE POLICY "Public Document Access" ON storage.objects FOR SELECT 
+USING (bucket_id = 'documents');
+ 
+CREATE POLICY "Auth Document Upload" ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'documents' AND auth.role() = 'authenticated');
+
+-- Add signature position columns to documents table
+ALTER TABLE documents
+ADD COLUMN IF NOT EXISTS signature_position_x DECIMAL(5,2),
+ADD COLUMN IF NOT EXISTS signature_position_y DECIMAL(5,2);

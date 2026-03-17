@@ -73,15 +73,24 @@ const statusColor = m.status === 'Active' || m.status === 'Open'
                   <DialogTrigger asChild>
                     <button className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:text-[#006AFF] active:scale-95 bg-white cursor-pointer"><Pencil className="h-4 w-4" /></button>
                   </DialogTrigger>
-                  <DialogContent className="bg-white border-none shadow-2xl">
+              <DialogContent className="bg-white border-none shadow-2xl sm:max-w-[550px] p-6">
                     <DialogHeader><DialogTitle className="text-lg font-semibold">Edit Milestone</DialogTitle></DialogHeader>
                     <MilestoneForm key={`${m.id}-${m.status}-${m.name}`} projectId={id} phaseId={phaseId} milestone={m} onSuccess={() => { setIsEditOpen(false); fetchData(); router.refresh(); }} />
                   </DialogContent>
                 </Dialog>
               )}
-              {!loading && hasPermission('milestones.delete') && (
-                <button onClick={() => confirm('Delete?') && deleteMilestoneAction(milestoneId, id).then(() => router.push(`/projects/${id}`))} className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer"><Trash2 className="h-4 w-4" /></button>
-              )}
+         {!loading && hasPermission('milestones.delete') && (
+  <button 
+    onClick={() => {
+  if (window.confirm("Are you certain you want to delete this milestone? This action is irreversible and will permanently remove all associated sprints, tasks, and data.")) {
+  deleteMilestoneAction(milestoneId, id).then(() => router.push(`/projects/${id}`));
+}
+    }} 
+    className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer"
+  >
+    <Trash2 className="h-4 w-4" />
+  </button>
+)}
             </div>
           </div>
           <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8 break-words whitespace-pre-wrap">{m.deliverables || "No deliverables description provided for this milestone."}</div>
@@ -120,7 +129,7 @@ const statusColor = m.status === 'Active' || m.status === 'Open'
           {!loading && hasPermission('sprints.create') && (
             <Dialog open={isSprintOpen} onOpenChange={setIsSprintOpen}>
               <DialogTrigger asChild><Button className="cursor-pointer"><Plus className="h-4 w-4" /> Add Sprint</Button></DialogTrigger>
-              <DialogContent className="bg-white border-none shadow-2xl"><DialogHeader><DialogTitle className="text-lg font-semibold">Create Sprint Cycle</DialogTitle></DialogHeader>
+              <DialogContent className="bg-white border-none shadow-2xl sm:max-w-[550px] p-6"><DialogHeader><DialogTitle className="text-lg font-semibold">Create Sprint Cycle</DialogTitle></DialogHeader>
                 <SprintForm milestoneId={milestoneId} projectId={id} onSuccess={() => { setIsSprintOpen(false); fetchData(); }} />
               </DialogContent>
             </Dialog>

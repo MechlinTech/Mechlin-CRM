@@ -71,7 +71,7 @@ export default function ProjectOverview({ params }: { params: any }) {
         <div className="text-center py-20">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-gray-600 mb-4">You don't have permission to view this project.</p>
-          <p className="text-sm text-gray-500">This project belongs to a different organization.</p>
+          <p className="text-sm text-gray-500">This project belongs to a different organisation.</p>
         </div>
       </div>
     );
@@ -119,7 +119,7 @@ export default function ProjectOverview({ params }: { params: any }) {
           <div className="text-center py-20">
             <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
             <p className="text-gray-600 mb-4">You don't have permission to view this project.</p>
-            <p className="text-sm text-gray-500">This project belongs to a different organization.</p>
+            <p className="text-sm text-gray-500">This project belongs to a different organisation.</p>
           </div>
         </div>
       );

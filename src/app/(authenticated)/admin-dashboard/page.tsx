@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
         }
  
         if (!userData?.organisations) {
-          setError('Organization not found')
+          setError('Organisation not found')
           setIsLoading(false)
           return
         }
@@ -146,8 +146,8 @@ export default function AdminDashboardPage() {
         <div className="text-center">
           <Card className="max-w-md">
             <CardContent className="p-6">
-              <h3 className="font-medium mb-2">No Organization Found</h3>
-              <p className="text-muted-foreground">You are not associated with any organization.</p>
+              <h3 className="font-medium mb-2">No Organisation Found</h3>
+              <p className="text-muted-foreground">You are not associated with any organisation.</p>
             </CardContent>
           </Card>
         </div>
@@ -176,7 +176,7 @@ export default function AdminDashboardPage() {
                   <h1 className="text-lg font-semibold text-[#0F172A] tracking-tight">
                     {organization.name}
                   </h1>
-                  <p className="text-xs text-[#0F172A]/60 mt-0.5">Organization overview and management</p>
+                  <p className="text-xs text-[#0F172A]/60 mt-0.5">Organisation overview and management</p>
                 </div>
                 <Badge
                   variant="outline"
@@ -199,7 +199,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-2">
                 <Link href={`/admin-dashboard/about`}>
                   <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    Organization Details
+                    Organisation Details
                   </Button>
                 </Link>
                 <button
@@ -273,7 +273,7 @@ export default function AdminDashboardPage() {
                           <BarChart3 className="h-4 w-4 text-white" />
                         </div>
                         <div>
-                          <h2 className="text-lg font-semibold text-[#0F172A] tracking-tight">Organization Analytics</h2>
+                          <h2 className="text-lg font-semibold text-[#0F172A] tracking-tight">Organisation Analytics</h2>
                           <p className="text-xs text-[#0F172A]/60 mt-0.5">Detailed insights and performance metrics</p>
                         </div>
                       </div>
@@ -391,7 +391,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-[#0F172A] tracking-tight">All Projects</h2>
-                  <p className="text-xs text-[#0F172A]/60 mt-0.5">Manage and monitor all organization projects</p>
+                  <p className="text-xs text-[#0F172A]/60 mt-0.5">Manage and monitor all organisation projects</p>
                 </div>
               </div>
               <Badge variant="outline" className="bg-[#006AFF]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
@@ -494,7 +494,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <h3 className="text-lg font-semibold text-[#0F172A] mb-2 tracking-tight">No Projects Yet</h3>
                 <p className="text-xs text-[#0F172A]/60 max-w-md mx-auto">
-                  Your organization doesn't have any projects yet. Projects will appear here once they are created.
+                  Your organisation doesn't have any projects yet. Projects will appear here once they are created.
                 </p>
               </div>
             )}

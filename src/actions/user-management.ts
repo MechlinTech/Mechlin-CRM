@@ -222,6 +222,41 @@ export async function updateUserAction(id: string, userData: CreateUserInput) {
 }
 
 export async function deleteUserAction(id: string) {
+    // Get current user to prevent self-deletion
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value
+                },
+            },
+        }
+    )
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+        return { success: false, error: "Authentication required" }
+    }
+
+    // Check if the user trying to delete is the same as the current user
+    if (user.id === id) {
+        // Check if the current user has super_admin role
+        const { data: userRoles } = await supabase
+            .from("user_roles")
+            .select("roles(name)")
+            .eq("user_id", user.id)
+        
+        const isSuperAdmin = userRoles?.some((ur: any) => ur.roles?.name === 'super_admin')
+        
+        if (isSuperAdmin) {
+            return { success: false, error: "Super admins cannot delete themselves" }
+        }
+    }
+
     const { error } = await deleteUser(id)
     if (error) {
         return { success: false, error: error.message, code: error.code }

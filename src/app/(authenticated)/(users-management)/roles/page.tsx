@@ -36,7 +36,7 @@ export default function RolesPage() {
                 const orgResult = await getUserOrganisationWithInternalAction(user?.id || "")
                 
                 if (!orgResult.success) {
-                    setError(orgResult.error || 'Failed to load organization information')
+                    setError(orgResult.error || 'Failed to load organisation information')
                     return
                 }
 

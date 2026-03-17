@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod" // 1. Added resolver
-import * as z from "zod" // 2. Added zod
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -27,7 +27,7 @@ export function PhaseForm({ projectId, phase, onSuccess }: PhaseFormProps) {
   const isEdit = !!phase
   
   const form = useForm<PhaseFormValues>({
-    resolver: zodResolver(phaseSchema), // 4. Integrated the resolver
+    resolver: zodResolver(phaseSchema),
     defaultValues: {
       name: phase?.name || ""
     }
@@ -52,36 +52,43 @@ export function PhaseForm({ projectId, phase, onSuccess }: PhaseFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 pt-0 mt-1 font-sans">
-        <FormField 
-          control={form.control} 
-          name="name" 
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
-                Phase Name
-              </FormLabel>
-              <FormControl>
-                {/* 5. The Input will automatically turn red because Shadcn's Input component 
-                    reacts to the field state error when wrapped in FormField */}
-                <Input 
-                  {...field} 
-                  className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF] transition-all" 
-                  placeholder="Enter phase name" 
-                />
-              </FormControl>
-              {/* 6. Added FormMessage to show the "Phase name is required" text */}
-              <FormMessage className="text-[10px] font-medium" />
-            </FormItem>
-          )} 
-        />
-        <Button 
-          type="submit" 
-          disabled={form.formState.isSubmitting}
-          className="w-full"
-        >
-          {form.formState.isSubmitting ? "Saving..." : (isEdit ? "Update Phase" : "Create Phase")}
-        </Button>
+      <form 
+        onSubmit={form.handleSubmit(onSubmit)} 
+        className="flex flex-col max-h-[80vh] font-sans text-[#0F172A]"
+      >
+        {/* SCROLLABLE AREA: Constrains the input fields */}
+        <div className="flex-1 overflow-y-auto px-1 pr-2 pt-2 custom-scrollbar space-y-4">
+          <FormField 
+            control={form.control} 
+            name="name" 
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+                  Phase Name <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    {...field} 
+                    className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 focus:border-[#006AFF] transition-all w-full" 
+                    placeholder="Enter phase name" 
+                  />
+                </FormControl>
+                <FormMessage className="text-[10px] font-medium" />
+              </FormItem>
+            )} 
+          />
+        </div>
+
+        {/* BUTTON AREA: Fixed at the bottom */}
+        <div className="pt-4 mt-auto">
+          <Button 
+            type="submit" 
+            disabled={form.formState.isSubmitting}
+            className="w-full bg-[#006AFF] text-white font-semibold h-11 rounded-xl shadow-md hover:bg-[#1a7bff] transition-all active:scale-95"
+          >
+            {form.formState.isSubmitting ? "Saving..." : (isEdit ? "Update Phase" : "Create Phase")}
+          </Button>
+        </div>
       </form>
     </Form>
   )

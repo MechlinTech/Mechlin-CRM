@@ -11,6 +11,8 @@ import { ActionModalContext } from "@/components/shared/action-button"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// import { MemberMultiSelect } from "./member-multi-select"
+// import { sendSignatureRequestEmail } from "@/lib/signature-email-service"
 
 export function DocumentForm({ projectId, ids }: { projectId: string, ids: any }) {
   const { close } = React.useContext(ActionModalContext);
@@ -23,8 +25,31 @@ export function DocumentForm({ projectId, ids }: { projectId: string, ids: any }
   const [newTypeName, setNewTypeName] = React.useState("");
   const [existingTypes, setExistingTypes] = React.useState<string[]>([]);
 
+  /* COMMENTED OUT: Team Selection States
+  const [mechlinTeam, setMechlinTeam] = React.useState<any[]>([])
+  const [clientTeam, setClientTeam] = React.useState<any[]>([])
+  const [selectedMechlin, setSelectedMechlin] = React.useState<string[]>([])
+  const [selectedClient, setSelectedClient] = React.useState<string[]>([])
+  */
+
+  /* COMMENTED OUT: Fetch project members effect
+  React.useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("projects")
+        .select(`project_members(users(id, name, email, organisations(is_internal)))`)
+        .eq("id", projectId)
+        .single();
+      
+      const members = data?.project_members || [];
+      setMechlinTeam(members.filter((m: any) => m.users?.organisations?.is_internal === true));
+      setClientTeam(members.filter((m: any) => m.users?.organisations?.is_internal !== true));
+    })()
+  }, [projectId]);
+  */
+
   // Fetch unique types already in the DB
-const fetchExistingTypes = React.useCallback(async () => {
+  const fetchExistingTypes = React.useCallback(async () => {
     const { data, error } = await supabase
       .from('documents')
       .select('doc_type')
@@ -41,13 +66,19 @@ const fetchExistingTypes = React.useCallback(async () => {
     fetchExistingTypes();
   }, [fetchExistingTypes]);
 
-  React.useEffect(() => {
-    fetchExistingTypes();
-  }, [fetchExistingTypes]);
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length === 0) return;
+
+    const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+const oversizedFiles = selectedFiles.filter(file => file.size > MAX_SIZE);
+if (oversizedFiles.length > 0) {
+  oversizedFiles.forEach(file => {
+    toast.error(`"${file.name}" exceeds 50MB. Please upload a file under 50MB.`);
+  });
+  e.target.value = "";
+  return;
+}
 
     const newEntries = selectedFiles.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
@@ -85,6 +116,7 @@ const fetchExistingTypes = React.useCallback(async () => {
           name: fileData.file.name, 
           file_url: fileData.url, 
           doc_type: docType, 
+          // requested_signers: [...selectedMechlin, ...selectedClient], // Commented out
           ...ids 
         });
       }
@@ -94,18 +126,16 @@ const fetchExistingTypes = React.useCallback(async () => {
       toast.error("An error occurred");
     } finally { setIsSubmitting(false); }
   };
-const handleAddNewType = () => {
+
+  const handleAddNewType = () => {
     if (!newTypeName.trim()) {
       setIsAddingNewType(false);
       return;
     }
-    
     const formattedType = newTypeName.trim();
-    
     if (!existingTypes.includes(formattedType)) {
       setExistingTypes(prev => [...prev, formattedType]);
     }
-
     setDocType(formattedType);
     setNewTypeName("");
     setIsAddingNewType(false);
@@ -113,7 +143,7 @@ const handleAddNewType = () => {
 
   return (
     <div className="space-y-6 pt-2 text-[#0F172A] font-sans">
-     <div className="space-y-2 px-1">
+      <div className="space-y-2 px-1">
         <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Document Category</label>
         <div className="flex gap-2">
           {!isAddingNewType ? (
@@ -135,7 +165,7 @@ const handleAddNewType = () => {
               <Button 
                 variant="outline" 
                 size="icon" 
-                type="button" // Prevent accidental form submission
+                type="button"
                 className="rounded-xl border-slate-200 shrink-0 hover:text-[#006AFF] hover:border-[#006AFF]"
                 onClick={() => setIsAddingNewType(true)}
               >
@@ -175,9 +205,31 @@ const handleAddNewType = () => {
             </div>
           )}
         </div>
-        {/* REMOVED the "Selected: {docType}" paragraph from here */}
       </div>
 
+      {/* COMMENTED OUT: Signature Request UI Section
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-1">
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Request Mechlin Signatures</label>
+          <MemberMultiSelect 
+            members={mechlinTeam} 
+            selected={selectedMechlin} 
+            onChange={setSelectedMechlin} 
+            placeholder="Select Mechlin members..." 
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Request Client Signatures</label>
+          <MemberMultiSelect 
+            members={clientTeam} 
+            selected={selectedClient} 
+            onChange={setSelectedClient} 
+            placeholder="Select client members..." 
+          />
+        </div>
+      </div>
+      */}
+      
       <div className="space-y-4">
         <div className="border-2 border-dashed border-slate-200 rounded-[32px] p-6 md:p-10 flex flex-col items-center justify-center bg-slate-50/30 hover:bg-white hover:border-[#006AFF]/50 transition-all cursor-pointer relative group overflow-hidden">
           <div className="bg-slate-100 p-4 rounded-full mb-4 group-hover:bg-[#006AFF]/10 transition-colors">

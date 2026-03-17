@@ -108,7 +108,7 @@ export default function ClientDashboardPage() {
                           <div className="p-1 bg-[#006AFF]/10 rounded-lg">
                             <Building className="h-3 w-3 text-[#006AFF]" />
                           </div>
-                          <span className="text-xs text-[#0F172A]/70 truncate">{project.organisations?.name || 'No Organization'}</span>
+                          <span className="text-xs text-[#0F172A]/70 truncate">{project.organisations?.name || 'No Organisation'}</span>
                         </div>
 
                         {project.budget && (

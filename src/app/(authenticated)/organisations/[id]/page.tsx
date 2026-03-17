@@ -53,7 +53,7 @@ export default function OrganisationDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-lg mb-2">Access Denied</h2>
-          <p className="text-sm text-gray-600 mb-4">You don't have permission to view organization details.</p>
+          <p className="text-sm text-gray-600 mb-4">You don't have permission to view organisation details.</p>
           <Button onClick={() => router.push('/dashboard')}>
             Go Back to Dashboard
           </Button>
@@ -67,7 +67,7 @@ export default function OrganisationDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#006AFF] mx-auto mb-4"></div>
-          <p className="text-sm text-gray-600">Loading organization details...</p>
+          <p className="text-sm text-gray-600">Loading organisation details...</p>
         </div>
       </div>
     )
@@ -77,8 +77,8 @@ export default function OrganisationDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-lg mb-2">Organization Not Found</h2>
-          <p className="text-sm text-gray-600 mb-4">The organization you're looking for doesn't exist.</p>
+          <h2 className="text-lg mb-2">Organisation Not Found</h2>
+          <p className="text-sm text-gray-600 mb-4">The organisation you're looking for doesn't exist.</p>
           <Button onClick={() => router.push('/dashboard')}>
             Go Back to Dashboard
           </Button>
@@ -87,7 +87,7 @@ export default function OrganisationDetailPage() {
     )
   }
 
-  // Organization access control
+  // Organisation access control
   if (userOrg && !isInternal) {
     // External users can only view their own organization
     if (userOrg.organisation_id !== organisation.id) {
@@ -95,8 +95,8 @@ export default function OrganisationDetailPage() {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-lg mb-2">Access Denied</h2>
-            <p className="text-sm text-gray-600 mb-4">You don't have permission to view this organization.</p>
-            <p className="text-xs text-gray-500">This organization belongs to a different organization.</p>
+            <p className="text-sm text-gray-600 mb-4">You don't have permission to view this organisation.</p>
+            <p className="text-xs text-gray-500">This organisation belongs to a different organisation.</p>
             <Button onClick={() => router.push('/dashboard')} className="mt-4">
               Go Back to Dashboard
             </Button>
@@ -160,7 +160,7 @@ export default function OrganisationDetailPage() {
                       {organisation.is_internal !== undefined && (
                         <div className="flex items-center gap-2 text-gray-600">
                           <span className="font-medium">
-                            {organisation.is_internal ? 'Internal Organization' : 'External Organization'}
+                            {organisation.is_internal ? 'Internal Organisation' : 'External Organisation'}
                           </span>
                         </div>
                       )}
@@ -229,7 +229,7 @@ export default function OrganisationDetailPage() {
                         {/* Organization Name Row - Consistent with Organisation Detail metadata list */}
                         <div className="flex items-center gap-2 mb-1">
                           <Building className="h-3.5 w-3.5 text-[#006AFF]" />
-                          <span className="truncate">{project.organisations?.name || 'No Organization'}</span>
+                          <span className="truncate">{project.organisations?.name || 'No Organisation'}</span>
                         </div>
 
                         {project.budget && (
@@ -265,7 +265,7 @@ export default function OrganisationDetailPage() {
                 </h3>
                 <p className="text-xs text-gray-600 max-w-md mx-auto">
                   {hasPermission('projects.read') 
-                    ? "This organization does not have any projects yet." 
+                    ? "This organisation does not have any projects yet." 
                     : "You do not have the required permissions to view projects."}
                 </p>
               </div>

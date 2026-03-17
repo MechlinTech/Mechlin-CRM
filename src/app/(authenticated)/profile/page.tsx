@@ -32,7 +32,7 @@ export default function ProfilePage() {
           setOrganization(result.organisation)
         }
       } catch (error) {
-        console.error("Failed to fetch organization:", error)
+        console.error("Failed to fetch organisation:", error)
       } finally {
         setOrgLoading(false)
       }
@@ -121,7 +121,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3">
               <Building className="h-4 w-4 text-gray-500" />
               <div>
-                <Label className="text-xs text-gray-500">Organization</Label>
+                <Label className="text-xs text-gray-500">Organisation</Label>
                 <p className="text-sm">{organization?.organisations?.name || 'Not specified'}</p>
               </div>
             </div>
