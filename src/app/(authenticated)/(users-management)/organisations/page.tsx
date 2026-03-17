@@ -86,7 +86,7 @@ export default function Page() {
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold text-[#0F172A]">All Organisations</h1>
-                                <p className="text-xs text-[#0F172A]/60">Manage your organization portfolios</p>
+                                <p className="text-xs text-[#0F172A]/60">Manage your organisation portfolios</p>
                             </div>
                             <div className="bg-[#006AFF]/10 text-[#0F172A] border-[#0F172A]/20 font-semibold px-3 py-1 rounded-full text-xs">
                                 {organisations?.length || 0}

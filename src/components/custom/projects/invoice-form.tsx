@@ -39,6 +39,16 @@ export function InvoiceForm({ projectId, onSuccess }: { projectId: string, onSuc
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length === 0) return;
 
+    const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+const oversizedFiles = selectedFiles.filter(file => file.size > MAX_SIZE);
+if (oversizedFiles.length > 0) {
+  oversizedFiles.forEach(file => {
+    toast.error(`"${file.name}" exceeds 50MB. Please upload a file under 50MB.`);
+  });
+  e.target.value = "";
+  return;
+}
+
     const newEntries = selectedFiles.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       file,

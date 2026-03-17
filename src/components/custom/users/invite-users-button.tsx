@@ -32,7 +32,7 @@ export function InviteUsersButton() {
         <DialogHeader>
           <DialogTitle>Send Invitation</DialogTitle>
           <DialogDescription>
-            Invite a new user to join your organization via email.
+            Invite a new user to join your organisation via email.
           </DialogDescription>
         </DialogHeader>
         <InviteUserForm onSuccess={handleSuccess} />

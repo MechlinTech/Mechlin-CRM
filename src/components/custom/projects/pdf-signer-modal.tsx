@@ -246,24 +246,25 @@ export default function PDFSignerModal({
     else toast.error("Drop an image file")
   }
 
-  const handleSign = async () => {
-    if (!signatureImage) return toast.error("Upload a signature first")
-    if (!signerName.trim() || !signerEmail.trim()) return toast.error("Enter your name and email")
-    if (signaturePlacements.length === 0) return toast.error("Place at least one signature on the document")
-    setIsSigning(true)
-    try {
-      await signPdf({ pdfUrl, documentId, signatureImage, signatureFileType, signerName, signerEmail, signaturePlacements, pageSizes })
-      toast.success(`Document signed with ${signaturePlacements.length} signature${signaturePlacements.length > 1 ? 's' : ''}!`)
-      onSignComplete()
-      onClose()
-    } catch (err: any) {
-  // Change this line to see the actual error message
-  console.error("Signing error details:", err.message || err); 
-  toast.error(`Failed to sign PDF: ${err.message || 'Unknown error'}`);
-} finally {
-      setIsSigning(false)
-    }
+ const handleSign = async () => {
+  if (!signatureImage) return toast.error("Upload a signature first")
+  if (!signerName.trim() || !signerEmail.trim()) return toast.error("Enter your name and email")
+  if (signaturePlacements.length === 0) return toast.error("Place at least one signature on the document")
+  
+  setIsSigning(true)
+  try {
+    await signPdf({ pdfUrl, documentId, signatureImage, signatureFileType, signerName, signerEmail, signaturePlacements, pageSizes })
+    toast.success(`Document signed successfully!`)
+    onSignComplete()
+    onClose()
+  } catch (err: any) {
+    // This will now show our custom "The uploaded file is not a valid PNG..." message
+    toast.error(`Signing failed: ${err || 'Unknown error'}`);
+    console.error("Signing error:", err);
+  } finally {
+    setIsSigning(false)
   }
+}
 
   const handleClose = () => {
     if (isSigning) return
@@ -300,7 +301,7 @@ export default function PDFSignerModal({
             <Step n={3} label="Place" done={step3Done} active={step2Done && !step3Done} />
           </div>
           <button onClick={handleClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors">
-            <X className="h-4 w-4 text-slate-500" />
+            <X className="h-4 w-4 text-slate-500 cursor-pointer" />
           </button>
         </div>
 
@@ -389,7 +390,7 @@ export default function PDFSignerModal({
                       </div>
                       <button onMouseDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); removePlacement(p.id) }}
                         className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 hover:bg-red-600 border border-white rounded-full flex items-center justify-center z-20 transition-colors">
-                        <X className="h-2.5 w-2.5 text-white" />
+                        <X className="h-2.5 w-2.5 text-white cursor-pointer" />
                       </button>
                       <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-blue-500 rounded-tl pointer-events-none" />
                       <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-blue-500 rounded-tr pointer-events-none" />

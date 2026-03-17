@@ -47,14 +47,14 @@ export function useOrganization(): UseOrganizationReturn {
         .single()
 
       if (error) {
-        console.error("Error fetching organization:", error)
+        console.error("Error fetching organisation:", error)
         setUserOrg(null)
         return
       }
 
       setUserOrg(data as unknown as UserOrganization)
     } catch (error) {
-      console.error("Error in fetchOrganization:", error)
+      console.error("Error in fetchOrganisation:", error)
       setUserOrg(null)
     } finally {
       setLoading(false)

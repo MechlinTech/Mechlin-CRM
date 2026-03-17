@@ -143,7 +143,7 @@ export default function OrganizationAboutPage() {
         <Card className="lg:col-span-8 border-none shadow-sm bg-white rounded-3xl p-8 overflow-hidden">
           <div className="flex items-center gap-2 mb-8">
      
-            <h3 className="text-lg font-semibold text-[#0F172A]">Organization Details</h3>
+            <h3 className="text-lg font-semibold text-[#0F172A]">Organisation Details</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-1 gap-x-10 gap-y-6">

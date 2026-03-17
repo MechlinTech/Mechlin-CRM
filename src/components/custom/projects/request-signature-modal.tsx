@@ -40,7 +40,7 @@ export function RequestSignatureModal({ projectId }: { projectId: string }) {
 
   const handleRequest = async () => {
     if (selectedDocIds.length === 0 || selectedMembers.length === 0) {
-      return toast.error("Select at least one document and one signer");
+      return toast.error("Select at least one document and one singer");
     }
     setLoading(true);
     const res = await requestSignatureAction(projectId, selectedDocIds, selectedMembers);
@@ -65,13 +65,14 @@ export function RequestSignatureModal({ projectId }: { projectId: string }) {
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="min-w-3xl bg-white rounded-[28px] border-none shadow-2xl p-0 overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
+      {/* FIXED: Removed overflow-hidden and added flex flex-col with max-height to ensure the header is always visible */}
+      <DialogContent className="sm:max-w-[700px] w-[95vw] max-h-[90vh] bg-white rounded-[28px] border-none shadow-2xl p-0 flex flex-col">
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white rounded-t-[28px]">
           <DialogTitle className="text-sm font-bold uppercase tracking-widest text-slate-400">Request Signatures</DialogTitle>
-      
         </div>
 
-        <div className="p-2 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
+        {/* Inner content container handles the scrolling */}
+        <div className="p-4 sm:p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
           
           {/* Professional Restriction Notice */}
           <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3">
@@ -116,7 +117,7 @@ export function RequestSignatureModal({ projectId }: { projectId: string }) {
           </div>
         </div>
 
-        <div className="p-6 bg-slate-50 border-t border-slate-100">
+        <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 rounded-b-[28px]">
           <Button 
             onClick={handleRequest} 
             disabled={loading || selectedDocIds.length === 0 || selectedMembers.length === 0} 

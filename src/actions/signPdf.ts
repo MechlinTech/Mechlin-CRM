@@ -26,9 +26,20 @@ export async function signPdf({
   const sigArray = new Uint8Array(binaryStr.length)
   for (let i = 0; i < binaryStr.length; i++) sigArray[i] = binaryStr.charCodeAt(i)
  
-  const sigEmbed = signatureFileType === "jpg"
-    ? await pdfDoc.embedJpg(sigArray.buffer)
-    : await pdfDoc.embedPng(sigArray.buffer)
+let sigEmbed;
+  try {
+    sigEmbed = signatureFileType === "jpg"
+      ? await pdfDoc.embedJpg(sigArray.buffer)
+      : await pdfDoc.embedPng(sigArray.buffer)
+  } catch (error: any) {
+    if (error.message?.includes("not a PNG")) {
+      throw new Error("The uploaded file is not a valid PNG image. Please ensure the file format matches the extension.")
+    }
+    if (error.message?.includes("not a JPG") || error.message?.includes("not a JPEG")) {
+      throw new Error("The uploaded file is not a valid JPG image.")
+    }
+    throw error;
+  }
  
   const pdfPages = pdfDoc.getPages()
  

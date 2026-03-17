@@ -18,7 +18,7 @@
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
-  organisation_id: z.string().uuid("Please select an organization"),
+  organisation_id: z.string().uuid("Please select an organisation"),
   status: z.enum(["Active", "Pending", "Suspended"]),
   repo_link: z.string().url("Must be a valid URL").or(z.literal("")).nullable(),
   start_date: z.string().min(1, "Start date is required"),
@@ -174,7 +174,7 @@ const projectSchema = z.object({
     render={({ field }) => (
       <FormItem>
         <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
-            Organization *
+            Organisation *
         </FormLabel>
         <Select onValueChange={field.onChange} value={field.value ?? ""}>
           <FormControl>
@@ -182,7 +182,7 @@ const projectSchema = z.object({
               "bg-white border-slate-200 rounded-xl text-xs font-medium h-10",
               form.formState.errors.organisation_id && "border-red-500"
             )}>
-              <SelectValue placeholder="Select Organization" />
+              <SelectValue placeholder="Select Organisation" />
             </SelectTrigger>
           </FormControl>
           <SelectContent>

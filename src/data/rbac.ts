@@ -88,7 +88,7 @@ export async function enrichRolesWithOrganisationNames(roles: any[]) {
         if (!role.is_system_role && role.organisation_id) {
             return {
                 ...role,
-                organisation_name: orgMap.get(role.organisation_id) || 'Unknown Organization'
+                organisation_name: orgMap.get(role.organisation_id) || 'Unknown Organisation'
             }
         }
         return role
@@ -177,8 +177,8 @@ export async function createRole(data: CreateRoleInput, userId?: string) {
         return { 
             data: null, 
             error: { 
-                message: "Organization ID is required for creating custom roles",
-                code: "ORGANIZATION_REQUIRED"
+                message: "Organisation ID is required for creating custom roles",
+                code: "ORGANISATION_REQUIRED"
             } 
         }
     }

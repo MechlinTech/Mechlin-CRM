@@ -73,13 +73,13 @@ export function AssignedDocumentsGrid({
   if (loading) return <div className="py-20 text-center text-xs text-slate-400 font-semibold uppercase tracking-widest">Loading assignments...</div>
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-in fade-in duration-500">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in duration-500">
       {filtered.length > 0 ? filtered.map((item) => {
         const doc = item.documents;
         const isSigned = item.status === 'signed';
 
         return (
-          <div key={item.id} className={`group bg-white border ${isSigned ? 'border-emerald-100 bg-emerald-50/10' : 'border-slate-200'} rounded-[24px] p-5 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-all ring-1 ring-slate-50`}>
+          <div key={item.id} className={`group bg-white border ${isSigned ? 'border-emerald-100 bg-emerald-50/10' : 'border-slate-200'} rounded-[24px] p-4 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-all ring-1 ring-slate-50`}>
             <div>
               <div className={`h-14 w-14 rounded-2xl flex items-center justify-center mb-4 transition-all shadow-sm ${
                 isSigned ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500 group-hover:bg-emerald-600 group-hover:text-white'
@@ -91,38 +91,40 @@ export function AssignedDocumentsGrid({
                 {doc?.name}
               </h3>
 
-              <div className="flex items-center gap-2 mb-4">
-                {isSigned ? (
-                  <span className="text-[9px] font-bold text-emerald-600 flex items-center gap-1 uppercase tracking-tighter">
-                    <CheckCircle2 className="h-3 w-3" /> Signed on {item.signed_at ? format(new Date(item.signed_at), "MMM d, yyyy") : 'Recently'}
-                  </span>
-                ) : (
-                  <span className="text-[9px] font-medium text-slate-400 flex items-center gap-1 uppercase tracking-tighter">
-                    <Calendar className="h-3 w-3" /> Waiting for your sign
-                  </span>
-                )}
-              </div>
+             <div className="flex items-center gap-2 mb-4">
+              {isSigned ? (
+                <span className="text-[9px] font-bold text-emerald-600 flex items-center gap-1 uppercase tracking-tighter">
+                  <CheckCircle2 className="h-3 w-3" /> Signed on {item.signed_at ? format(new Date(item.signed_at), "MMM d, yyyy") : 'Recently'}
+                </span>
+              ) : (
+                <span className="text-[9px] font-medium text-slate-400 flex items-center gap-1 uppercase tracking-tighter">
+                  <Calendar className="h-3 w-3" /> Waiting for your sign
+                </span>
+              )}
             </div>
+          </div>
 
-            {isSigned ? (
-              <Button
-                onClick={() => window.open(doc.file_url, "_blank")}
-                variant="outline"
-                size="sm"
-                className="w-full"
-              >
-                View Signed Doc
-              </Button>
-            ) : (
-              <Button
-                onClick={() => setSigningDoc({ id: doc.id, name: doc.name, url: doc.file_url })}
-                variant="default"
-                size="default"
-                className="w-full"
-              >
-                <PenTool className="h-4 w-4" /> Sign Document
-              </Button>
-            )}
+          {isSigned ? (
+            <Button
+              onClick={() => window.open(doc.file_url, "_blank")}
+              variant="outline"
+              size="sm"
+              // Added text-[10px] to ensure text fits, and min-w-0 to handle flex overflow
+              className="w-full shrink-0 whitespace-nowrap text-[10px] px-2"
+            >
+              View Signed Doc
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setSigningDoc({ id: doc.id, name: doc.name, url: doc.file_url })}
+              variant="default"
+              size="sm" // Changed from default to sm to reduce height/padding
+              // Added text-[10px], gap-1.5, and px-2 for a more compact fit
+              className="w-full shrink-0 whitespace-nowrap gap-1.5 text-[10px] px-2"
+            >
+              <PenTool className="h-3.5 w-3.5" /> Sign Document
+            </Button>
+)}
           </div>
         )
       }) : (

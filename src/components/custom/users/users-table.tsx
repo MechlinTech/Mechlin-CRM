@@ -99,7 +99,7 @@ export function UsersTable({ users }: UsersTableProps) {
         {!isAdminWithInternalFalse && (
           <Select value={organisationFilter} onValueChange={setOrganisationFilter}>
             <SelectTrigger className="w-full sm:w-[200px] border-gray-200/50 focus:border-purple-300 focus:ring-purple-500/20">
-              <SelectValue placeholder="Filter by organization" />
+              <SelectValue placeholder="Filter by organisation" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Organisations</SelectItem>

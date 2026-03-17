@@ -36,7 +36,7 @@ export function ProjectsTable({ projects, organisations, users }: any) {
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Input
-          placeholder="Search projects or organizations..."
+          placeholder="Search projects or organisations..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-sm"

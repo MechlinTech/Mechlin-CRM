@@ -55,7 +55,9 @@ export function TaskForm({ ids, task, onSuccess }: { ids: any, task?: any, onSuc
         {/* Title Field */}
         <FormField control={form.control} name="title" render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Task Title</FormLabel>
+            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+              Task Title <span className="text-red-500">*</span>
+            </FormLabel>
             <FormControl>
               <Input 
                 {...field} 
@@ -78,7 +80,9 @@ export function TaskForm({ ids, task, onSuccess }: { ids: any, task?: any, onSuc
         {/* Status Field */}
         <FormField control={form.control} name="status" render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">Status</FormLabel>
+            <FormLabel className="text-[10px] font-medium uppercase text-slate-400 tracking-widest">
+              Status <span className="text-red-500">*</span>
+            </FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs font-medium h-10 cursor-pointer focus:border-[#006AFF] transition-all">
