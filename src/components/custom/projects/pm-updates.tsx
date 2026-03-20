@@ -86,7 +86,7 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
             <Button 
               variant="outline" 
               onClick={() => setOpen(false)} 
-              className="w-[180px] bg-white border-slate-200 text-slate-600 hover:bg-slate-50 transition-all rounded-xl h-11"
+         
             >
                 Cancel
             </Button>
@@ -94,7 +94,8 @@ export function PMUpdateDialog({ projectId, log, children, onSuccess }: any) {
             <Button 
               disabled={loading} 
               onClick={handleSave} 
-              className="w-[180px] bg-[#006AFF] hover:bg-[#0056cc] text-white transition-all shadow-md rounded-xl h-11"
+              variant={"default"}
+       
             >
               {loading ? 'Processing...' : isEdit ? 'Update Broadcast' : 'Post to Notice Board'}
             </Button>

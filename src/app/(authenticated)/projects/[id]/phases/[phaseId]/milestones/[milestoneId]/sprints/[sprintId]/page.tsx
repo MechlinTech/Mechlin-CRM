@@ -16,6 +16,8 @@ import { redirect, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { SprintThreads } from "@/components/custom/threads/SprintThreads";
 import { useRBAC } from "@/context/rbac-context"; 
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal";
+import { toast } from "sonner"; // Ensure toast is imported for feedback
 
 function TaskItem({ task, ids, onRefresh }: { task: any, ids: any, onRefresh: () => void }) {
   const [open, setOpen] = React.useState(false);
@@ -85,9 +87,22 @@ function TaskItem({ task, ids, onRefresh }: { task: any, ids: any, onRefresh: ()
           </Dialog>
         )}
 
-        {!loading && hasPermission('tasks.delete') && (
-          <button onClick={() => confirm('Delete task?') && deleteTaskAction(task.id, ids.project_id).then(onRefresh)} className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-300 hover:text-red-600 bg-white active:scale-95 transition-all cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
-        )}
+     {!loading && hasPermission('tasks.delete') && (
+  <ConfirmDeleteModal
+    title="Delete Task"
+    description={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
+    onConfirm={async () => {
+      await deleteTaskAction(task.id, ids.project_id);
+      toast.success("Task deleted successfully");
+      onRefresh();
+    }}
+    trigger={
+      <button className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-100 text-slate-300 hover:text-red-600 bg-white active:scale-95 transition-all cursor-pointer">
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    }
+  />
+)}
       </div>
     </div> 
    )}
@@ -156,9 +171,22 @@ export default function SprintPage({ params }: { params: any }) {
                   </DialogContent>
                 </Dialog>
               )}
-              {!loading && hasPermission('sprints.delete') && (
-                <button onClick={() => confirm('Delete?') && deleteSprintAction(sprintId, id).then(() => router.back())} className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer"><Trash2 className="h-4 w-4" /></button>
-              )}
+{!loading && hasPermission('sprints.delete') && (
+  <ConfirmDeleteModal
+    title="Delete Sprint"
+    description={`Are you sure you want to delete "${sprint.name}"? This will permanently remove all associated tasks and data.`}
+    onConfirm={async () => {
+      await deleteSprintAction(sprintId, id);
+      toast.success("Sprint deleted successfully");
+      router.back();
+    }}
+    trigger={
+      <button className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer">
+        <Trash2 className="h-4 w-4" />
+      </button>
+    }
+  />
+)}
             </div>
           </div>
           <div className="text-sm text-slate-500 font-normal leading-relaxed max-w-lg mb-8 break-all whitespace-pre-wrap">{sprint.description || "Active sprint phase focusing on task execution."}</div>

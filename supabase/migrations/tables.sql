@@ -355,7 +355,7 @@ CREATE TABLE user_permissions (
 );
  
 -- ============================================
--- PART 3: USER INVITES SYSTEM
+-- PART 3: USER      SYSTEM
 -- ============================================
  
 -- User Invites Table

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { EditProjectDialog } from "./edit-project-dialog"
 import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal"
 
 // Component for actions cell to handle RBAC hooks correctly
 const ActionsCell = ({ project, organisations, users }: { project: any, organisations: any[], users: any[] }) => {
@@ -28,7 +29,16 @@ const ActionsCell = ({ project, organisations, users }: { project: any, organisa
         else toast.error(res.error);
     }
   };
-
+const onConfirmDelete = async () => {
+    const res = await deleteProjectAction(project.id);
+    if (res.success) {
+      toast.success("Project deleted successfully");
+      // Since this is a table, you might need to refresh the page or route 
+      // depending on how your table state is managed
+    } else {
+      toast.error(res.error);
+    }
+  };
   // Skip rendering actions if permissions are still loading
   if (loading) return <div className="h-8 w-8" />;
 
@@ -51,9 +61,10 @@ const ActionsCell = ({ project, organisations, users }: { project: any, organisa
         </DropdownMenuItem>
 
         {/* RBAC: Only show Edit if user has projects.update permission */}
-        {canUpdate && (
+  {canUpdate && (
           <>
             <DropdownMenuSeparator />
+            {/* stopPropagation ensures clicking the dialog doesn't trigger dropdown logic */}
             <div onClick={(e) => e.stopPropagation()}>
                <EditProjectDialog 
                  project={project} 
@@ -65,15 +76,23 @@ const ActionsCell = ({ project, organisations, users }: { project: any, organisa
         )}
 
         {/* RBAC: Only show Delete if user has projects.delete permission */}
-        {canDelete && (
+   {canDelete && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
-                className="text-red-600 cursor-pointer " 
-                onClick={handleDelete}
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete Project
-            </DropdownMenuItem>
+            {/* Wrap the DropdownMenuItem with our Confirm Modal */}
+            <ConfirmDeleteModal
+              title="Delete Project"
+              description={`Are you sure you want to delete "${project.name}"? This will permanently remove all phases, milestones, sprints, and documents associated with this project.`}
+              onConfirm={onConfirmDelete}
+              trigger={
+                <DropdownMenuItem 
+                  className="text-red-600 cursor-pointer" 
+                  onSelect={(e) => e.preventDefault()} // Prevents dropdown from closing immediately
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete Project
+                </DropdownMenuItem>
+              }
+            />
           </>
         )}
       </DropdownMenuContent>

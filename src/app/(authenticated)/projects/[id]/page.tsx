@@ -32,6 +32,7 @@ import {
   ProjectTimelineChart
 } from "@/components/custom/project-charts";
 import { BarChart3, TrendingUp, PieChart } from "lucide-react";
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal"
 
 export default function ProjectOverview({ params }: { params: any }) {
   const router = useRouter(); // Initialize the router here
@@ -284,11 +285,21 @@ export default function ProjectOverview({ params }: { params: any }) {
                         </Dialog>
                       )}
 
-                      {!loading && hasPermission('phases.delete') && (
-                        <form action={async () => { if(confirm('Delete phase?')) { await deletePhaseAction(phase.id, id); loadData(); } }}>
-                            <button type="submit" className="h-8 w-8 flex items-center justify-center rounded-md text-slate-500 hover:text-red-500 transition-all"><Trash2 className="h-4 w-4 cursor-pointer" /></button>
-                        </form>
-                      )}
+{!loading && hasPermission('phases.delete') && (
+  <ConfirmDeleteModal
+    title="Delete Phase"
+    description={`Are you sure you want to delete "${phase.name}"? All associated milestones and tasks will be removed.`}
+    onConfirm={async () => {
+      await deletePhaseAction(phase.id, id);
+      loadData();
+    }}
+    trigger={
+      <button className="h-8 w-8 flex items-center justify-center rounded-md text-slate-500 hover:text-red-500 transition-all">
+        <Trash2 className="h-4 w-4 cursor-pointer" />
+      </button>
+    }
+  />
+)}
                     </div>
                     
                     {!loading && hasPermission('milestones.create') && (

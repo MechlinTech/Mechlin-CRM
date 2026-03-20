@@ -17,7 +17,7 @@ import {
 } from '@/actions/threads'
 import { useRBAC } from '@/context/rbac-context'
 import { useRouter } from 'next/navigation'
-
+import { ConfirmDeleteModal } from '@/components/shared/confirm-delete-modal'
 interface EnquiryThreadProps {
     contextType: 'project' | 'support' | 'user' | 'general'
     contextId?: string
@@ -123,35 +123,31 @@ export function EnquiryThread({
         }
     }
 
-    const handleDeleteThread = async (threadId: string) => {
-        // RBAC Check
-        if (!hasPermission('threads.delete')) {
-            console.error('Unauthorized to delete threads')
-            return
-        }
-
-        if (!confirm('Are you sure you want to delete this thread? This action cannot be undone.')) {
-            return
-        }
-
-        setLoading(true)
-        try {
-            const result = await deleteThreadAction(threadId)
-            if (result.success) {
-                if (selectedThread?.id === threadId) {
-                    setSelectedThread(null)
-                    setView('list')
-                }
-                loadThreads()
-            } else {
-                console.error('Failed to delete thread:', result.error)
-            }
-        } catch (error) {
-            console.error('Error deleting thread:', error)
-        } finally {
-            setLoading(false)
-        }
+  const handleDeleteThread = async (threadId: string) => {
+    // RBAC Check
+    if (!hasPermission('threads.delete')) {
+        console.error('Unauthorized to delete threads')
+        return
     }
+
+    setLoading(true)
+    try {
+        const result = await deleteThreadAction(threadId)
+        if (result.success) {
+            if (selectedThread?.id === threadId) {
+                setSelectedThread(null)
+                setView('list')
+            }
+            loadThreads()
+        } else {
+            console.error('Failed to delete thread:', result.error)
+        }
+    } catch (error) {
+        console.error('Error deleting thread:', error)
+    } finally {
+        setLoading(false)
+    }
+}
 
     const handleSelectThread = (thread: Thread) => {
         setSelectedThread(thread)
@@ -394,19 +390,24 @@ export function EnquiryThread({
                                     </div>
                                 </div>
                                 
-                                {hasPermission('threads.delete') && thread.created_by === currentUserId && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            handleDeleteThread(thread.id)
-                                        }}
-                                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                                    >
-                                        <Trash className="h-4 w-4" />
-                                    </Button>
-                                )}
+{hasPermission('threads.delete') && thread.created_by === currentUserId && (
+    <div onClick={(e) => e.stopPropagation()}>
+        <ConfirmDeleteModal
+            title="Delete Thread"
+            description={`Are you sure you want to delete "${thread.title}"? All messages within this discussion will be permanently removed.`}
+            onConfirm={() => handleDeleteThread(thread.id)}
+            trigger={
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                >
+                    <Trash className="h-4 w-4" />
+                </Button>
+            }
+        />
+    </div>
+)}
                             </div>
                         </div>
                     ))

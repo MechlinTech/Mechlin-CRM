@@ -31,6 +31,8 @@ import {
   Calendar,
   User
 } from 'lucide-react'
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal";
+
 
 export default function WikiPageView() {
   const params = useParams()
@@ -281,15 +283,21 @@ export default function WikiPageView() {
                   )}
                   {/* RBAC: wiki.delete */}
                   {!loading && hasPermission('wiki.delete') && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowDeleteDialog(true)}
-                      className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </Button>
+<ConfirmDeleteModal
+    title="Delete Wiki Page"
+    description={`Are you sure you want to delete "${page.title}"? This action cannot be undone and all history for this page will be removed.`}
+    onConfirm={handleDelete}
+    trigger={
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-600"
+      >
+        <Trash2 className="h-4 w-4" />
+        Delete
+      </Button>
+    }
+  />
                   )}
                 </>
               )}

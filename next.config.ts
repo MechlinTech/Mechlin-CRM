@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false, // This is the key fix for localhost
   images: {
     remotePatterns: [
       {

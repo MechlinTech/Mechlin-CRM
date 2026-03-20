@@ -12,6 +12,7 @@ import dynamic from "next/dynamic"
 import { RequestSignatureModal } from "@/components/custom/projects/request-signature-modal"
 import { AssignedDocumentsGrid } from "@/components/custom/projects/assigned-documents-grid"
 import { cn } from "@/lib/utils"
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal"
 
 const PDFSignerModal = dynamic(
   () => import("@/components/custom/projects/pdf-signer-modal"),
@@ -339,19 +340,22 @@ React.useEffect(() => {
                         </button>
                       )}
 
-                      {!rbacLoading && hasPermission("documents.delete") && (
-                        <button
-                          onClick={async () => {
-                            if (confirm("Delete file?")) {
-                              await deleteDocumentAction(doc.id, id)
-                              fetchDocs()
-                            }
-                          }}
-                          className="h-8 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-semibold uppercase hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all active:scale-95 cursor-pointer shadow-sm"
-                        >
-                          Delete
-                        </button>
-                      )}
+{!rbacLoading && hasPermission("documents.delete") && (
+  <ConfirmDeleteModal
+    title="Delete Document"
+    description={`Are you sure you want to delete "${doc.name}"? This file will be permanently removed from the project vault.`}
+    onConfirm={async () => {
+      await deleteDocumentAction(doc.id, id)
+      toast.success("Document deleted")
+      fetchDocs()
+    }}
+    trigger={
+      <button className="h-8 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-semibold uppercase hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all active:scale-95 cursor-pointer shadow-sm w-full">
+        Delete
+      </button>
+    }
+  />
+)}
                     </div>
                   </div>
                 </div>
