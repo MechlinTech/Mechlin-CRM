@@ -105,7 +105,8 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              {/* Added Red Asterisk */}
+              <FormLabel>Email Address <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input
                   type="email"
@@ -125,7 +126,8 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
             name="organisationId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Organisation</FormLabel>
+                {/* Added Red Asterisk for Read-only state */}
+                <FormLabel>Organisation <span className="text-red-500">*</span></FormLabel>
                 <FormControl>
                   <Input
                     value={organisationName || "Loading..."}
@@ -143,7 +145,8 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
             name="organisationId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Organisation</FormLabel>
+                {/* Added Red Asterisk */}
+                <FormLabel>Organisation <span className="text-red-500">*</span></FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
