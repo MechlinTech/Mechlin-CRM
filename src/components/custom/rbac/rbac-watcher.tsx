@@ -35,3 +35,8 @@
         // This component doesn't render anything - it just watches for route changes
         return null
     }
+
+
+// export function RBACWatcher() {
+//     return null
+// }

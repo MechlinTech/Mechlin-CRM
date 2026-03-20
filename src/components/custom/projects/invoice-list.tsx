@@ -6,6 +6,7 @@ import { deleteInvoiceAction } from "@/actions/invoices"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal";
 
 export function InvoiceList({ invoices, projectId, organisationName, onRefresh }: { invoices: any[], projectId: string, organisationName?: string, onRefresh?: () => void }) {
   const { hasPermission, loading } = useRBAC(); // Added RBAC Hook
@@ -64,15 +65,20 @@ export function InvoiceList({ invoices, projectId, organisationName, onRefresh }
             
             {/* RBAC: Only show Delete if user has invoices.delete permission */}
             {!loading && hasPermission('invoices.delete') && (
-              <button onClick={async () => { 
-                if(confirm('Delete record?')) {
-                  await deleteInvoiceAction(inv.id, projectId, inv.storage_path); 
-                  toast.success("Delete complete");
-                  onRefresh?.(); 
-                }
-              }} className="h-10 w-10 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer">
-                <Trash2 className="h-4 w-4" />
-              </button>
+<ConfirmDeleteModal
+    title="Delete Invoice"
+    description={`Are you sure you want to delete invoice ${inv.invoice_number}? This action will permanently remove the record and its associated file.`}
+    onConfirm={async () => {
+      await deleteInvoiceAction(inv.id, projectId, inv.storage_path);
+      toast.success("Invoice deleted successfully");
+      onRefresh?.();
+    }}
+    trigger={
+      <button className="h-10 w-10 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer">
+        <Trash2 className="h-4 w-4" />
+      </button>
+    }
+  />
             )}
           </div>
         </div>

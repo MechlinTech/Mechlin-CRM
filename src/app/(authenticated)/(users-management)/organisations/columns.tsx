@@ -30,6 +30,8 @@ import { CreateOrganisationForm } from "@/components/custom/organisations/create
 import { useState } from "react"
 import { formatDate } from "@/lib/utils"
 import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal"
+import { toast } from "sonner"
 
 // Component for actions cell to properly handle React hooks
 const ActionsCell = ({ organisation }: { organisation: Organisation }) => {
@@ -64,13 +66,30 @@ const ActionsCell = ({ organisation }: { organisation: Organisation }) => {
           )}
 
           {/* RBAC: Delete permission */}
-          {canDelete && (
-            <DropdownMenuItem
-              className="text-red-600 focus:text-red-600"
-              onClick={() => confirm('Delete this organisation?') && deleteOrganisationAction(organisation.id)}
-            >
-              Delete Organisation
-            </DropdownMenuItem>
+{canDelete && (
+            <>
+              <DropdownMenuSeparator />
+              <ConfirmDeleteModal
+                title="Delete Organisation"
+                description={`Are you sure you want to delete "${organisation.name}"? This will remove all associated users, projects, and data linked to this organization. This action is irreversible.`}
+                onConfirm={async () => {
+                  try {
+                    await deleteOrganisationAction(organisation.id);
+                    toast.success("Organisation deleted successfully");
+                  } catch (error) {
+                    toast.error("Failed to delete organisation");
+                  }
+                }}
+                trigger={
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600 cursor-pointer"
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    Delete Organisation
+                  </DropdownMenuItem>
+                }
+              />
+            </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>

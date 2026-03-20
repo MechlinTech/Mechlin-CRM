@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRBAC } from "@/context/rbac-context"; 
 import { useOrganization } from "@/hooks/useOrganization";
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal";
 
 export default function ProjectLayout({ children, params }: { children: React.ReactNode, params: any }) {
   const { id } = React.use(params) as any;
@@ -216,17 +217,24 @@ export default function ProjectLayout({ children, params }: { children: React.Re
                         <button className="p-1.5 text-slate-400 hover:bg-[#99C4FF] cursor-pointer"><Pencil className="h-3 w-3" /></button>
                       </PMUpdateDialog>
                     )}
-                    {!loading && hasPermission('pmupdates.delete') && (
-                      <form action={async () => { 
-                        if(confirm('Delete this broadcast?')) {
-                          await deletePMUpdateAction(log.id, id); 
-                          toast.success("Broadcast deleted");
-                          loadData(); 
-                        }
-                      }}>
-                        <button type="submit" className="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"><Trash2 className="h-3 w-3" /></button>
-                      </form>
-                    )}
+{!loading && hasPermission('pmupdates.delete') && (
+  <div onClick={(e) => e.stopPropagation()}>
+    <ConfirmDeleteModal
+      title="Delete Broadcast"
+      description="Are you sure you want to delete this broadcast update? This action cannot be undone."
+      onConfirm={async () => {
+        await deletePMUpdateAction(log.id, id);
+        toast.success("Broadcast deleted");
+        loadData();
+      }}
+      trigger={
+        <button className="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer transition-colors">
+          <Trash2 className="h-3 w-3" />
+        </button>
+      }
+    />
+  </div>
+)}
                   </div>
                   <div className="text-xs text-slate-600 line-clamp-2 font-normal" dangerouslySetInnerHTML={{ __html: log.new_value?.content }} />
                   <div className="flex items-center justify-between border-t border-slate-200 pt-2.5">

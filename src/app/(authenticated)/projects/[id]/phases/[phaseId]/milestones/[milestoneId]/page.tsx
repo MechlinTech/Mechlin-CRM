@@ -16,6 +16,8 @@ import { DocumentForm } from "@/components/custom/projects/document-form";
 import { MilestoneThreads } from "@/components/custom/threads/MilestoneThreads";
 import { cn } from "@/lib/utils";
 import { useRBAC } from "@/context/rbac-context"; 
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal";
+import { toast } from "sonner"
 
 
 export default function MilestonePage({ params }: { params: any }) {
@@ -80,16 +82,20 @@ const statusColor = m.status === 'Active' || m.status === 'Open'
                 </Dialog>
               )}
          {!loading && hasPermission('milestones.delete') && (
-  <button 
-    onClick={() => {
-  if (window.confirm("Are you certain you want to delete this milestone? This action is irreversible and will permanently remove all associated sprints, tasks, and data.")) {
-  deleteMilestoneAction(milestoneId, id).then(() => router.push(`/projects/${id}`));
-}
-    }} 
-    className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer"
-  >
-    <Trash2 className="h-4 w-4" />
-  </button>
+  <ConfirmDeleteModal
+    title="Delete Milestone"
+    description={`Are you certain you want to delete "${m.name}"? This action is irreversible and will permanently remove all associated sprints, tasks, and historical data.`}
+    onConfirm={async () => {
+      await deleteMilestoneAction(milestoneId, id);
+      toast.success("Milestone deleted successfully");
+      router.push(`/projects/${id}`);
+    }}
+    trigger={
+      <button className="h-9 w-9 flex items-center justify-center rounded-md border border-slate-200 text-red-500 hover:bg-red-50 transition-all active:scale-95 bg-white cursor-pointer">
+        <Trash2 className="h-4 w-4" />
+      </button>
+    }
+  />
 )}
             </div>
           </div>

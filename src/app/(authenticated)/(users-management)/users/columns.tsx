@@ -27,6 +27,8 @@ import { useState } from "react"
 import { formatDate } from "@/lib/utils"
 import { useRBAC } from "@/context/rbac-context" // Added RBAC Integration
 import { useAuth } from "@/hooks/useAuth" // Added to get current user
+import { ConfirmDeleteModal } from "@/components/shared/confirm-delete-modal"
+import { toast } from "sonner"
 
 const organisationColumn: ColumnDef<User> = {
   accessorKey: "organisations.name",
@@ -119,7 +121,7 @@ const baseColumns: ColumnDef<User>[] = [
       const canUpdate = hasPermission('users.update')
       const canManageRoles = hasPermission('users.assign_roles')
       const canDelete = hasPermission('users.delete')
-
+const [dropdownOpen, setDropdownOpen] = useState(false)
       // Check if the user being viewed is the current user and has super_admin role
       const isCurrentUser = currentUser?.id === user.id
       const userRoles = (user as any).user_roles || []
@@ -130,40 +132,62 @@ const baseColumns: ColumnDef<User>[] = [
 
       return (
         <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              
-              {/* RBAC: Update permission */}
-              {canUpdate && (
-                <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                  Edit User
-                </DropdownMenuItem>
-              )}
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          
+          {canUpdate && (
+            <DropdownMenuItem onClick={() => {
+              setEditDialogOpen(true);
+              setDropdownOpen(false); // Close dropdown when opening edit
+            }}>
+              Edit User
+            </DropdownMenuItem>
+          )}
 
-              {/* RBAC: Assign roles permission */}
-              {canManageRoles && (
-                <DropdownMenuItem onClick={() => setRolesDialogOpen(true)}>
-                  Manage Roles
-                </DropdownMenuItem>
-              )}
+          {canManageRoles && (
+            <DropdownMenuItem onClick={() => {
+              setRolesDialogOpen(true);
+              setDropdownOpen(false); // Close dropdown when opening roles
+            }}>
+              Manage Roles
+            </DropdownMenuItem>
+          )}
 
-              {/* RBAC: Delete permission */}
-              {canDeleteUser && (
-                <DropdownMenuItem
-                  className="text-red-600 focus:text-red-600"
-                  onClick={() => confirm('Delete user?') && deleteUserAction(user.id)}
-                >
-                  Delete User
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {canDeleteUser && (
+            <>
+              <DropdownMenuSeparator />
+              <ConfirmDeleteModal
+                title="Delete User"
+                description={`Are you sure you want to delete ${user.name}?`}
+                onConfirm={async () => {
+                  try {
+                    await deleteUserAction(user.id);
+                    toast.success("User deleted successfully");
+                    
+                    // 3. CLOSE THE DROPDOWN MANUALLY HERE
+                    setDropdownOpen(false); 
+                  } catch (error) {
+                    toast.error("Failed to delete user");
+                  }
+                }}
+                trigger={
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600 cursor-pointer"
+                    onSelect={(e) => e.preventDefault()} 
+                  >
+                    Delete User
+                  </DropdownMenuItem>
+                }
+              />
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
           
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
             <DialogContent>

@@ -32,6 +32,8 @@ import {
   Calendar
 } from 'lucide-react'
 
+import { ConfirmDeleteModal } from '@/components/shared/confirm-delete-modal'
+
 // Helper function to strip HTML tags
 const stripHtml = (html: string) => {
   const tmp = document.createElement('div')
@@ -127,6 +129,7 @@ export function ProjectWikiList({
         setNewPageContent('')
         loadPages()
         
+        await loadPages()
         // Navigate to the full page view
         if (result.page) {
           router.push(`/projects/${projectId}/wiki?id=${result.page.id}`)
@@ -141,21 +144,19 @@ export function ProjectWikiList({
     }
   }
 
-  const handleDeletePage = async (pageId: string, pageTitle: string) => {
-    if (!confirm(`Are you sure you want to delete "${pageTitle}"?`)) return
-
-    try {
-      const result = await deleteWikiPageAction(pageId)
-      if (result.success) {
-        toast.success('Page deleted successfully!')
-        loadPages()
-      } else {
-        toast.error(result.error || 'Failed to delete page')
-      }
-    } catch (error) {
-      toast.error('Error deleting page')
+const handleDeletePage = async (pageId: string) => {
+  try {
+    const result = await deleteWikiPageAction(pageId)
+    if (result.success) {
+      toast.success('Page deleted successfully!')
+      loadPages()
+    } else {
+      toast.error(result.error || 'Failed to delete page')
     }
+  } catch (error) {
+    toast.error('Error deleting page')
   }
+}
 
   const handleSaveEdit = async () => {
     if (!editingPageId) return
@@ -308,26 +309,35 @@ export function ProjectWikiList({
                 </div>
                 <CardAction onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                   <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditedContent(page.content || '')
-                        setIsEditing(true)
-                        setEditingPageId(page.id)
-                      }}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeletePage(page.id, page.title)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+                   <Button
+    variant="ghost"
+    size="sm"
+    onClick={(e) => {
+      e.stopPropagation(); // Stop Edit button from triggering card click
+      setEditedContent(page.content || '');
+      setIsEditing(true);
+      setEditingPageId(page.id);
+    }}
+    className="h-8 w-8 p-0"
+  >
+    <Edit className="h-4 w-4" />
+  </Button>
+<div onClick={(e) => e.stopPropagation()}>
+    <ConfirmDeleteModal
+      title="Delete Wiki Page"
+      description={`Are you sure you want to delete "${page.title}"?`}
+      onConfirm={() => handleDeletePage(page.id)}
+      trigger={
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+        >
+          <Trash2 className="h-4 w-4 text-red-500" />
+        </Button>
+      }
+    />
+  </div>
                   </div>
                 </CardAction>
               </CardHeader>
